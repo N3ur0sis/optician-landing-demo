@@ -1,0 +1,47 @@
+/* Smooth scrolling enhancements */
+.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar during hero transition */
+.hide-scrollbar {
+  overflow: hidden;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Transition effects */
+.hero-transition {
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Enhanced camera zoom effect */
+.camera-zoom {
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+/* Section spacing for fixed nav */
+.section-padding {
+  scroll-margin-top: 5rem;
+}
+
+/* Gradient animations for better visual appeal */
+.gradient-bg-animated {
+  background: linear-gradient(-45deg, #ffffff, #f8fafc, #e2e8f0, #cbd5e1);
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
