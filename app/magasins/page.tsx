@@ -115,28 +115,29 @@ export default function MagasinsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-2 sm:gap-3 group">
               <motion.div 
-                className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold text-xl"
+                className="w-8 h-8 sm:w-10 sm:h-10 bg-black rounded-full flex items-center justify-center text-white font-bold text-lg sm:text-xl"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 O
               </motion.div>
-              <span className="text-xl font-semibold tracking-widest text-black group-hover:text-amber-800 transition-colors duration-300">
-                OPTIQUE DE BOURBON
+              <span className="text-lg sm:text-xl font-semibold tracking-widest text-black group-hover:text-amber-800 transition-colors duration-300">
+                <span className="hidden sm:inline">OPTIQUE DE BOURBON</span>
+                <span className="sm:hidden">ODB</span>
               </span>
             </Link>
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="flex items-center gap-4 sm:gap-6">
               <Link 
                 href="/" 
-                className="text-neutral-600 hover:text-amber-800 transition-colors duration-300"
+                className="text-sm sm:text-base text-neutral-600 hover:text-amber-800 transition-colors duration-300"
               >
                 Accueil
               </Link>
-              <span className="text-black font-medium relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-amber-400">
+              <span className="text-sm sm:text-base text-black font-medium relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-amber-400">
                 Magasins
               </span>
             </nav>
@@ -161,7 +162,7 @@ export default function MagasinsPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white relative z-10">
           <motion.h1 
-            className="text-5xl md:text-6xl font-bold mb-6 tracking-tight"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 tracking-tight"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ 
@@ -174,7 +175,7 @@ export default function MagasinsPage() {
             Nos magasins ODB
           </motion.h1>
           <motion.p 
-            className="text-xl opacity-90 max-w-3xl mx-auto"
+            className="text-lg sm:text-xl opacity-90 max-w-3xl mx-auto px-4"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ 

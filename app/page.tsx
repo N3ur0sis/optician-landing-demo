@@ -24,12 +24,12 @@ export default function Page() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Slower exponential curves for scroll-based text movement
-  // Left text: moves up much further (completely out of screen)
-  const leftY = useTransform(scroll, v => `${-900 * Math.pow(v as number, 2.4)}px`); // much more up
-  // Right text: moves up slower and not as far
-  const rightY = useTransform(scroll, v => `${-600 * Math.pow(v as number, 1.15)}px`); // slower, less far
-  // Model rotation progress (0 to 1) with smoother interpolation
+  // Enhanced exponential curves for buttery smooth scroll-based text movement
+  // Left text: elegant upward motion with luxury easing
+  const leftY = useTransform(scroll, v => `${-850 * Math.pow(v as number, 2.2)}px`); 
+  // Right text: sophisticated slower movement with refined curve
+  const rightY = useTransform(scroll, v => `${-550 * Math.pow(v as number, 1.25)}px`); 
+  // Model rotation progress with smooth interpolation
   const modelScroll = useTransform(scroll, [0, 1], [0, 1]);
 
   // Scroll-based opacity for SCROLL DOWN indicators
@@ -37,15 +37,15 @@ export default function Page() {
   // Fade out when glasses are put on (based on model scroll progress)
   const glassesOpacity = useTransform(modelScroll, [0, 0.3], [1, 0]);
 
-  // Animation variants
+  // Enhanced Animation variants for luxury experience
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        duration: 0.6,
-        staggerChildren: 0.15,
-        delayChildren: 0.3
+        duration: 0.8,
+        staggerChildren: 0.12,
+        delayChildren: 0.2
       }
     }
   };
@@ -53,8 +53,8 @@ export default function Page() {
   const itemVariants = {
     hidden: { 
       opacity: 0, 
-      y: 30,
-      scale: 0.95
+      y: 40,
+      scale: 0.96
     },
     visible: { 
       opacity: 1, 
@@ -78,9 +78,9 @@ export default function Page() {
       opacity: 1,
       x: 0,
       transition: {
-        duration: 0.8,
-        staggerChildren: 0.1,
-        delayChildren: 0.8
+        duration: 1.0,
+        staggerChildren: 0.08,
+        delayChildren: 0.6
       }
     }
   };
@@ -157,15 +157,15 @@ export default function Page() {
 
       {/* Top left: Logo and name */}
       <motion.div 
-        className="absolute top-0 left-0 flex items-center gap-2 p-6 z-20 select-none"
+        className="absolute top-0 left-0 flex items-center gap-2 p-4 sm:p-6 z-20 select-none"
         variants={containerVariants}
         initial="hidden"
         animate={isLoaded ? "visible" : "hidden"}
       >
         <motion.div 
-          className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white font-bold text-lg cursor-pointer hover:scale-110 transition-all duration-300 hover:shadow-lg hover-lift"
+          className="w-6 h-6 sm:w-8 sm:h-8 bg-black rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-lg cursor-pointer hover:scale-110 transition-all duration-300 hover:shadow-lg hover-lift"
           variants={logoVariants}
-          transition={{ duration: 1, type: "spring", bounce: 0.4, delay: 0.2 }}
+          transition={{ duration: 1.2, type: "spring", bounce: 0.3, delay: 0.2 }}
           whileHover={{ 
             scale: 1.15, 
             rotate: 5,
@@ -176,57 +176,109 @@ export default function Page() {
           O
         </motion.div>
         <motion.span 
-          className="text-lg font-semibold tracking-widest text-black uppercase hover:text-gray-600 transition-colors duration-500 cursor-pointer"
+          className="text-sm sm:text-lg font-semibold tracking-widest text-black uppercase hover:text-gray-600 transition-colors duration-500 cursor-pointer"
           variants={itemVariants}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
         >
-          Optique de Bourbon
+          <span className="hidden sm:inline">Optique de Bourbon</span>
+          <span className="sm:hidden">ODB</span>
         </motion.span>
       </motion.div>
 
       {/* Top right: Navbar links */}
       <motion.nav 
-        className="absolute top-0 right-0 flex items-center gap-6 p-6 z-20 select-none"
+        className="absolute top-0 right-0 flex items-center gap-3 sm:gap-4 md:gap-6 p-4 sm:p-6 z-20 select-none"
         variants={containerVariants}
         initial="hidden"
         animate={isLoaded ? "visible" : "hidden"}
       >
-        {[
-          { label: 'ACCUEIL', href: 'https://odb.re/' },
-          { label: 'SPORT', href: 'https://odb.re/odb-sport/' },
-          { label: 'KIDS', href: 'https://odb.re/odb-kids/' },
-          { label: 'ODB À DOMICILE', href: 'https://odb.re/odb-a-domicile/' },
-          { label: 'OPHTALMOLOGISTES', href: 'https://odb.re/ophtalmologistes/' },
-          { label: 'LENTILLES', href: 'https://odb.re/choisir-ses-lentilles/' },
-          { label: 'CONSEILS', href: 'https://odb.re/bien-choisir-ses-solaires/' },
-          { label: 'NOUS REJOINDRE', href: 'https://odb.re/recrutement/' },
-          { label: 'CONTACTS', href: 'https://odb.re/contacts/' },
-        ].map((item, index) => (
+        {/* Desktop Navigation - Show condensed version */}
+        <div className="hidden lg:flex items-center gap-6">
+          {[
+            { label: 'ACCUEIL', href: 'https://odb.re/' },
+            { label: 'SPORT', href: 'https://odb.re/odb-sport/' },
+            { label: 'KIDS', href: 'https://odb.re/odb-kids/' },
+            { label: 'LENTILLES', href: 'https://odb.re/choisir-ses-lentilles/' },
+            { label: 'CONTACTS', href: 'https://odb.re/contacts/' },
+          ].map((item, index) => (
+            <motion.a 
+              key={item.label}
+              href={item.href}
+              className="text-sm lg:text-base font-medium text-black hover:text-gray-600 transition-all duration-500 ease-out relative group underline-animate cursor-pointer"
+              variants={itemVariants}
+              transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.07 }}
+              whileHover={{ y: -1 }}
+              target="_blank" rel="noopener noreferrer"
+            >
+              {item.label}
+            </motion.a>
+          ))}
+          <MagasinsDropdown />
+        </div>
+
+        {/* Tablet Navigation - More condensed */}
+        <div className="hidden md:flex lg:hidden items-center gap-4">
+          {[
+            { label: 'ACCUEIL', href: 'https://odb.re/' },
+            { label: 'SPORT', href: 'https://odb.re/odb-sport/' },
+            { label: 'KIDS', href: 'https://odb.re/odb-kids/' },
+            { label: 'CONTACTS', href: 'https://odb.re/contacts/' },
+          ].map((item, index) => (
+            <motion.a 
+              key={item.label}
+              href={item.href}
+              className="text-sm font-medium text-black hover:text-gray-600 transition-all duration-500 ease-out relative group underline-animate cursor-pointer"
+              variants={itemVariants}
+              transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.07 }}
+              whileHover={{ y: -1 }}
+              target="_blank" rel="noopener noreferrer"
+            >
+              {item.label}
+            </motion.a>
+          ))}
+          <MagasinsDropdown />
+        </div>
+
+        {/* Mobile Navigation - Just essential items + hamburger */}
+        <div className="flex md:hidden items-center gap-3">
           <motion.a 
-            key={item.label}
-            href={item.href}
-            className="text-base font-medium text-black hover:text-gray-600 transition-all duration-500 ease-out relative group underline-animate cursor-pointer"
+            href="https://odb.re/"
+            className="text-sm font-medium text-black hover:text-gray-600 transition-all duration-500 ease-out relative group underline-animate cursor-pointer"
             variants={itemVariants}
-            transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.07 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             whileHover={{ y: -1 }}
             target="_blank" rel="noopener noreferrer"
           >
-            {item.label}
+            ACCUEIL
           </motion.a>
-        ))}
-        
-        {/* Magasins Dropdown */}
-        <MagasinsDropdown />
+          <MagasinsDropdown />
+          
+          {/* Mobile Menu Button */}
+          <motion.button 
+            className="text-black hover:text-gray-600 transition-colors duration-300 p-1"
+            variants={itemVariants}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              // For now, redirect to main site for full menu
+              window.open('https://odb.re/', '_blank');
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </motion.button>
+        </div>
       </motion.nav>
 
       {/* Bottom left: Social icons */}
       <motion.div 
-        className="absolute bottom-0 left-0 flex flex-col items-start gap-3 p-6 z-20 select-none"
+        className="absolute bottom-0 left-0 flex flex-col items-start gap-2 sm:gap-3 p-4 sm:p-6 z-20 select-none"
         variants={socialVariants}
         initial="hidden"
         animate={isLoaded ? "visible" : "hidden"}
       >
-        <motion.div className="flex gap-3 mb-2" variants={containerVariants}>
+        <motion.div className="flex gap-2 sm:gap-3 mb-2" variants={containerVariants}>
           {[ 
             { icon: FaFacebook, href: "https://www.facebook.com/ODBreunion/", label: "Facebook" },
             { icon: FaInstagram, href: "https://www.instagram.com/odbreunion/", label: "Instagram" }
@@ -237,7 +289,7 @@ export default function Page() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={label}
-              className="text-xl text-black/70 hover:text-black transition-colors duration-300 rounded-full border border-black/10 hover:border-black/40 p-2 cursor-pointer shadow-none"
+              className="text-lg sm:text-xl text-black/70 hover:text-black transition-colors duration-300 rounded-full border border-black/10 hover:border-black/40 p-1.5 sm:p-2 cursor-pointer shadow-none"
               variants={socialItemVariants}
               transition={{ duration: 0.5, type: "spring", bounce: 0.6, delay: index * 0.1 }}
               whileHover={{ 
@@ -261,7 +313,7 @@ export default function Page() {
 
       {/* Side scroll indicators with animations - positioned closer to edges */}
       <motion.div 
-        className="fixed left-4 top-1/2 -translate-y-1/2 z-50 select-none flex flex-col items-center"
+        className="fixed left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 z-50 select-none flex-col items-center hidden xl:flex"
         initial={{ opacity: 0, x: -30 }}
         animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
         transition={{ duration: 0.8, delay: 1.2 }}
@@ -335,7 +387,7 @@ export default function Page() {
       </motion.div>
 
       <motion.div 
-        className="fixed right-4 top-1/2 -translate-y-1/2 z-50 select-none flex flex-col items-center"
+        className="fixed right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 z-50 select-none flex-col items-center hidden xl:flex"
         initial={{ opacity: 0, x: 30 }}
         animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
         transition={{ duration: 0.8, delay: 1.2 }}
@@ -411,7 +463,7 @@ export default function Page() {
 
       {/* Bottom center mouse scroll indicator */}
       <motion.div 
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 select-none flex flex-col items-center"
+        className="fixed bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-50 select-none flex flex-col items-center"
         initial={{ opacity: 0, y: 20 }}
         animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
         transition={{ duration: 0.8, delay: 1.4 }}
@@ -471,19 +523,19 @@ export default function Page() {
         </motion.div>
       </motion.div>
 
-      <section className="relative w-full min-h-screen z-10">
+      <section className="relative w-full min-h-screen z-10 overflow-hidden">
         {/* Content that appears behind glasses - blurred initially, sharp when glasses are on */}
         <ContentReveal scrollProgress={modelScroll} cameraZ={cameraZ} />
         
         {/* Fullscreen Centered Glasses Model - positioned naturally in the layout */}
         <motion.div
-          className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
+          className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none overflow-hidden glasses-model-mobile"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
           transition={{ duration: 1.5, ease: 'easeOut', delay: 2.2 }}
         >
-          <div className="w-screen h-screen relative flex items-center justify-center">
-            <div className="w-full h-full">
+          <div className="w-full h-full max-w-full max-h-full relative flex items-center justify-center">
+            <div className="w-full h-full min-h-0 min-w-0">
               <GlassesModel 
                 scrollProgress={modelScroll} 
                 onCameraZChange={setCameraZ}
@@ -492,16 +544,20 @@ export default function Page() {
           </div>
         </motion.div>
 
-        {/* Left text - positioned with proper spacing from edge and SCROLL DOWN */}
+        {/* Left text - positioned with intelligent spacing based on viewport and model */}
         <motion.div
-          className="absolute left-12 sm:left-16 md:left-20 lg:left-24 xl:left-32 top-1/2 -translate-y-1/2 z-10 select-none"
+          className="absolute top-1/2 -translate-y-1/2 z-10 select-none hero-spacing-left"
           initial={{ opacity: 0, x: -60 }}
           animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: -60 }}
           transition={{ duration: 1.2, ease: 'easeOut', delay: 1.5 }}
         >
           <motion.div
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-black font-poppins leading-tight tracking-tight uppercase overflow-hidden"
-            style={{ letterSpacing: '0.12em', lineHeight: '1.1', y: leftY }}
+            className="font-bold text-black font-poppins leading-tight tracking-tight uppercase overflow-hidden hero-text-adaptive hero-text-narrow hero-text-desktop"
+            style={{ 
+              letterSpacing: '0.08em', 
+              lineHeight: '1.1', 
+              y: leftY 
+            }}
           >
             <motion.div
               className="overflow-hidden cursor-hover"
@@ -509,7 +565,7 @@ export default function Page() {
               animate={isLoaded ? { y: '0%' } : { y: '100%' }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 1.7 }}
             >
-              <span className="hover:text-gray-600 transition-colors duration-500">OPTIQUE</span>
+              <span className="hover:text-gray-600 transition-colors duration-500 block">OPTIQUE</span>
             </motion.div>
             <motion.div
               className="overflow-hidden cursor-hover"
@@ -517,21 +573,25 @@ export default function Page() {
               animate={isLoaded ? { y: '0%' } : { y: '100%' }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 1.9 }}
             >
-              <span className="hover:text-gray-600 transition-colors duration-500">DE BOURBON</span>
+              <span className="hover:text-gray-600 transition-colors duration-500 block">DE BOURBON</span>
             </motion.div>
           </motion.div>
         </motion.div>
 
-        {/* Right text - positioned with proper spacing from edge and SCROLL DOWN */}
+        {/* Right text - positioned with intelligent spacing based on viewport and model */}
         <motion.div
-          className="absolute right-12 sm:right-16 md:right-20 lg:right-24 xl:right-32 top-1/2 -translate-y-1/2 z-10 select-none"
+          className="absolute top-1/2 -translate-y-1/2 z-10 select-none hero-spacing-right"
           initial={{ opacity: 0, x: 60 }}
           animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: 60 }}
           transition={{ duration: 1.2, ease: 'easeOut', delay: 1.5 }}
         >
           <motion.div
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-black font-poppins leading-tight tracking-tight uppercase text-right overflow-hidden"
-            style={{ letterSpacing: '0.12em', lineHeight: '1.1', y: rightY }}
+            className="font-bold text-black font-poppins leading-tight tracking-tight uppercase text-right overflow-hidden ml-auto hero-text-adaptive hero-text-narrow hero-text-desktop"
+            style={{ 
+              letterSpacing: '0.08em', 
+              lineHeight: '1.1', 
+              y: rightY 
+            }}
           >
             <motion.div
               className="overflow-hidden cursor-hover"
@@ -539,7 +599,7 @@ export default function Page() {
               animate={isLoaded ? { y: '0%' } : { y: '100%' }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 1.7 }}
             >
-              <span className="hover:text-gray-600 transition-colors duration-500">OPTICIEN</span>
+              <span className="hover:text-gray-600 transition-colors duration-500 block">OPTICIEN</span>
             </motion.div>
             <motion.div
               className="overflow-hidden cursor-hover"
@@ -547,7 +607,7 @@ export default function Page() {
               animate={isLoaded ? { y: '0%' } : { y: '100%' }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 1.9 }}
             >
-              <span className="hover:text-gray-600 transition-colors duration-500">FRANÇAIS</span>
+              <span className="hover:text-gray-600 transition-colors duration-500 block">FRANÇAIS</span>
             </motion.div>
           </motion.div>
         </motion.div>

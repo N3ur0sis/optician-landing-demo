@@ -35,7 +35,7 @@ export default function MagasinsDropdown() {
   return (
     <div className="relative" ref={dropdownRef}>
       <motion.button
-        className="text-base font-medium text-black hover:text-amber-700 transition-all duration-500 ease-out relative group cursor-pointer flex items-center gap-1"
+        className="text-sm lg:text-base font-medium text-black hover:text-amber-700 transition-all duration-500 ease-out relative group cursor-pointer flex items-center gap-1"
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ y: -2 }}
         whileTap={{ y: 0 }}
@@ -52,7 +52,7 @@ export default function MagasinsDropdown() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="absolute top-full right-0 mt-2 w-48 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-neutral-100 py-2 z-30"
+            className="absolute top-full right-0 mt-2 w-48 sm:w-52 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-neutral-100 py-2 z-30"
             initial={{ opacity: 0, y: -10, scaleY: 0.8 }}
             animate={{ opacity: 1, y: 0, scaleY: 1 }}
             exit={{ opacity: 0, y: -10, scaleY: 0.8 }}

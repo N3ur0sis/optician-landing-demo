@@ -30,52 +30,52 @@ const ContentReveal = ({ scrollProgress, cameraZ = 100 }: ContentRevealProps) =>
       {/* Content sections that appear behind glasses */}
       <div className="relative h-full w-full overflow-y-auto">
         {/* Main content section - visible during glasses animation */}
-        <div className="min-h-screen flex flex-col justify-center items-center p-8 space-y-20">
+        <div className="min-h-screen flex flex-col justify-center items-center p-3 sm:p-4 md:p-6 lg:p-8 xl:p-12 pt-14 sm:pt-16 md:pt-6 lg:pt-8 xl:pt-12 space-y-8 sm:space-y-10 md:space-y-12 lg:space-y-16">
           {/* Hero Section */}
           <motion.div 
-            className="text-center max-w-3xl"
-            initial={{ opacity: 0, y: 50 }}
+            className="text-center max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-3xl px-2 sm:px-3 md:px-4"
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
+            transition={{ duration: 1.0, delay: 0.5, ease: "easeOut" }}
           >
-            <h1 className="text-4xl md:text-5xl font-semibold text-neutral-900 mb-6 leading-tight tracking-tight" style={{letterSpacing: '0.04em'}}>
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-neutral-900 mb-3 sm:mb-4 md:mb-5 lg:mb-6 leading-tight tracking-tight" style={{letterSpacing: '0.04em'}}>
               Votre partenaire santé depuis plus de 40 ans
             </h1>
-            <p className="text-lg md:text-xl text-neutral-500 leading-relaxed font-light">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-neutral-500 leading-relaxed font-light">
               Toujours la même passion et la même détermination à rendre la qualité accessible à tous.
             </p>
           </motion.div>
 
           {/* Services Grid - minimalist, luxury style */}
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl w-full"
-            initial={{ opacity: 0, y: 50 }}
+            className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl w-full px-2 sm:px-3 md:px-4"
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
+            transition={{ duration: 1.0, delay: 0.8, ease: "easeOut" }}
           >
             {/* Optikid */}
-            <div className="bg-white/90 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-start border border-neutral-100">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2 tracking-wide uppercase">Optikid</h3>
-              <div className="h-1 w-10 bg-amber-200 rounded-full mb-4" />
-              <p className="text-neutral-500 text-base leading-relaxed font-light">
+            <div className="bg-white/90 rounded-2xl p-4 sm:p-5 md:p-6 lg:p-7 shadow-md hover:shadow-lg transition-all duration-500 ease-out flex flex-col items-start border border-neutral-100 hover-lift">
+              <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-900 mb-2 tracking-wide uppercase">Optikid</h3>
+              <div className="h-1 w-6 sm:w-8 md:w-10 bg-amber-200 rounded-full mb-2 sm:mb-3 md:mb-4" />
+              <p className="text-neutral-500 text-xs sm:text-sm md:text-base leading-relaxed font-light">
                 La vue des enfants, c'est sérieux. Une approche médicale et pédagogique pour garantir une expertise de qualité.
               </p>
             </div>
 
             {/* ODB Sport */}
-            <div className="bg-white/90 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-start border border-neutral-100">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2 tracking-wide uppercase">ODB Sport</h3>
-              <div className="h-1 w-10 bg-amber-200 rounded-full mb-4" />
-              <p className="text-neutral-500 text-base leading-relaxed font-light">
+            <div className="bg-white/90 rounded-2xl p-4 sm:p-5 md:p-6 lg:p-7 shadow-md hover:shadow-lg transition-all duration-500 ease-out flex flex-col items-start border border-neutral-100 hover-lift">
+              <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-900 mb-2 tracking-wide uppercase">ODB Sport</h3>
+              <div className="h-1 w-6 sm:w-8 md:w-10 bg-amber-200 rounded-full mb-2 sm:mb-3 md:mb-4" />
+              <p className="text-neutral-500 text-xs sm:text-sm md:text-base leading-relaxed font-light">
                 Les solaires de sport à votre vue. Bien voir est la clé de la performance dans tous vos sports.
               </p>
             </div>
 
             {/* ODB à Domicile */}
-            <div className="bg-white/90 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col items-start border border-neutral-100">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2 tracking-wide uppercase">À Domicile</h3>
-              <div className="h-1 w-10 bg-amber-200 rounded-full mb-4" />
-              <p className="text-neutral-500 text-base leading-relaxed font-light">
+            <div className="bg-white/90 rounded-2xl p-4 sm:p-5 md:p-6 lg:p-7 shadow-md hover:shadow-lg transition-all duration-500 ease-out flex flex-col items-start border border-neutral-100 hover-lift">
+              <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-900 mb-2 tracking-wide uppercase">À Domicile</h3>
+              <div className="h-1 w-6 sm:w-8 md:w-10 bg-amber-200 rounded-full mb-2 sm:mb-3 md:mb-4" />
+              <p className="text-neutral-500 text-xs sm:text-sm md:text-base leading-relaxed font-light">
                 Le magasin et l'opticien viennent à vous. Bénéficiez de notre expertise comme en magasin.
               </p>
             </div>
@@ -83,18 +83,18 @@ const ContentReveal = ({ scrollProgress, cameraZ = 100 }: ContentRevealProps) =>
 
           {/* Expertise Section */}
           <motion.div 
-            className="text-center max-w-2xl"
+            className="text-center max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl px-4"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.1 }}
           >
-            <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 mb-4 tracking-tight">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-neutral-900 mb-3 sm:mb-4 tracking-tight">
               Nos opticiens qualifiés pour vous conseiller
             </h2>
-            <p className="text-neutral-500 leading-relaxed mb-6 font-light">
+            <p className="text-sm sm:text-base md:text-lg text-neutral-500 leading-relaxed mb-4 sm:mb-6 font-light">
               Rien de mieux que nos opticiens qualifiés pour vous indiquer le meilleur choix. Ils restent toujours à votre disposition.
             </p>
-            <div className="inline-flex px-6 py-3 bg-neutral-900 text-white rounded-full font-medium text-base shadow-sm tracking-wide">
+            <div className="inline-flex px-4 sm:px-6 py-2 sm:py-3 bg-neutral-900 text-white rounded-full font-medium text-sm sm:text-base shadow-sm tracking-wide">
               ODB, votre opticien santé
             </div>
           </motion.div>
