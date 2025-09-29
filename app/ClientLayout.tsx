@@ -30,11 +30,65 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
 
+    const getRevealContainer = () =>
+      document.querySelector('[data-reveal-scroll]') as HTMLElement | null;
+
+    const resolveScrollTarget = (delta: number) => {
+      const current = scroll.get();
+      const container = getRevealContainer();
+      const isScrollingDown = delta > 0;
+      const epsilon = 0.001;
+
+      if (!container) {
+        return 'animation' as const;
+      }
+
+      const maxScroll = container.scrollHeight - container.clientHeight;
+
+      if (isScrollingDown) {
+        if (current < 1 - epsilon) {
+          return 'animation' as const;
+        }
+        if (container.scrollTop < maxScroll - 1) {
+          return 'content' as const;
+        }
+        return 'content' as const;
+      }
+
+      // Scrolling up
+      if (container.scrollTop > 0) {
+        return 'content' as const;
+      }
+      if (current > 0 + epsilon) {
+        return 'animation' as const;
+      }
+      return 'content' as const;
+    };
+
     const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      // Smoother desktop scroll with momentum
-      const delta = e.deltaY * 0.0008; // Reduced for more refined control
-      setScroll(scroll.get() + delta);
+      // Allow normal interaction if clicking on content reveal cards
+      const target = e.target as HTMLElement;
+      if (target.closest('.content-reveal-card') || target.closest('[data-reveal-scroll]')?.contains(target)) {
+        // If we're at scroll = 1 (content fully revealed), allow normal scrolling within content
+        if (scroll.get() >= 0.99) {
+          return; // Don't prevent default, allow normal wheel events
+        }
+      }
+
+      const scrollTarget = resolveScrollTarget(e.deltaY);
+      const container = getRevealContainer();
+
+      if (scrollTarget === 'animation') {
+        e.preventDefault();
+        const delta = e.deltaY * 0.0008;
+        setScroll(scroll.get() + delta);
+        return;
+      }
+
+      if (container) {
+        e.preventDefault();
+        container.scrollBy({ top: e.deltaY, behavior: 'auto' });
+      }
     };
     
     let lastY = 0;
@@ -42,6 +96,15 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     let lastVelocity = 0;
     
     const handleTouch = (e: TouchEvent) => {
+      // Allow normal interaction if touching content reveal cards
+      const target = e.target as HTMLElement;
+      if (target.closest('.content-reveal-card') || target.closest('[data-reveal-scroll]')?.contains(target)) {
+        // If we're at scroll = 1 (content fully revealed), allow normal touch events
+        if (scroll.get() >= 0.99) {
+          return; // Don't prevent default, allow normal touch events
+        }
+      }
+
       if (e.touches.length === 1) {
         const y = e.touches[0].clientY;
         const now = Date.now();
@@ -54,31 +117,47 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         }
         
         if (lastY !== 0 && e.type === 'touchmove') {
-          e.preventDefault();
           const deltaY = y - lastY;
           const deltaTime = now - touchStartTime;
-          
+
           // Enhanced touch sensitivity for luxury feel
           const sensitivity = 0.004; // Increased for better mobile control
           const momentum = Math.abs(deltaY) > 10 ? 1.2 : 1; // Add momentum for larger gestures
-          
-          const scrollDelta = -deltaY * sensitivity * momentum;
-          setScroll(scroll.get() + scrollDelta);
-          
-          // Track velocity for momentum scrolling
-          if (deltaTime > 0) {
-            lastVelocity = deltaY / deltaTime;
+
+          const intendedScroll = -deltaY; // Positive when user scrolls down
+
+          const target = resolveScrollTarget(intendedScroll);
+          const container = getRevealContainer();
+
+          if (target === 'animation') {
+            e.preventDefault();
+            const scrollDelta = intendedScroll * sensitivity * momentum;
+            setScroll(scroll.get() + scrollDelta);
+
+            if (deltaTime > 0) {
+              lastVelocity = deltaY / deltaTime;
+            }
+          } else if (container) {
+            e.preventDefault();
+            container.scrollTop += deltaY * -1;
+            if (deltaTime > 0) {
+              lastVelocity = deltaY / deltaTime;
+            }
           }
         }
         lastY = y;
       }
-      
+
       if (e.type === 'touchend') {
         // Add momentum-based continuation for elegant feel
+        const intendedScroll = -lastVelocity; // Align direction with wheel delta sign
         if (Math.abs(lastVelocity) > 0.5) {
-          const momentum = Math.min(Math.abs(lastVelocity) * 0.001, 0.05);
-          const direction = lastVelocity > 0 ? -1 : 1;
-          setScroll(scroll.get() + momentum * direction);
+          const target = resolveScrollTarget(intendedScroll);
+          if (target === 'animation') {
+            const momentum = Math.min(Math.abs(lastVelocity) * 0.001, 0.05);
+            const direction = intendedScroll > 0 ? 1 : -1;
+            setScroll(scroll.get() + momentum * direction);
+          }
         }
         lastY = 0;
         lastVelocity = 0;
@@ -90,11 +169,23 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     window.addEventListener('touchmove', handleTouch, { passive: false });
     window.addEventListener('touchend', handleTouch, { passive: false });
     
+    // Add click event listener to ensure cards remain clickable
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.content-reveal-card')) {
+        // Don't prevent click events on content reveal cards
+        return;
+      }
+    };
+    
+    window.addEventListener('click', handleClick, { passive: true });
+    
     return () => {
       window.removeEventListener('wheel', handleWheel);
       window.removeEventListener('touchstart', handleTouch);
       window.removeEventListener('touchmove', handleTouch);
       window.removeEventListener('touchend', handleTouch);
+      window.removeEventListener('click', handleClick);
     };
   }, [scroll, isMainPage]);
 

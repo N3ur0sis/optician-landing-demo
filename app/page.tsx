@@ -1,34 +1,77 @@
 'use client';
 
+import Image from 'next/image';
 import GlassesModel from '../components/GlassesModel';
 import ContentReveal from '../components/ContentReveal';
 import CustomCursor from '../components/CustomCursor';
-import MagasinsDropdown from '../components/MagasinsDropdown';
-import { motion, useTransform, useInView, AnimatePresence } from 'framer-motion';
+import PageNavigation from '../components/PageNavigation';
+import { motion, useTransform, useInView, AnimatePresence, useMotionValueEvent } from 'framer-motion';
 import { useContext, useRef, useState, useEffect } from 'react';
 import { ScrollContext } from './ClientLayout';
-import { FaInstagram, FaFacebook, FaBehance } from 'react-icons/fa';
-
-// Remove the MagasinsDropdown component definition since it's now imported
+import { FaInstagram, FaFacebook } from 'react-icons/fa';
 
 export default function Page() {
-  const { scroll } = useContext(ScrollContext);
+  const { scroll, setScroll } = useContext(ScrollContext);
   const [isLoaded, setIsLoaded] = useState(false);
   const [cameraZ, setCameraZ] = useState(100);
+  const [forceContentRevealed, setForceContentRevealed] = useState(false);
+  const [isNavVisible, setIsNavVisible] = useState(false);
   const heroRef = useRef(null);
+  const revealRef = useRef(false);
   const isInView = useInView(heroRef, { once: true, amount: 0.3 });
 
   // Simulate loading completion
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 1200);
-    return () => clearTimeout(timer);
+    const shouldScrollToContentReveal = sessionStorage.getItem('scrollToContentReveal');
+    if (shouldScrollToContentReveal === 'true') {
+      // Skip loading animation when returning from subpage
+      setIsLoaded(true);
+    } else {
+      const timer = setTimeout(() => setIsLoaded(true), 1200);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
+  // Check if we should scroll to content reveal on load
+  useEffect(() => {
+    const shouldScrollToContentReveal = sessionStorage.getItem('scrollToContentReveal');
+    if (shouldScrollToContentReveal === 'true' && isLoaded) {
+      sessionStorage.removeItem('scrollToContentReveal');
+      // Set scroll to 1 to show content reveal immediately
+      setTimeout(() => {
+        setScroll(1);
+        // Force cameraZ to 0 to ensure content is fully revealed
+        setCameraZ(0);
+        setForceContentRevealed(true);
+        setIsNavVisible(true);
+        revealRef.current = true;
+      }, 100);
+    }
+  }, [isLoaded, setScroll]);
+
+  useMotionValueEvent(scroll, 'change', (latest) => {
+    if (revealRef.current) {
+      return;
+    }
+    if (latest >= 0.9) {
+      setIsNavVisible(true);
+    } else if (latest <= 0.7) {
+      setIsNavVisible(false);
+    }
+  });
+
+  useEffect(() => {
+    if (forceContentRevealed) {
+      setIsNavVisible(true);
+      revealRef.current = true;
+    }
+  }, [forceContentRevealed]);
+
   // Enhanced exponential curves for buttery smooth scroll-based text movement
-  // Left text: elegant upward motion with luxury easing
-  const leftY = useTransform(scroll, v => `${-850 * Math.pow(v as number, 2.2)}px`); 
-  // Right text: sophisticated slower movement with refined curve
-  const rightY = useTransform(scroll, v => `${-550 * Math.pow(v as number, 1.25)}px`); 
+  // Left text: elegant upward motion with luxury easing - increased movement to fully exit screen
+  const leftY = useTransform(scroll, v => `${-1400 * Math.pow(v as number, 1.8)}px`); 
+  // Right text: sophisticated slower movement with refined curve - increased movement to fully exit screen
+  const rightY = useTransform(scroll, v => `${-1200 * Math.pow(v as number, 1.6)}px`); 
   // Model rotation progress with smooth interpolation
   const modelScroll = useTransform(scroll, [0, 1], [0, 1]);
 
@@ -63,15 +106,6 @@ export default function Page() {
     }
   };
 
-  const logoVariants = {
-    hidden: { opacity: 0, scale: 0, rotate: -180 },
-    visible: { 
-      opacity: 1, 
-      scale: 1, 
-      rotate: 0
-    }
-  };
-
   const socialVariants = {
     hidden: { opacity: 0, x: -50 },
     visible: {
@@ -97,6 +131,8 @@ export default function Page() {
     <main className="relative min-h-[300vh] w-full overflow-x-hidden font-poppins cursor-custom" ref={heroRef}>
       {/* Custom Cursor */}
       <CustomCursor />
+
+      <PageNavigation showBackButton={false} variant="home" visible={isNavVisible} />
       
       {/* Loading Screen */}
       <AnimatePresence>
@@ -113,17 +149,25 @@ export default function Page() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <motion.div
-                className="w-16 h-16 bg-black rounded-full flex items-center justify-center text-white font-bold text-2xl"
+                className="flex items-center justify-center rounded-full px-6 py-4 shadow-xl shadow-black/10"
                 animate={{ 
-                  rotate: [0, 360],
-                  scale: [1, 1.1, 1]
+                  scale: [1, 1.05, 1],
+                  opacity: [0.9, 1, 0.9]
                 }}
                 transition={{ 
-                  rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-                  scale: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+                  duration: 1.8,
+                  repeat: Infinity,
+                  ease: 'easeInOut'
                 }}
               >
-                O
+                <Image
+                          src="/Logo-ODB.png"
+                          alt="Optique de Bourbon"
+                          width={2628/25}
+                          height={1430/15}
+                          priority
+                          className="h-full w-auto object-contain"
+                />
               </motion.div>
               <motion.div
                 className="flex space-x-1"
@@ -154,122 +198,6 @@ export default function Page() {
 
       {/* Fullscreen gradient background */}
       <div className="fixed inset-0 radial-gradient-bg z-0" />
-
-      {/* Top left: Logo and name */}
-      <motion.div 
-        className="absolute top-0 left-0 flex items-center gap-2 p-4 sm:p-6 z-20 select-none"
-        variants={containerVariants}
-        initial="hidden"
-        animate={isLoaded ? "visible" : "hidden"}
-      >
-        <motion.div 
-          className="w-6 h-6 sm:w-8 sm:h-8 bg-black rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-lg cursor-pointer hover:scale-110 transition-all duration-300 hover:shadow-lg hover-lift"
-          variants={logoVariants}
-          transition={{ duration: 1.2, type: "spring", bounce: 0.3, delay: 0.2 }}
-          whileHover={{ 
-            scale: 1.15, 
-            rotate: 5,
-            boxShadow: "0 10px 25px rgba(0,0,0,0.15)"
-          }}
-          whileTap={{ scale: 0.95 }}
-        >
-          O
-        </motion.div>
-        <motion.span 
-          className="text-sm sm:text-lg font-semibold tracking-widest text-black uppercase hover:text-gray-600 transition-colors duration-500 cursor-pointer"
-          variants={itemVariants}
-          transition={{ duration: 0.9, ease: "easeOut" }}
-        >
-          <span className="hidden sm:inline">Optique de Bourbon</span>
-          <span className="sm:hidden">ODB</span>
-        </motion.span>
-      </motion.div>
-
-      {/* Top right: Navbar links */}
-      <motion.nav 
-        className="absolute top-0 right-0 flex items-center gap-3 sm:gap-4 md:gap-6 p-4 sm:p-6 z-20 select-none"
-        variants={containerVariants}
-        initial="hidden"
-        animate={isLoaded ? "visible" : "hidden"}
-      >
-        {/* Desktop Navigation - Show condensed version */}
-        <div className="hidden lg:flex items-center gap-6">
-          {[
-            { label: 'ACCUEIL', href: 'https://odb.re/' },
-            { label: 'SPORT', href: 'https://odb.re/odb-sport/' },
-            { label: 'KIDS', href: 'https://odb.re/odb-kids/' },
-            { label: 'LENTILLES', href: 'https://odb.re/choisir-ses-lentilles/' },
-            { label: 'CONTACTS', href: 'https://odb.re/contacts/' },
-          ].map((item, index) => (
-            <motion.a 
-              key={item.label}
-              href={item.href}
-              className="text-sm lg:text-base font-medium text-black hover:text-gray-600 transition-all duration-500 ease-out relative group underline-animate cursor-pointer"
-              variants={itemVariants}
-              transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.07 }}
-              whileHover={{ y: -1 }}
-              target="_blank" rel="noopener noreferrer"
-            >
-              {item.label}
-            </motion.a>
-          ))}
-          <MagasinsDropdown />
-        </div>
-
-        {/* Tablet Navigation - More condensed */}
-        <div className="hidden md:flex lg:hidden items-center gap-4">
-          {[
-            { label: 'ACCUEIL', href: 'https://odb.re/' },
-            { label: 'SPORT', href: 'https://odb.re/odb-sport/' },
-            { label: 'KIDS', href: 'https://odb.re/odb-kids/' },
-            { label: 'CONTACTS', href: 'https://odb.re/contacts/' },
-          ].map((item, index) => (
-            <motion.a 
-              key={item.label}
-              href={item.href}
-              className="text-sm font-medium text-black hover:text-gray-600 transition-all duration-500 ease-out relative group underline-animate cursor-pointer"
-              variants={itemVariants}
-              transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.07 }}
-              whileHover={{ y: -1 }}
-              target="_blank" rel="noopener noreferrer"
-            >
-              {item.label}
-            </motion.a>
-          ))}
-          <MagasinsDropdown />
-        </div>
-
-        {/* Mobile Navigation - Just essential items + hamburger */}
-        <div className="flex md:hidden items-center gap-3">
-          <motion.a 
-            href="https://odb.re/"
-            className="text-sm font-medium text-black hover:text-gray-600 transition-all duration-500 ease-out relative group underline-animate cursor-pointer"
-            variants={itemVariants}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            whileHover={{ y: -1 }}
-            target="_blank" rel="noopener noreferrer"
-          >
-            ACCUEIL
-          </motion.a>
-          <MagasinsDropdown />
-          
-          {/* Mobile Menu Button */}
-          <motion.button 
-            className="text-black hover:text-gray-600 transition-colors duration-300 p-1"
-            variants={itemVariants}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              // For now, redirect to main site for full menu
-              window.open('https://odb.re/', '_blank');
-            }}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </motion.button>
-        </div>
-      </motion.nav>
 
       {/* Bottom left: Social icons */}
       <motion.div 
@@ -525,14 +453,18 @@ export default function Page() {
 
       <section className="relative w-full min-h-screen z-10 overflow-hidden">
         {/* Content that appears behind glasses - blurred initially, sharp when glasses are on */}
-        <ContentReveal scrollProgress={modelScroll} cameraZ={cameraZ} />
+        <ContentReveal scrollProgress={modelScroll} cameraZ={cameraZ} forceRevealed={forceContentRevealed} />
         
         {/* Fullscreen Centered Glasses Model - positioned naturally in the layout */}
         <motion.div
-          className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none overflow-hidden glasses-model-mobile"
+          className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden glasses-model-mobile"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
           transition={{ duration: 1.5, ease: 'easeOut', delay: 2.2 }}
+          style={{
+            zIndex: cameraZ < 50 ? 5 : 15, // Lower z-index when glasses are "put on"
+            pointerEvents: 'none'
+          }}
         >
           <div className="w-full h-full max-w-full max-h-full relative flex items-center justify-center">
             <div className="w-full h-full min-h-0 min-w-0">
@@ -546,10 +478,14 @@ export default function Page() {
 
         {/* Left text - positioned with intelligent spacing based on viewport and model */}
         <motion.div
-          className="absolute top-1/2 -translate-y-1/2 z-10 select-none hero-spacing-left"
+          className="absolute top-1/2 -translate-y-1/2 select-none hero-spacing-left pointer-events-none"
           initial={{ opacity: 0, x: -60 }}
           animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: -60 }}
           transition={{ duration: 1.2, ease: 'easeOut', delay: 1.5 }}
+          style={{
+            zIndex: scroll.get() > 0.1 ? -1 : 12, // Move behind when scrolled
+            pointerEvents: 'none'
+          }}
         >
           <motion.div
             className="font-bold text-black font-poppins leading-tight tracking-tight uppercase overflow-hidden hero-text-adaptive hero-text-narrow hero-text-desktop"
@@ -580,10 +516,14 @@ export default function Page() {
 
         {/* Right text - positioned with intelligent spacing based on viewport and model */}
         <motion.div
-          className="absolute top-1/2 -translate-y-1/2 z-10 select-none hero-spacing-right"
+          className="absolute top-1/2 -translate-y-1/2 select-none hero-spacing-right pointer-events-none"
           initial={{ opacity: 0, x: 60 }}
           animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: 60 }}
           transition={{ duration: 1.2, ease: 'easeOut', delay: 1.5 }}
+          style={{
+            zIndex: scroll.get() > 0.1 ? -1 : 12, // Move behind when scrolled
+            pointerEvents: 'none'
+          }}
         >
           <motion.div
             className="font-bold text-black font-poppins leading-tight tracking-tight uppercase text-right overflow-hidden ml-auto hero-text-adaptive hero-text-narrow hero-text-desktop"

@@ -1,206 +1,266 @@
 'use client';
 
-import { motion, useTransform } from 'framer-motion';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { MotionValue } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useRef, useEffect } from 'react';
 
 type ContentRevealProps = {
   scrollProgress?: MotionValue<number>;
   cameraZ?: number;
+  forceRevealed?: boolean;
 };
 
-const ContentReveal = ({ scrollProgress, cameraZ = 100 }: ContentRevealProps) => {
-  // Calculate blur based on camera position
-  // When camera is at 100, blur is maximum (20px)
-  // When camera is at 0, blur is 0px
-  const blurAmount = Math.max(0, (cameraZ / 100) * 20);
-  const opacity = Math.max(0.1, 1 - (cameraZ / 100) * 0.8);
+type Tile = {
+  title: string;
+  href: string;
+  background: string;
+  span?: string;
+  overlay?: 'light' | 'dark';
+  caption?: string;
+};
+
+const tiles: Tile[] = [
+  {
+    title: 'Qui est ODB ?',
+    caption: 'Découvrir la maison',
+    href: '/maison',
+    // Updated to a warm interior / atelier photo for the "about" card
+    background: 'url(https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1400&q=80)',
+    span: 'lg:col-span-4 lg:row-span-2',
+    overlay: 'dark',
+  },
+  {
+    title: 'Nos boutiques',
+    caption: 'Toutes les adresses',
+    href: '/boutiques',
+    background: 'url(https://images.unsplash.com/photo-1542744094-3a31f272c490?w=600&h=400&fit=crop&crop=center)',
+    span: 'lg:col-span-2',
+    overlay: 'dark',
+  },
+  {
+    title: 'Actualités',
+    caption: 'Le journal ODB',
+    href: '/magazine',
+    background: 'url(https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop&crop=center)',
+    span: 'lg:col-span-2',
+    overlay: 'dark',
+  },
+  {
+    title: 'Prenez rendez-vous',
+    caption: 'Réserver en ligne',
+    href: '/rendez-vous',
+    // Updated to a different calendar image for the "appointment" card
+    background: 'url(https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=1400&q=80)',
+    span: 'lg:col-span-4 lg:row-span-2',
+    overlay: 'dark',
+  },
+  {
+    title: 'Créateurs',
+    caption: 'Sélection exclusive',
+    href: '/collections/createurs',
+    background: 'url(https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=600&h=400&fit=crop&crop=center)',
+    span: 'lg:col-span-2',
+    overlay: 'dark',
+  },
+  {
+    title: 'Services',
+    caption: 'Voir les expertises',
+    href: '/services',
+    background: 'url(https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=600&h=400&fit=crop&crop=center)',
+    span: 'lg:col-span-2',
+    overlay: 'dark',
+  },
+];
+
+const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealProps) => {
+  const blurAmount = forceRevealed ? 0 : Math.max(0, (cameraZ / 100) * 20);
+  const opacity = forceRevealed ? 1 : Math.max(0.1, 1 - (cameraZ / 100) * 0.8);
+  const isContentRevealed = forceRevealed || blurAmount < 5; // Content is considered revealed when blur is minimal
+  const router = useRouter();
+  const cardRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+
+  // Force click handlers
+  useEffect(() => {
+    cardRefs.current.forEach((card, index) => {
+      if (card) {
+        const handleForceClick = (e: Event) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Force click:', tiles[index].title);
+          // Set flag to indicate user came from content reveal
+          sessionStorage.setItem('fromContentReveal', 'true');
+          router.push(tiles[index].href);
+        };
+        
+        card.addEventListener('click', handleForceClick, { passive: false });
+        
+        return () => {
+          card.removeEventListener('click', handleForceClick);
+        };
+      }
+    });
+  }, [router]);
 
   return (
-    <motion.div 
-      className="absolute inset-0 z-1"
+    <motion.div
+      className={`absolute inset-0 ${isContentRevealed ? 'z-[25]' : 'z-[5]'}`}
       style={{
-        filter: `blur(${blurAmount}px)`,
-        opacity: opacity,
-        transition: 'filter 0.3s ease-out, opacity 0.3s ease-out'
+        filter: `blur(${blurAmount}px)` ,
+        opacity,
+        transition: 'filter 0.3s ease-out, opacity 0.3s ease-out',
+        pointerEvents: 'auto'
       }}
     >
-      {/* Background gradient - subtle, luxury-inspired */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-neutral-100 to-amber-50" />
+      {/* Force cards to be clickable with CSS */}
+      <style jsx>{`
+        .content-reveal-card {
+          pointer-events: auto !important;
+          position: relative !important;
+          z-index: 50 !important;
+          cursor: pointer !important;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(1px);
+        }
+        .content-reveal-card:hover {
+          transform: scale(1.02) !important;
+          border-color: rgba(255, 255, 255, 0.2);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .content-reveal-card * {
+          pointer-events: auto !important;
+        }
+        .content-reveal-grid {
+          pointer-events: auto !important;
+          position: relative !important;
+          z-index: 40 !important;
+        }
+        .content-reveal-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+          z-index: 1;
+        }
+        .content-reveal-card:hover::before {
+          opacity: 1;
+        }
+      `}</style>
+      
+      <div className="absolute inset-0 bg-gradient-to-br from-[#fdfbf7] via-[#f5eee6] to-[#f1e2d2]" />
 
-      {/* Content sections that appear behind glasses */}
-      <div className="relative h-full w-full overflow-y-auto">
-        {/* Main content section - visible during glasses animation */}
-        <div className="min-h-screen flex flex-col justify-center items-center p-3 sm:p-4 md:p-6 lg:p-8 xl:p-12 pt-14 sm:pt-16 md:pt-6 lg:pt-8 xl:pt-12 space-y-8 sm:space-y-10 md:space-y-12 lg:space-y-16">
-          {/* Hero Section */}
-          <motion.div 
-            className="text-center max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-3xl px-2 sm:px-3 md:px-4"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.0, delay: 0.5, ease: "easeOut" }}
-          >
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-neutral-900 mb-3 sm:mb-4 md:mb-5 lg:mb-6 leading-tight tracking-tight" style={{letterSpacing: '0.04em'}}>
-              Votre partenaire santé depuis plus de 40 ans
-            </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-neutral-500 leading-relaxed font-light">
-              Toujours la même passion et la même détermination à rendre la qualité accessible à tous.
-            </p>
-          </motion.div>
+      <div className="relative h-full w-full overflow-y-auto" data-reveal-scroll>
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 pb-24 pt-16 sm:px-6 md:px-10 lg:px-12 xl:px-16">
+          <div className="flex items-center justify-center py-6">
+            <span className="text-sm tracking-[0.3em] text-neutral-500 uppercase">Optique de Bourbon</span>
+          </div>
 
-          {/* Services Grid - minimalist, luxury style */}
-          <motion.div 
-            className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8 max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl w-full px-2 sm:px-3 md:px-4"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.0, delay: 0.8, ease: "easeOut" }}
-          >
-            {/* Optikid */}
-            <div className="bg-white/90 rounded-2xl p-4 sm:p-5 md:p-6 lg:p-7 shadow-md hover:shadow-lg transition-all duration-500 ease-out flex flex-col items-start border border-neutral-100 hover-lift">
-              <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-900 mb-2 tracking-wide uppercase">Optikid</h3>
-              <div className="h-1 w-6 sm:w-8 md:w-10 bg-amber-200 rounded-full mb-2 sm:mb-3 md:mb-4" />
-              <p className="text-neutral-500 text-xs sm:text-sm md:text-base leading-relaxed font-light">
-                La vue des enfants, c'est sérieux. Une approche médicale et pédagogique pour garantir une expertise de qualité.
-              </p>
-            </div>
-
-            {/* ODB Sport */}
-            <div className="bg-white/90 rounded-2xl p-4 sm:p-5 md:p-6 lg:p-7 shadow-md hover:shadow-lg transition-all duration-500 ease-out flex flex-col items-start border border-neutral-100 hover-lift">
-              <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-900 mb-2 tracking-wide uppercase">ODB Sport</h3>
-              <div className="h-1 w-6 sm:w-8 md:w-10 bg-amber-200 rounded-full mb-2 sm:mb-3 md:mb-4" />
-              <p className="text-neutral-500 text-xs sm:text-sm md:text-base leading-relaxed font-light">
-                Les solaires de sport à votre vue. Bien voir est la clé de la performance dans tous vos sports.
-              </p>
-            </div>
-
-            {/* ODB à Domicile */}
-            <div className="bg-white/90 rounded-2xl p-4 sm:p-5 md:p-6 lg:p-7 shadow-md hover:shadow-lg transition-all duration-500 ease-out flex flex-col items-start border border-neutral-100 hover-lift">
-              <h3 className="text-sm sm:text-base md:text-lg font-semibold text-neutral-900 mb-2 tracking-wide uppercase">À Domicile</h3>
-              <div className="h-1 w-6 sm:w-8 md:w-10 bg-amber-200 rounded-full mb-2 sm:mb-3 md:mb-4" />
-              <p className="text-neutral-500 text-xs sm:text-sm md:text-base leading-relaxed font-light">
-                Le magasin et l'opticien viennent à vous. Bénéficiez de notre expertise comme en magasin.
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Expertise Section */}
-          <motion.div 
-            className="text-center max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl px-4"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.1 }}
-          >
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-neutral-900 mb-3 sm:mb-4 tracking-tight">
-              Nos opticiens qualifiés pour vous conseiller
-            </h2>
-            <p className="text-sm sm:text-base md:text-lg text-neutral-500 leading-relaxed mb-4 sm:mb-6 font-light">
-              Rien de mieux que nos opticiens qualifiés pour vous indiquer le meilleur choix. Ils restent toujours à votre disposition.
-            </p>
-            <div className="inline-flex px-4 sm:px-6 py-2 sm:py-3 bg-neutral-900 text-white rounded-full font-medium text-sm sm:text-base shadow-sm tracking-wide">
-              ODB, votre opticien santé
-            </div>
-          </motion.div>
+          <div className="content-reveal-grid grid auto-rows-[220px] gap-5 sm:auto-rows-[260px] lg:auto-rows-[320px] lg:grid-cols-4" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 40 }}>
+            {tiles.map((tile, index) => (
+              <Link
+                key={tile.title}
+                href={tile.href}
+                ref={(el) => { cardRefs.current[index] = el; }}
+                className={`content-reveal-card group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer transform-gpu z-[30] pointer-events-auto ${
+                  tile.span ?? ''
+                }`}
+                style={{
+                  pointerEvents: 'auto',
+                  position: 'relative',
+                  zIndex: 30
+                }}
+                onClick={(e) => {
+                  console.log('Link clicked:', tile.title);
+                  // Set flag to indicate user came from content reveal
+                  sessionStorage.setItem('fromContentReveal', 'true');
+                  // Allow normal navigation
+                }}
+                onMouseEnter={() => {
+                  console.log('Card hovered:', tile.title);
+                }}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={forceRevealed ? { opacity: 1, y: 0 } : {}}
+                  whileInView={!forceRevealed ? { opacity: 1, y: 0 } : {}}
+                  whileHover={{ 
+                    scale: 1.02,
+                    transition: { duration: 0.3, ease: "easeOut" }
+                  }}
+                  whileFocus={{ 
+                    scale: 1.01,
+                    transition: { duration: 0.2, ease: "easeOut" }
+                  }}
+                  whileTap={{ 
+                    scale: 0.99,
+                    transition: { duration: 0.1, ease: "easeInOut" }
+                  }}
+                  transition={{ duration: 0.45, ease: 'easeOut' }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  className="relative h-full w-full cursor-pointer"
+                >
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                    style={{
+                      backgroundImage: tile.background,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  />
+                  <div
+                    className="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-all duration-500"
+                  />
+                  {/* Professional grid overlay */}
+                  <div className="absolute inset-0 opacity-10 group-hover:opacity-5 transition-opacity duration-500" 
+                    style={{
+                      backgroundImage: `
+                        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+                      `,
+                      backgroundSize: '20px 20px'
+                    }}
+                  />
+                  <div className="relative flex h-full flex-col justify-between p-6 lg:p-8">
+                    {/* Top section - Category indicator */}
+                    <div className="flex justify-between items-start">
+                      <div className="bg-white/10 backdrop-blur-sm px-3 py-1 text-xs font-medium tracking-[0.2em] text-white uppercase">
+                        {tile.caption}
+                      </div>
+                      <div className="w-6 h-6 border border-white/30 flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white/80 transform rotate-45"></div>
+                      </div>
+                    </div>
+                    
+                    {/* Bottom section - Title and CTA */}
+                    <div>
+                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white mb-4 leading-tight">
+                        {tile.title}
+                      </h2>
+                      <div className="flex items-center text-white/80 group-hover:text-white transition-colors duration-300">
+                        <span className="text-sm font-medium tracking-[0.15em] uppercase mr-3">
+                          Explorer
+                        </span>
+                        <div className="flex items-center space-x-1 transform group-hover:translate-x-2 transition-transform duration-300">
+                          <div className="w-8 h-px bg-current"></div>
+                          <div className="w-0 h-0 border-l-[6px] border-l-current border-y-[3px] border-y-transparent"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
         </div>
-
-        {/* Additional content sections - appear when glasses are fully on */}
-        {blurAmount < 5 && (
-          <>
-            {/* Brands Section - minimalist luxury */}
-            <div className="min-h-screen bg-gradient-to-br from-white to-neutral-100 flex items-center justify-center p-8">
-              <motion.div 
-                className="text-center max-w-5xl w-full"
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-              >
-                <h2 className="text-3xl md:text-4xl font-semibold text-neutral-900 mb-12 tracking-tight">
-                  Marques partenaires
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                  {['Oakley', 'Maui Jim', 'Essilor', 'Varilux'].map((brand, index) => (
-                    <motion.div
-                      key={brand}
-                      className="bg-white/95 text-neutral-900 p-8 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center text-lg font-semibold tracking-wide border border-neutral-100"
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: index * 0.1 }}
-                    >
-                      {brand}
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Services Detail Section - minimalist luxury */}
-            <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-white flex items-center justify-center p-8">
-              <motion.div 
-                className="max-w-6xl w-full"
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-              >
-                <div className="text-center mb-16">
-                  <h2 className="text-3xl md:text-4xl font-semibold text-neutral-900 mb-6 tracking-tight">
-                    Nos services spécialisés
-                  </h2>
-                  <p className="text-lg text-neutral-500 font-light">Une expertise reconnue dans tous les domaines de l'optique</p>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                  {/* Conseils */}
-                  <motion.div 
-                    className="bg-white/95 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 border border-neutral-100"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <h3 className="text-xl font-semibold text-neutral-900 mb-4 tracking-wide uppercase">Conseils d'experts</h3>
-                    <div className="h-1 w-10 bg-amber-200 rounded-full mb-4" />
-                    <p className="text-neutral-500 leading-relaxed font-light">
-                      Protection contre les UV, lumière bleue des écrans, verres adaptés à votre mode de vie. Nos opticiens vous guident dans tous vos choix.
-                    </p>
-                  </motion.div>
-
-                  {/* Ophtalmologistes */}
-                  <motion.div 
-                    className="bg-white/95 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 border border-neutral-100"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <h3 className="text-xl font-semibold text-neutral-900 mb-4 tracking-wide uppercase">Réseau d'ophtalmologistes</h3>
-                    <div className="h-1 w-10 bg-amber-200 rounded-full mb-4" />
-                    <p className="text-neutral-500 leading-relaxed font-light">
-                      Collaboration avec les meilleurs ophtalmologistes de l'île pour un suivi médical complet.
-                    </p>
-                  </motion.div>
-
-                  {/* Lentilles */}
-                  <motion.div 
-                    className="bg-white/95 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 border border-neutral-100"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <h3 className="text-xl font-semibold text-neutral-900 mb-4 tracking-wide uppercase">Lentilles de contact</h3>
-                    <div className="h-1 w-10 bg-amber-200 rounded-full mb-4" />
-                    <p className="text-neutral-500 leading-relaxed font-light">
-                      Choisir ses lentilles adaptées à votre vue et votre style de vie. Essai gratuit et conseils personnalisés.
-                    </p>
-                  </motion.div>
-
-                  {/* Recrutement */}
-                  <motion.div 
-                    className="bg-white/95 rounded-2xl p-8 shadow-md hover:shadow-lg transition-all duration-300 border border-neutral-100"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <h3 className="text-xl font-semibold text-neutral-900 mb-4 tracking-wide uppercase">Nous rejoindre</h3>
-                    <div className="h-1 w-10 bg-amber-200 rounded-full mb-4" />
-                    <p className="text-neutral-500 leading-relaxed font-light">
-                      Rejoignez notre équipe passionnée. Nous recrutons des opticiens qualifiés pour renforcer notre réseau sur l'île.
-                    </p>
-                  </motion.div>
-                </div>
-              </motion.div>
-            </div>
-          </>
-        )}
       </div>
     </motion.div>
   );
