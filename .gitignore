@@ -23,6 +23,10 @@
 # misc
 .DS_Store
 *.pem
+*.db
+*.db-journal
+*.log
+README_OLD.md
 
 # debug
 npm-debug.log*
@@ -30,8 +34,15 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Environment files - protect secrets but allow examples
+.env
+.env.local
+.env.*.local
+
+# Allow example environment files
+!.env.example
+!.env.development
+!.env.production
 
 # vercel
 .vercel
@@ -39,3 +50,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma

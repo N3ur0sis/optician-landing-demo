@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: optician-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-optician_db}
+      POSTGRES_USER: ${POSTGRES_USER:-optician}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-optician_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-optician}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - optician-network
+
+  web:
+    container_name: optician-web
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-development}
+      args:
+        - NODE_ENV=${NODE_ENV:-development}
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-optician}:${POSTGRES_PASSWORD:-optician_password}@db:5432/${POSTGRES_DB:-optician_db}?schema=public
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@optician.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      # Mount source code for development hot-reload (only in dev mode)
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - optician-network
+
+volumes:
+  postgres_data:
+    name: optician-postgres-data
+
+networks:
+  optician-network:
+    name: optician-network
+    driver: bridge
