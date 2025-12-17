@@ -128,7 +128,7 @@ export default function Page() {
   };
 
   return (
-    <main className="relative min-h-[300vh] w-full overflow-x-hidden font-poppins cursor-custom" ref={heroRef}>
+    <main className="relative min-h-[300vh] w-full overflow-x-hidden cursor-custom" ref={heroRef}>
 
       <PageNavigation showBackButton={false} variant="home" visible={isNavVisible} />
       
@@ -477,7 +477,7 @@ export default function Page() {
           </div>
         </motion.div>
 
-        {/* Left text - positioned with intelligent spacing based on viewport and model */}
+        {/* Left logo - positioned with intelligent spacing based on viewport and model */}
         <motion.div
           className="absolute top-1/2 -translate-y-1/2 select-none hero-spacing-left pointer-events-none"
           initial={{ opacity: 0, x: -60 }}
@@ -489,29 +489,22 @@ export default function Page() {
           }}
         >
           <motion.div
-            className="font-bold text-black font-poppins leading-tight tracking-tight uppercase overflow-hidden hero-text-adaptive hero-text-narrow hero-text-desktop"
+            className="overflow-hidden"
             style={{ 
-              letterSpacing: '0.08em', 
-              lineHeight: '1.1', 
               y: leftY 
             }}
+            initial={{ y: '100%', scale: 0.8 }}
+            animate={isLoaded ? { y: '0%', scale: 1 } : { y: '100%', scale: 0.8 }}
+            transition={{ duration: 1.0, ease: 'easeOut', delay: 1.7 }}
           >
-            <motion.div
-              className="overflow-hidden cursor-hover"
-              initial={{ y: '100%' }}
-              animate={isLoaded ? { y: '0%' } : { y: '100%' }}
-              transition={{ duration: 0.8, ease: 'easeOut', delay: 1.7 }}
-            >
-              <span className="hover:text-gray-600 transition-colors duration-500 block">OPTIQUE</span>
-            </motion.div>
-            <motion.div
-              className="overflow-hidden cursor-hover"
-              initial={{ y: '100%' }}
-              animate={isLoaded ? { y: '0%' } : { y: '100%' }}
-              transition={{ duration: 0.8, ease: 'easeOut', delay: 1.9 }}
-            >
-              <span className="hover:text-gray-600 transition-colors duration-500 block">DE BOURBON</span>
-            </motion.div>
+            <Image
+              src="/logo-ODB-blanc-grand.png"
+              alt="Optique de Bourbon"
+              width={400}
+              height={200}
+              priority
+              className="w-auto h-auto max-w-[250px] sm:max-w-[300px] md:max-w-[350px] lg:max-w-[400px] object-contain"
+            />
           </motion.div>
         </motion.div>
 
@@ -527,11 +520,12 @@ export default function Page() {
           }}
         >
           <motion.div
-            className="font-bold text-black font-poppins leading-tight tracking-tight uppercase text-right overflow-hidden ml-auto hero-text-adaptive hero-text-narrow hero-text-desktop"
-            style={{ 
-              letterSpacing: '0.08em', 
-              lineHeight: '1.1', 
-              y: rightY 
+            className="font-bold text-white leading-tight tracking-tight text-right overflow-hidden ml-auto hero-text-adaptive hero-text-narrow hero-text-desktop"
+            style={{
+              fontFamily: 'var(--font-gotham-narrow)',
+              letterSpacing: '0.05em',
+              lineHeight: '1.2',
+              y: rightY
             }}
           >
             <motion.div
@@ -540,7 +534,7 @@ export default function Page() {
               animate={isLoaded ? { y: '0%' } : { y: '100%' }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 1.7 }}
             >
-              <span className="hover:text-gray-600 transition-colors duration-500 block">OPTICIEN</span>
+              <span className="hover:text-gray-200 transition-colors duration-500 block text-3xl sm:text-4xl md:text-5xl lg:text-6xl">Vos yeux</span>
             </motion.div>
             <motion.div
               className="overflow-hidden cursor-hover"
@@ -548,7 +542,7 @@ export default function Page() {
               animate={isLoaded ? { y: '0%' } : { y: '100%' }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 1.9 }}
             >
-              <span className="hover:text-gray-600 transition-colors duration-500 block">FRANÇAIS</span>
+              <span className="hover:text-gray-200 transition-colors duration-500 block text-3xl sm:text-4xl md:text-5xl lg:text-6xl">notre priorité</span>
             </motion.div>
           </motion.div>
         </motion.div>
