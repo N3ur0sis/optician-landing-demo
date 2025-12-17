@@ -426,39 +426,40 @@ canvas[data-engine*="three.js"] {
   display: block !important;
 }
 
-/* Force hide default cursor only on landing page */
-/* Global cursor classes removed - now scoped below */
-.cursor-custom a, 
-.cursor-custom button, 
-.cursor-custom [role="button"], 
-.cursor-custom .cursor-pointer, 
-.cursor-custom input, 
-.cursor-custom textarea, 
-.cursor-custom select {
-  cursor: none !important;
+/* Curseur système standard - visible sur tous les éléments */
+* {
+  cursor: inherit;
 }
 
-/* Custom cursor dot - immediate response */
-.custom-cursor {
-  position: fixed;
-  width: 8px;
-  height: 8px;
-  background: #000;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  mix-blend-mode: difference;
+/* Curseur pointer sur tous les éléments interactifs */
+a, 
+button, 
+[role="button"], 
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="file"],
+select,
+textarea,
+.cursor-pointer {
+  cursor: pointer;
 }
 
-/* Smaller, bolder, and more responsive cursor ring */
-.custom-cursor-ring {
-  position: fixed;
-  width: 28px;
-  height: 28px;
-  border: 3px solid rgba(0, 0, 0, 0.35);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
+/* Texte sélectionnable */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea {
+  cursor: text;
+}
+
+/* Désactiver le curseur sur les éléments désactivés */
+:disabled,
+[disabled],
+.disabled {
+  cursor: not-allowed !important;
 }
 
 
