@@ -51,12 +51,10 @@ const PageNavigation = ({
 
   const navigationItems = [
     { label: 'Accueil', href: '/' },
-    { label: 'Qui est ODB ?', href: '/maison' },
-    { label: 'Nos boutiques', href: '/boutiques' },
-    { label: 'Actualités', href: '/magazine' },
-    { label: 'Créateurs', href: '/collections/createurs' },
-    { label: 'Services', href: '/services' },
-    { label: 'Rendez-vous', href: '/rendez-vous' },
+    { label: 'Qui sommes nous ?', href: '/notre-histoire' },
+    { label: 'Nos boutiques', href: '/nos-boutiques' },
+    { label: 'Prendre rendez-vous', href: '/prendre-rendez-vous' },
+    { label: 'Zinfos', href: '/nos-actualités' },
   ];
 
   const navBackgroundClass = isHome

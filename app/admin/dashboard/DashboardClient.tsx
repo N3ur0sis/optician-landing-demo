@@ -1,162 +1,253 @@
 'use client';
 
 import { Session } from 'next-auth';
-import { signOut } from 'next-auth/react';
 import { motion } from 'framer-motion';
-import { FiLogOut, FiUser, FiGrid, FiSettings, FiFileText, FiImage } from 'react-icons/fi';
-import LogoMark from '@/components/LogoMark';
+import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
+import { Grid3x3, FileText, Navigation, Image as ImageIcon, Settings, BarChart } from "lucide-react";
 
 interface DashboardClientProps {
   session: Session;
 }
 
+const features = [
+  {
+    Icon: Grid3x3,
+    name: "Gestionnaire de Grille",
+    description: "Gérez les tuiles de votre grille avec glisser-déposer. Contrôlez la mise en page, les images et le contenu.",
+    href: "/admin/dashboard/grid",
+    cta: "Ouvrir le Gestionnaire",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200" />
+    ),
+    className: "lg:row-start-1 lg:row-end-4 lg:col-start-2 lg:col-end-3",
+  },
+  {
+    Icon: FileText,
+    name: "Pages & Contenu",
+    description: "Créez et modifiez des pages, gérez les sections de contenu et configurez les mises en page.",
+    href: "#",
+    cta: "Bientôt Disponible",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100" />
+    ),
+    className: "lg:col-start-1 lg:col-end-2 lg:row-start-1 lg:row-end-3",
+  },
+  {
+    Icon: Navigation,
+    name: "Navigation",
+    description: "Configurez la navigation du site, les menus et la structure de routage.",
+    href: "#",
+    cta: "Bientôt Disponible",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100" />
+    ),
+    className: "lg:col-start-1 lg:col-end-2 lg:row-start-3 lg:row-end-4",
+  },
+  {
+    Icon: ImageIcon,
+    name: "Bibliothèque Média",
+    description: "Téléchargez, organisez et gérez vos images et fichiers multimédias.",
+    href: "#",
+    cta: "Bientôt Disponible",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200" />
+    ),
+    className: "lg:col-start-3 lg:col-end-3 lg:row-start-1 lg:row-end-2",
+  },
+  {
+    Icon: BarChart,
+    name: "Analytiques",
+    description: "Consultez les statistiques du site, l'analyse du trafic et les indicateurs de performance.",
+    href: "#",
+    cta: "Bientôt Disponible",
+    background: (
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100" />
+    ),
+    className: "lg:col-start-3 lg:col-end-3 lg:row-start-2 lg:row-end-4",
+  },
+];
+
 export default function DashboardClient({ session }: DashboardClientProps) {
-  const handleSignOut = () => {
-    signOut({ callbackUrl: '/admin/login' });
-  };
-
-  const stats = [
-    { label: 'Pages Actives', value: '8', icon: FiFileText },
-    { label: 'Images', value: '24', icon: FiImage },
-    { label: 'Sections', value: '15', icon: FiGrid },
-  ];
-
-  const quickActions = [
-    { label: 'Gérer le Contenu', icon: FiGrid, href: '#', color: 'from-blue-500 to-blue-600' },
-    { label: 'Médias', icon: FiImage, href: '#', color: 'from-purple-500 to-purple-600' },
-    { label: 'Pages', icon: FiFileText, href: '#', color: 'from-green-500 to-green-600' },
-    { label: 'Paramètres', icon: FiSettings, href: '#', color: 'from-orange-500 to-orange-600' },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a]">
-      {/* Header */}
-      <header className="border-b border-white/10 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <LogoMark className="w-8 h-8 text-[#d4af37]" />
-              <h1 className="text-xl font-bold text-white">Admin Dashboard</h1>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-lg border border-white/10">
-                <FiUser className="text-gray-400" />
-                <div className="text-sm">
-                  <p className="text-white font-medium">{session.user?.name || 'Admin'}</p>
-                  <p className="text-gray-400 text-xs">{session.user?.email}</p>
-                </div>
-              </div>
-              
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg border border-red-500/20 transition-colors"
-              >
-                <FiLogOut />
-                <span className="text-sm font-medium">Déconnexion</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gray-50">
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          transition={{ duration: 0.5 }}
+          className="mb-12"
         >
-          <h2 className="text-3xl font-bold text-white mb-2">
-            Bienvenue, {session.user?.name || 'Admin'} 👋
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Bienvenue, {session.user?.name || 'Admin'}
           </h2>
-          <p className="text-gray-400">
-            Gérez et mettez à jour votre site web depuis ce tableau de bord
+          <p className="text-gray-500">
+            Votre système de gestion de contenu est prêt
           </p>
         </motion.div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold text-white">{stat.value}</p>
-                </div>
-                <div className="bg-[#d4af37]/10 p-3 rounded-lg">
-                  <stat.icon className="text-[#d4af37] text-2xl" />
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Quick Actions */}
+        {/* Bento Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-8"
+          transition={{ delay: 0.1, duration: 0.5 }}
         >
-          <h3 className="text-xl font-semibold text-white mb-4">Actions Rapides</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action, index) => (
-              <motion.button
-                key={action.label}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`bg-gradient-to-br ${action.color} p-6 rounded-xl text-white shadow-lg hover:shadow-xl transition-shadow`}
-              >
-                <action.icon className="text-3xl mb-3" />
-                <p className="font-semibold">{action.label}</p>
-              </motion.button>
+          <BentoGrid className="lg:grid-rows-3">
+            {features.map((feature) => (
+              <BentoCard key={feature.name} {...feature} />
             ))}
+          </BentoGrid>
+        </motion.div>
+
+        {/* Old Stats Grid - Hidden */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+          className="hidden grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+        >
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mb-1">8</p>
+            <p className="text-sm text-gray-600">Active Pages</p>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mb-1">24</p>
+            <p className="text-sm text-gray-600">Media Files</p>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 mb-1">15</p>
+            <p className="text-sm text-gray-600">Content Sections</p>
           </div>
         </motion.div>
 
-        {/* Coming Soon Section */}
+        {/* Quick Actions - Hidden, replaced by Bento Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-gradient-to-r from-[#d4af37]/10 to-[#f4d47c]/10 backdrop-blur-xl rounded-xl p-8 border border-[#d4af37]/20"
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="hidden mb-12"
         >
-          <h3 className="text-2xl font-bold text-white mb-3">
-            🚀 Fonctionnalités à venir
-          </h3>
-          <p className="text-gray-300 mb-4">
-            Le système de gestion de contenu complet sera bientôt disponible avec :
-          </p>
-          <ul className="space-y-2 text-gray-300">
-            <li className="flex items-center gap-2">
-              <span className="text-[#d4af37]">✓</span> 
-              Éditeur de grille drag & drop pour la page d'accueil
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[#d4af37]">✓</span> 
-              Modification des textes, images et couleurs
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[#d4af37]">✓</span> 
-              Gestion des pages et sections
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[#d4af37]">✓</span> 
-              Bibliothèque de médias
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-[#d4af37]">✓</span> 
-              Prévisualisation en temps réel
-            </li>
-          </ul>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <a
+              href="/admin/dashboard/grid"
+              className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                Grid Manager
+              </h4>
+              <p className="text-sm text-gray-600">
+                Manage landing page grid tiles with drag & drop
+              </p>
+            </a>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-200 opacity-50 cursor-not-allowed">
+              <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-1">
+                Page Manager
+              </h4>
+              <p className="text-sm text-gray-600">
+                Coming soon - Manage pages and sections
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-200 opacity-50 cursor-not-allowed">
+              <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-1">
+                Navigation Manager
+              </h4>
+              <p className="text-sm text-gray-600">
+                Coming soon - Configure site navigation
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Feature Overview - Hidden, replaced by Bento Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="hidden bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-8 text-white"
+        >
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-3">
+                CMS Features
+              </h3>
+              <p className="text-white/80 mb-4">
+                Full content management capabilities being built:
+              </p>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-white/80">
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Grid tile management (Active)
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Page builder with sections
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Navigation editor
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Media library
+                </li>
+              </ul>
+            </div>
+          </div>
         </motion.div>
       </main>
     </div>

@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { MotionValue } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import Footer from './Footer';
 
 type ContentRevealProps = {
   scrollProgress?: MotionValue<number>;
@@ -12,96 +13,75 @@ type ContentRevealProps = {
   forceRevealed?: boolean;
 };
 
+type GridTile = {
+  id: string;
+  title: string;
+  caption: string | null;
+  href: string;
+  backgroundUrl: string;
+  colSpan: number;
+  rowSpan: number;
+  colStart: number;
+  rowStart: number;
+  overlayType: 'LIGHT' | 'DARK';
+  order: number;
+  published: boolean;
+};
+
 type Tile = {
   title: string;
   href: string;
   background: string;
-  span?: string;
+  colSpan: number;
+  rowSpan: number;
+  colStart: number;
+  rowStart: number;
   overlay?: 'light' | 'dark';
   caption?: string;
 };
 
-const tiles: Tile[] = [
-  {
-    title: 'Qui est ODB ?',
-    caption: 'Découvrir la maison',
-    href: '/maison',
-    // Updated to a warm interior / atelier photo for the "about" card
-    background: 'url(https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1400&q=80)',
-    span: 'lg:col-span-4 lg:row-span-2',
-    overlay: 'dark',
-  },
-  {
-    title: 'Nos boutiques',
-    caption: 'Toutes les adresses',
-    href: '/boutiques',
-    background: 'url(https://images.unsplash.com/photo-1542744094-3a31f272c490?w=600&h=400&fit=crop&crop=center)',
-    span: 'lg:col-span-2',
-    overlay: 'dark',
-  },
-  {
-    title: 'Actualités',
-    caption: 'Le journal ODB',
-    href: '/magazine',
-    background: 'url(https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600&h=400&fit=crop&crop=center)',
-    span: 'lg:col-span-2',
-    overlay: 'dark',
-  },
-  {
-    title: 'Prenez rendez-vous',
-    caption: 'Réserver en ligne',
-    href: '/rendez-vous',
-    // Updated to a different calendar image for the "appointment" card
-    background: 'url(https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=1400&q=80)',
-    span: 'lg:col-span-4 lg:row-span-2',
-    overlay: 'dark',
-  },
-  {
-    title: 'Créateurs',
-    caption: 'Sélection exclusive',
-    href: '/collections/createurs',
-    background: 'url(https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=600&h=400&fit=crop&crop=center)',
-    span: 'lg:col-span-2',
-    overlay: 'dark',
-  },
-  {
-    title: 'Services',
-    caption: 'Voir les expertises',
-    href: '/services',
-    background: 'url(https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=600&h=400&fit=crop&crop=center)',
-    span: 'lg:col-span-2',
-    overlay: 'dark',
-  },
-];
-
 const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealProps) => {
+  const [tiles, setTiles] = useState<Tile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch grid tiles from API
+  useEffect(() => {
+    const fetchTiles = async () => {
+      try {
+        const response = await fetch('/api/grid');
+        if (response.ok) {
+          const gridTiles: GridTile[] = await response.json();
+          
+          // Convert GridTile format to Tile format with proper grid positioning
+          const convertedTiles = gridTiles
+            .filter(tile => tile.published)
+            .map(tile => ({
+              title: tile.title,
+              caption: tile.caption || undefined,
+              href: tile.href,
+              background: `url(${tile.backgroundUrl})`,
+              colSpan: tile.colSpan,
+              rowSpan: tile.rowSpan,
+              colStart: tile.colStart,
+              rowStart: tile.rowStart,
+              overlay: tile.overlayType.toLowerCase() as 'light' | 'dark',
+            }));
+          
+          setTiles(convertedTiles);
+        }
+      } catch (error) {
+        console.error('Failed to fetch grid tiles:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchTiles();
+  }, []);
   const blurAmount = forceRevealed ? 0 : Math.max(0, (cameraZ / 100) * 20);
   const opacity = forceRevealed ? 1 : Math.max(0.1, 1 - (cameraZ / 100) * 0.8);
   const isContentRevealed = forceRevealed || blurAmount < 5; // Content is considered revealed when blur is minimal
   const router = useRouter();
-  const cardRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-
-  // Force click handlers
-  useEffect(() => {
-    cardRefs.current.forEach((card, index) => {
-      if (card) {
-        const handleForceClick = (e: Event) => {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('Force click:', tiles[index].title);
-          // Set flag to indicate user came from content reveal
-          sessionStorage.setItem('fromContentReveal', 'true');
-          router.push(tiles[index].href);
-        };
-        
-        card.addEventListener('click', handleForceClick, { passive: false });
-        
-        return () => {
-          card.removeEventListener('click', handleForceClick);
-        };
-      }
-    });
-  }, [router]);
 
   return (
     <motion.div
@@ -162,30 +142,28 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
             <span className="text-sm tracking-[0.3em] text-neutral-500 uppercase">Optique de Bourbon</span>
           </div>
 
-          <div className="content-reveal-grid grid auto-rows-[220px] gap-5 sm:auto-rows-[260px] lg:auto-rows-[320px] lg:grid-cols-4" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 40 }}>
-            {tiles.map((tile, index) => (
-              <Link
-                key={tile.title}
-                href={tile.href}
-                ref={(el) => { cardRefs.current[index] = el; }}
-                className={`content-reveal-card group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer transform-gpu z-[30] pointer-events-auto ${
-                  tile.span ?? ''
-                }`}
-                style={{
-                  pointerEvents: 'auto',
-                  position: 'relative',
-                  zIndex: 30
-                }}
-                onClick={(e) => {
-                  console.log('Link clicked:', tile.title);
-                  // Set flag to indicate user came from content reveal
-                  sessionStorage.setItem('fromContentReveal', 'true');
-                  // Allow normal navigation
-                }}
-                onMouseEnter={() => {
-                  console.log('Card hovered:', tile.title);
-                }}
-              >
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-neutral-400 text-sm tracking-wider">Loading...</div>
+            </div>
+          ) : (
+            <div className="content-reveal-grid grid auto-rows-[220px] gap-5 sm:auto-rows-[260px] lg:auto-rows-[320px] lg:grid-cols-4" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 40 }}>
+              {tiles.map((tile, index) => (
+                <Link
+                  key={tile.title}
+                  href={tile.href}
+                  className="content-reveal-card group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer transform-gpu z-[30] pointer-events-auto"
+                  style={{
+                    pointerEvents: 'auto',
+                    position: 'relative',
+                    zIndex: 30,
+                    gridColumn: `${tile.colStart} / span ${tile.colSpan}`,
+                    gridRow: `${tile.rowStart} / span ${tile.rowSpan}`,
+                  }}
+                  onClick={() => {
+                    sessionStorage.setItem('fromContentReveal', 'true');
+                  }}
+                >
                 <motion.div
                   initial={{ opacity: 0, y: 40 }}
                   animate={forceRevealed ? { opacity: 1, y: 0 } : {}}
@@ -246,9 +224,6 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
                         {tile.title}
                       </h2>
                       <div className="flex items-center text-white/80 group-hover:text-white transition-colors duration-300">
-                        <span className="text-sm font-medium tracking-[0.15em] uppercase mr-3">
-                          Explorer
-                        </span>
                         <div className="flex items-center space-x-1 transform group-hover:translate-x-2 transition-transform duration-300">
                           <div className="w-8 h-px bg-current"></div>
                           <div className="w-0 h-0 border-l-[6px] border-l-current border-y-[3px] border-y-transparent"></div>
@@ -259,7 +234,11 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
                 </motion.div>
               </Link>
             ))}
-          </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <Footer />
         </div>
       </div>
     </motion.div>

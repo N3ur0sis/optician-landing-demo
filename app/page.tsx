@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import GlassesModel from '../components/GlassesModel';
 import ContentReveal from '../components/ContentReveal';
-import CustomCursor from '../components/CustomCursor';
+
 import PageNavigation from '../components/PageNavigation';
 import { motion, useTransform, useInView, AnimatePresence, useMotionValueEvent } from 'framer-motion';
 import { useContext, useRef, useState, useEffect } from 'react';
@@ -129,8 +129,6 @@ export default function Page() {
 
   return (
     <main className="relative min-h-[300vh] w-full overflow-x-hidden font-poppins cursor-custom" ref={heroRef}>
-      {/* Custom Cursor */}
-      <CustomCursor />
 
       <PageNavigation showBackButton={false} variant="home" visible={isNavVisible} />
       
@@ -149,7 +147,7 @@ export default function Page() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <motion.div
-                className="flex items-center justify-center rounded-full px-6 py-4 shadow-xl shadow-black/10"
+                className="flex items-center justify-center"
                 animate={{ 
                   scale: [1, 1.05, 1],
                   opacity: [0.9, 1, 0.9]
@@ -243,12 +241,13 @@ export default function Page() {
       <motion.div 
         className="fixed left-1 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 z-50 select-none flex-col items-center hidden xl:flex"
         initial={{ opacity: 0, x: -30 }}
-        animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
+        animate={isLoaded && !forceContentRevealed ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
         transition={{ duration: 0.8, delay: 1.2 }}
         style={{ 
           opacity: useTransform(
             [scroll, modelScroll],
             ([s, m]) => {
+              if (forceContentRevealed) return 0;
               const scrollFade = (s as number) > 0.1 ? 0 : 1 - (s as number) / 0.1;
               const glassesFade = (m as number) > 0.3 ? 0 : 1 - (m as number) / 0.3;
               return Math.min(scrollFade, glassesFade);
@@ -317,12 +316,13 @@ export default function Page() {
       <motion.div 
         className="fixed right-1 sm:right-2 md:right-4 top-1/2 -translate-y-1/2 z-50 select-none flex-col items-center hidden xl:flex"
         initial={{ opacity: 0, x: 30 }}
-        animate={isLoaded ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
+        animate={isLoaded && !forceContentRevealed ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
         transition={{ duration: 0.8, delay: 1.2 }}
         style={{ 
           opacity: useTransform(
             [scroll, modelScroll],
             ([s, m]) => {
+              if (forceContentRevealed) return 0;
               const scrollFade = (s as number) > 0.1 ? 0 : 1 - (s as number) / 0.1;
               const glassesFade = (m as number) > 0.3 ? 0 : 1 - (m as number) / 0.3;
               return Math.min(scrollFade, glassesFade);
@@ -393,12 +393,13 @@ export default function Page() {
       <motion.div 
         className="fixed bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 z-50 select-none flex flex-col items-center"
         initial={{ opacity: 0, y: 20 }}
-        animate={isLoaded ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        animate={isLoaded && !forceContentRevealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
         transition={{ duration: 0.8, delay: 1.4 }}
         style={{ 
           opacity: useTransform(
             [scroll, modelScroll],
             ([s, m]) => {
+              if (forceContentRevealed) return 0;
               const scrollFade = (s as number) > 0.1 ? 0 : 1 - (s as number) / 0.1;
               const glassesFade = (m as number) > 0.3 ? 0 : 1 - (m as number) / 0.3;
               return Math.min(scrollFade, glassesFade);

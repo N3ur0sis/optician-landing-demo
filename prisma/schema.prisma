@@ -10,10 +10,8 @@ datasource db {
 }
 
 enum Role {
+  WEBMASTER   // Content and site management (primary role)
   ADMIN       // Full system access
-  WEBMASTER   // Content and site management
-  EDITOR      // Content editing only
-  VIEWER      // Read-only access
 }
 
 model User {
@@ -21,7 +19,7 @@ model User {
   email     String   @unique
   password  String
   name      String?
-  role      Role     @default(ADMIN)
+  role      Role     @default(WEBMASTER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   sessions  Session[]
@@ -65,4 +63,120 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ============================================
+// CMS Content Management Models
+// ============================================
+
+enum SectionType {
+  HERO      // Hero section with title, subtitle, background
+  TEXT      // Rich text content
+  IMAGE     // Single image with caption
+  VIDEO     // Video embed or upload
+  GRID      // Grid of cards/items
+  CTA       // Call-to-action section
+}
+
+enum OverlayType {
+  LIGHT     // Light text on image
+  DARK      // Dark text on image
+}
+
+// Grid tiles for the main landing page ContentReveal component
+model GridTile {
+  id          String      @id @default(cuid())
+  title       String
+  caption     String?
+  href        String
+  backgroundUrl String    // Image URL or CSS gradient
+  colSpan     Int         @default(2)  // 1-4 columns
+  rowSpan     Int         @default(1)  // 1-2 rows
+  colStart    Int         @default(1)  // Starting column 1-4
+  rowStart    Int         @default(1)  // Starting row
+  overlayType OverlayType @default(DARK)
+  order       Int         @default(0)  // Display order
+  published   Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([published, order])
+}
+
+// Pages - dynamic content pages with slug-based routing
+model Page {
+  id              String    @id @default(cuid())
+  slug            String    @unique  // URL path: /maison, /boutiques, etc.
+  title           String
+  metaTitle       String?   // SEO title
+  metaDescription String?   // SEO description
+  published       Boolean   @default(false)
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  sections        Section[]
+
+  @@index([slug])
+  @@index([published])
+}
+
+// Sections - building blocks for pages (WordPress-style blocks)
+model Section {
+  id        String      @id @default(cuid())
+  pageId    String
+  type      SectionType
+  order     Int         @default(0)
+  config    Json        // Flexible JSON config per section type
+  visible   Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  page      Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, order])
+}
+
+// Navigation items - dynamic navbar configuration
+model NavigationItem {
+  id        String           @id @default(cuid())
+  label     String
+  href      String
+  order     Int              @default(0)
+  parentId  String?          // Null for main items, ID for subsections
+  published Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  parent    NavigationItem?  @relation("NavigationHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  NavigationItem[] @relation("NavigationHierarchy")
+
+  @@index([parentId, order])
+  @@index([published])
+}
+
+// Media library - uploaded images and videos
+model Media {
+  id          String   @id @default(cuid())
+  filename    String   // Original filename
+  path        String   // Storage path: /uploads/2025/12/filename.jpg
+  url         String   // Public URL
+  mimeType    String   // image/jpeg, video/mp4, etc.
+  size        Int      // File size in bytes
+  width       Int?     // Image/video width
+  height      Int?     // Image/video height
+  altText     String?  // SEO alt text
+  caption     String?  // Optional caption
+  uploadedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([mimeType])
+  @@index([uploadedAt])
+}
+
+// Global site settings
+model Settings {
+  id        String   @id @default(cuid())
+  key       String   @unique  // Setting identifier: site_title, logo_url, etc.
+  value     Json     // Flexible JSON value
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
 }

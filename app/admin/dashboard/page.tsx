@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import DashboardClient from './DashboardClient';
+import AdminLayout from '@/components/AdminLayout';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -9,5 +10,9 @@ export default async function DashboardPage() {
     redirect('/admin/login');
   }
 
-  return <DashboardClient session={session} />;
+  return (
+    <AdminLayout session={session}>
+      <DashboardClient session={session} />
+    </AdminLayout>
+  );
 }

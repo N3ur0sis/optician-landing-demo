@@ -62,8 +62,8 @@ body {
     scroll-behavior: smooth;
   }
   
-  /* Improve touch responsiveness */
-  body {
+  /* Improve touch responsiveness - only on landing page */
+  .cursor-custom {
     touch-action: pan-y;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -71,15 +71,17 @@ body {
   }
 }
 
-/* Custom gradient background for hero with vignette effect */
+/* Custom gradient background for hero with vignette effect - ODB 2026 brand colors */
 .radial-gradient-bg {
   background: radial-gradient(circle at center, 
-    #fff 0%, 
-    #f8fafc 20%,
-    #e2e8f0 40%, 
-    #cbd5e1 60%, 
-    #94a3b8 80%,
-    #64748b 100%
+    #ffffff 0%, 
+    #e8f2fc 15%,
+    #c5dff7 30%,
+    #9dc9f1 45%,
+    #6ba8e5 60%,
+    #4a90d9 75%,
+    #2c6fb8 90%,
+    #1a5694 100%
   );
   position: fixed;
   inset: 0;
@@ -424,21 +426,15 @@ canvas[data-engine*="three.js"] {
   display: block !important;
 }
 
-/* Award-winning cursor effects - immediate response */
-.cursor-custom {
-  cursor: none !important;
-}
-
-.cursor-pointer-custom {
-  cursor: none !important;
-}
-
-.cursor-text-custom {
-  cursor: none !important;
-}
-
-/* Force hide default cursor on all interactive elements */
-a, button, [role="button"], .cursor-pointer, input, textarea, select {
+/* Force hide default cursor only on landing page */
+/* Global cursor classes removed - now scoped below */
+.cursor-custom a, 
+.cursor-custom button, 
+.cursor-custom [role="button"], 
+.cursor-custom .cursor-pointer, 
+.cursor-custom input, 
+.cursor-custom textarea, 
+.cursor-custom select {
   cursor: none !important;
 }
 

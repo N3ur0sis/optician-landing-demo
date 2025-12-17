@@ -10,16 +10,16 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Optician - Voyez plus clair",
-  description: "Des lunettes élégantes pour chaque vision. Découvrez nos collections premium d'optique française.",
-  keywords: "optique, lunettes, vision, France, opticien",
+  title: "Optique de Bourbon - Opticien Français | Eyewear Premium",
+  description: "Optique de Bourbon - Découvrez nos collections premium de lunettes. Plus de 40 ans d'expérience, 14 boutiques, +200 collaborateurs. Votre vision notre priorité.",
+  keywords: "optique, lunettes, opticien, optique de bourbon, vue, verres, lunettes soleil",
 };
 
 import ClientLayout from "./ClientLayout";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" data-scroll-behavior="smooth">
       <body className={`${poppins.variable} antialiased`}>
         <ClientLayout>{children}</ClientLayout>
       </body>

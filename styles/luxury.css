@@ -1,13 +1,14 @@
 /* Luxury Design Enhancements for ODB Landing Page */
 
-/* Enhanced Gradients */
+/* Enhanced Gradients - ODB 2026 brand colors */
 .radial-gradient-bg {
   background: radial-gradient(
     ellipse at center,
     rgba(255, 255, 255, 1) 0%,
-    rgba(240, 248, 255, 0.8) 30%,
-    rgba(219, 234, 254, 0.6) 60%,
-    rgba(147, 197, 253, 0.4) 100%
+    rgba(232, 242, 252, 0.9) 20%,
+    rgba(197, 223, 247, 0.7) 40%,
+    rgba(107, 168, 229, 0.5) 70%,
+    rgba(42, 111, 184, 0.3) 100%
   );
 }
 
@@ -118,12 +119,12 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom Cursor Enhancement */
+/* Custom Cursor Enhancement - scoped to landing page only via parent class */
 .cursor-custom {
   cursor: none;
 }
 
-.cursor-hover:hover {
+.cursor-custom .cursor-hover:hover {
   cursor: none;
 }
 
