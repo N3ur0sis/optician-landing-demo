@@ -1,10 +1,109 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 @import "tailwindcss";
 @import "../styles/transitions.css";
+
+/* Gotham Font Family */
+@font-face {
+  font-family: 'Gotham';
+  src: url('/fonts/Gotham-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham';
+  src: url('/fonts/Gotham-Book.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham';
+  src: url('/fonts/GothamMedium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham';
+  src: url('/fonts/Gotham-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham';
+  src: url('/fonts/Gotham-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Gotham Narrow Font Family */
+@font-face {
+  font-family: 'Gotham Narrow';
+  src: url('/fonts/GothamNarrow-XLight.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham Narrow';
+  src: url('/fonts/GothamNarrow-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham Narrow';
+  src: url('/fonts/GothamNarrow-Book.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham Narrow';
+  src: url('/fonts/GothamNarrow-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham Narrow';
+  src: url('/fonts/GothamNarrow-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham Narrow';
+  src: url('/fonts/GothamNarrow-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gotham Narrow';
+  src: url('/fonts/GothamNarrow-Ultra.otf') format('opentype');
+  font-weight: 950;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-gotham: 'Gotham', system-ui, sans-serif;
+  --font-gotham-narrow: 'Gotham Narrow', system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,7 +116,7 @@
 body {
   background: #ffffff;
   color: var(--foreground);
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: var(--font-gotham);
   overflow-x: hidden;
   /* Performance optimizations */
   -webkit-font-smoothing: antialiased;
@@ -29,6 +128,29 @@ body {
   box-sizing: border-box;
   /* Performance optimization */
   will-change: auto;
+}
+
+/* Font utility classes */
+.font-gotham {
+  font-family: var(--font-gotham);
+}
+
+.font-gotham-narrow {
+  font-family: var(--font-gotham-narrow);
+}
+
+/* Titres avec Gotham Bold/Black pour impact visuel */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-gotham);
+  font-weight: 700;
+}
+
+h1 {
+  font-weight: 900; /* Gotham Black pour les grands titres */
+}
+
+h2 {
+  font-weight: 700; /* Gotham Bold pour les sous-titres */
 }
 
 /* Performance optimizations for animations - Enhanced luxury smoothness */
@@ -426,39 +548,40 @@ canvas[data-engine*="three.js"] {
   display: block !important;
 }
 
-/* Force hide default cursor only on landing page */
-/* Global cursor classes removed - now scoped below */
-.cursor-custom a, 
-.cursor-custom button, 
-.cursor-custom [role="button"], 
-.cursor-custom .cursor-pointer, 
-.cursor-custom input, 
-.cursor-custom textarea, 
-.cursor-custom select {
-  cursor: none !important;
+/* Curseur système standard - visible sur tous les éléments */
+* {
+  cursor: inherit;
 }
 
-/* Custom cursor dot - immediate response */
-.custom-cursor {
-  position: fixed;
-  width: 8px;
-  height: 8px;
-  background: #000;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  mix-blend-mode: difference;
+/* Curseur pointer sur tous les éléments interactifs */
+a, 
+button, 
+[role="button"], 
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="file"],
+select,
+textarea,
+.cursor-pointer {
+  cursor: pointer;
 }
 
-/* Smaller, bolder, and more responsive cursor ring */
-.custom-cursor-ring {
-  position: fixed;
-  width: 28px;
-  height: 28px;
-  border: 3px solid rgba(0, 0, 0, 0.35);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
+/* Texte sélectionnable */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea {
+  cursor: text;
+}
+
+/* Désactiver le curseur sur les éléments désactivés */
+:disabled,
+[disabled],
+.disabled {
+  cursor: not-allowed !important;
 }
 
 

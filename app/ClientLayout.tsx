@@ -3,7 +3,6 @@
 import { createContext, useEffect, ReactNode } from 'react';
 import { AnimatePresence, useMotionValue, MotionValue } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import CustomCursor from '../components/CustomCursor';
 
 // Scroll context for custom scroll logic
 export type ScrollContextType = { scroll: MotionValue<number>; setScroll: (v: number) => void };

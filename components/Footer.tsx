@@ -13,11 +13,11 @@ const Footer = () => {
           <div>
             <div className="mb-6">
               <Image
-                src="/Logo-ODB.png"
+                src="/logo-ODB-blanc-grand.png"
                 alt="Optique de Bourbon"
-                width={2628/20}
-                height={1430/20}
-                className="h-12 w-auto object-contain brightness-0 invert"
+                width={200}
+                height={100}
+                className="h-12 w-auto object-contain"
               />
             </div>
             <p className="text-sm text-white/60 mb-4">

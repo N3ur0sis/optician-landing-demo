@@ -38,7 +38,7 @@ const NosBoutiquesPage = () => {
         </div>
       </section>
 
-      {/* Boutiques Grid (placeholder) */}
+      {/* Boutiques Grid */}
       <section className="pb-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
@@ -47,24 +47,45 @@ const NosBoutiquesPage = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(14)].map((_, index) => (
-                <div
+              {[
+                'Bras-Panon',
+                'Éperon',
+                'Le Port',
+                'Le Tampon',
+                'Mon Caprice',
+                'Sacré-Cœur',
+                'Saint-André',
+                'Saint-Denis',
+                'Saint-Joseph',
+                'Saint-Leu',
+                'Saint-Louis',
+                'Saint-Paul',
+                'Saint-Pierre Casabona',
+                'Sainte-Marie'
+              ].map((boutique, index) => (
+                <motion.div
                   key={index}
-                  className="p-6 bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors"
+                  className="group p-6 bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 + index * 0.05 }}
+                  whileHover={{ scale: 1.02 }}
                 >
-                  <h3 className="text-xl font-bold mb-2">Boutique {index + 1}</h3>
-                  <p className="text-sm text-white/60 mb-4">Adresse à définir</p>
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-amber-400 transition-colors">
+                    Optique de Bourbon {boutique}
+                  </h3>
+                  <p className="text-sm text-white/60 mb-4">{boutique}, La Réunion</p>
                   <div className="text-sm text-white/40">
                     <p>Téléphone: À définir</p>
                     <p>Horaires: À définir</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
             <div className="mt-12 p-8 bg-white/5 border border-white/10 backdrop-blur-sm">
               <p className="text-sm text-white/50 italic">
-                Note: Ce contenu est temporaire. Merci de fournir les informations complètes pour chaque boutique
-                (nom, adresse, téléphone, horaires, photos) selon le document de recueil de contenus.
+                Note: Les informations complètes (adresse exacte, téléphone, horaires, photos) sont à compléter
+                selon le document de recueil de contenus.
               </p>
             </div>
           </motion.div>

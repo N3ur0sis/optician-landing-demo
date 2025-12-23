@@ -1,13 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
 import "./globals.css";
-
-const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Optique de Bourbon - Opticien Français | Eyewear Premium",
@@ -20,7 +12,7 @@ import ClientLayout from "./ClientLayout";
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" data-scroll-behavior="smooth">
-      <body className={`${poppins.variable} antialiased`}>
+      <body className="antialiased">
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

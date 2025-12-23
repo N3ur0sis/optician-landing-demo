@@ -106,10 +106,10 @@ const PageNavigation = ({
                     >
                         <div className="h-8 flex items-center">
                         <Image
-                          src="/Logo-ODB.png"
+                          src="/logo-ODB-bleu-grand.png"
                           alt="Optique de Bourbon"
-                          width={2628/25}
-                          height={1430/15}
+                          width={200}
+                          height={100}
                           priority
                           className="h-full w-auto object-contain"
                         />
