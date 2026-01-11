@@ -770,3 +770,42 @@ textarea {
   transform: scale(1.05);
   color: rgba(0,0,0,0.8);
 }
+
+/* Page Builder Inputs */
+.input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900;
+}
+
+.input::placeholder {
+  @apply text-gray-500;
+}
+
+.input:disabled {
+  @apply bg-gray-100 text-gray-600 cursor-not-allowed;
+}
+
+/* Page Builder Block Editor */
+.block-editor-panel {
+  @apply bg-white border-l border-gray-200;
+}
+
+/* Prose for dynamic page content */
+.prose-invert {
+  --tw-prose-body: rgba(255, 255, 255, 0.8);
+  --tw-prose-headings: #ffffff;
+  --tw-prose-lead: rgba(255, 255, 255, 0.7);
+  --tw-prose-links: #ffffff;
+  --tw-prose-bold: #ffffff;
+  --tw-prose-counters: rgba(255, 255, 255, 0.5);
+  --tw-prose-bullets: rgba(255, 255, 255, 0.4);
+  --tw-prose-hr: rgba(255, 255, 255, 0.2);
+  --tw-prose-quotes: #ffffff;
+  --tw-prose-quote-borders: rgba(255, 255, 255, 0.3);
+  --tw-prose-captions: rgba(255, 255, 255, 0.5);
+  --tw-prose-code: #ffffff;
+  --tw-prose-pre-code: rgba(255, 255, 255, 0.9);
+  --tw-prose-pre-bg: rgba(0, 0, 0, 0.5);
+  --tw-prose-th-borders: rgba(255, 255, 255, 0.3);
+  --tw-prose-td-borders: rgba(255, 255, 255, 0.2);
+}
+

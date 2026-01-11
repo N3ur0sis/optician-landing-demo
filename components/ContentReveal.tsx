@@ -137,7 +137,7 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
       <div className="absolute inset-0 bg-gradient-to-br from-[#fdfbf7] via-[#f5eee6] to-[#f1e2d2]" />
 
       <div className="relative h-full w-full overflow-y-auto" data-reveal-scroll>
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 pb-24 pt-16 sm:px-6 md:px-10 lg:px-12 xl:px-16">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 pb-24 pt-16 sm:px-6 md:px-8 lg:px-10 xl:px-12">
           <div className="flex items-center justify-center py-6">
             <span className="text-sm tracking-[0.3em] text-neutral-500 uppercase">Optique de Bourbon</span>
           </div>

@@ -61,7 +61,7 @@ export default function GridTileCard({ tile, onEdit, onDelete, isDragging = fals
           </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <svg className="w-12 h-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

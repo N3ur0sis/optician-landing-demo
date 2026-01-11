@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "./generated/prisma"
 }
 
 datasource db {
@@ -69,18 +70,83 @@ model VerificationToken {
 // CMS Content Management Models
 // ============================================
 
-enum SectionType {
-  HERO      // Hero section with title, subtitle, background
-  TEXT      // Rich text content
-  IMAGE     // Single image with caption
-  VIDEO     // Video embed or upload
-  GRID      // Grid of cards/items
-  CTA       // Call-to-action section
+enum BlockType {
+  // Text & Content
+  HERO              // Hero section with title, subtitle, background
+  TEXT              // Rich text content
+  HEADING           // Standalone heading (H1-H6)
+  PARAGRAPH         // Simple paragraph text
+  QUOTE             // Blockquote with attribution
+  LIST              // Bulleted or numbered list
+  
+  // Media
+  IMAGE             // Single image with caption
+  GALLERY           // Image gallery/carousel
+  VIDEO             // Video embed or upload
+  FILE              // Downloadable file
+  
+  // Layout
+  COLUMNS           // Multi-column layout (2, 3, 4 cols)
+  GRID              // Grid of cards/items
+  SPACER            // Vertical spacing
+  DIVIDER           // Horizontal divider line
+  CONTAINER         // Wrapper with background/padding
+  
+  // Interactive
+  BUTTON            // Call-to-action button
+  LINK_BLOCK        // Link with preview
+  ACCORDION         // Collapsible sections
+  TABS              // Tabbed content
+  
+  // Data Display
+  TABLE             // Data table
+  STATS             // Statistics/numbers display
+  TIMELINE          // Timeline of events
+  CARDS             // Card grid layout
+  
+  // Embeds
+  IFRAME            // External iframe embed
+  MAP               // Google Maps embed
+  SOCIAL            // Social media embed
+  
+  // Custom Components
+  TEAM              // Team member cards
+  TESTIMONIALS      // Customer testimonials
+  PRICING           // Pricing tables
+  FAQ               // FAQ accordion
+  CONTACT_FORM      // Contact form
+  NEWSLETTER        // Newsletter signup
+  FEATURES          // Feature list with icons
+  STORE_LIST        // Dynamic store list from database
+  
+  // Store-specific blocks
+  STORE_HERO        // Store hero with name, address, description
+  STORE_CONTACT     // Store contact info (address, phone, email, hours)
+  STORE_SERVICES    // Store services grid
+  STORE_CTA         // Store call-to-action buttons (RDV, Call)
+  STORE_REVIEWS     // Store reviews/ratings display
+  STORE_MAP         // Store location map
+  STORE_LAYOUT      // Store page layout (2 columns: main content + sidebar)
 }
 
 enum OverlayType {
   LIGHT     // Light text on image
   DARK      // Dark text on image
+}
+
+enum TextAlign {
+  LEFT
+  CENTER
+  RIGHT
+  JUSTIFY
+}
+
+enum ContainerWidth {
+  NARROW    // max-w-2xl
+  MEDIUM    // max-w-4xl
+  WIDE      // max-w-6xl
+  FULL      // max-w-7xl
+  EDGE      // No max-width
 }
 
 // Grid tiles for the main landing page ContentReveal component
@@ -110,45 +176,217 @@ model Page {
   title           String
   metaTitle       String?   // SEO title
   metaDescription String?   // SEO description
+  
+  // Page Settings
   published       Boolean   @default(false)
   publishedAt     DateTime?
+  template        String    @default("default") // default, landing, minimal, full-width
+  
+  // Page Styling
+  backgroundColor String    @default("#000000")
+  textColor       String    @default("#ffffff")
+  customCSS       String?   // Custom CSS for page
+  
+  // Navigation
+  showInNav       Boolean   @default(true)
+  navOrder        Int       @default(0)
+  navLabel        String?   // Override title in nav
+  parentSlug      String?   // For nested navigation
+  
+  // Soft Delete
+  deletedAt       DateTime? // Null = active, set = soft deleted
+  
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  sections        Section[]
+  blocks          PageBlock[]
+  revisions       PageRevision[]
 
   @@index([slug])
   @@index([published])
+  @@index([navOrder])
+  @@index([deletedAt])
 }
 
-// Sections - building blocks for pages (WordPress-style blocks)
+// Page Revisions - Version history for pages
+model PageRevision {
+  id              String   @id @default(cuid())
+  pageId          String
+  version         Int      // Auto-incrementing version number per page
+  
+  // Snapshot of page state
+  title           String
+  slug            String
+  metaTitle       String?
+  metaDescription String?
+  template        String
+  backgroundColor String
+  textColor       String
+  customCSS       String?
+  published       Boolean
+  showInNav       Boolean
+  navOrder        Int
+  navLabel        String?
+  parentSlug      String?
+  
+  // Blocks snapshot as JSON
+  blocksSnapshot  Json     // Full blocks array at this revision
+  
+  // Revision metadata
+  createdAt       DateTime @default(now())
+  createdBy       String?  // User ID who made the change
+  changeNote      String?  // Optional description of changes
+  
+  // Relations
+  page            Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, version])
+  @@index([pageId, createdAt])
+}
+
+// Page Blocks - WordPress-style blocks with flexible JSON configuration
+model PageBlock {
+  id          String      @id @default(cuid())
+  pageId      String
+  type        BlockType
+  order       Int         @default(0)
+  
+  // Block Content (flexible JSON based on type)
+  content     Json        // Main content data
+  
+  // Block Styling
+  settings    Json        @default("{}")  // Layout settings
+  styles      Json        @default("{}")  // Custom styling (colors, spacing, etc.)
+  
+  // Block State
+  visible     Boolean     @default(true)
+  
+  // Timestamps
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relations
+  page        Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, order])
+  @@index([type])
+}
+
+// Sections - LEGACY: keeping for backward compatibility with existing code
 model Section {
   id        String      @id @default(cuid())
   pageId    String
-  type      SectionType
+  type      String      @default("TEXT")
   order     Int         @default(0)
   config    Json        // Flexible JSON config per section type
   visible   Boolean     @default(true)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  page      Page        @relation(fields: [pageId], references: [id], onDelete: Cascade)
 
   @@index([pageId, order])
 }
 
 // Navigation items - dynamic navbar configuration
 model NavigationItem {
-  id        String           @id @default(cuid())
-  label     String
-  href      String
-  order     Int              @default(0)
-  parentId  String?          // Null for main items, ID for subsections
-  published Boolean          @default(true)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  parent    NavigationItem?  @relation("NavigationHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
-  children  NavigationItem[] @relation("NavigationHierarchy")
+  id          String           @id @default(cuid())
+  label       String           // Display text
+  href        String?          // URL (null for parent-only items with dropdowns)
+  
+  // Hierarchical structure
+  parentId    String?          // Null for top-level items
+  order       Int              @default(0)
+  depth       Int              @default(0)  // 0 = top level, 1 = submenu, 2 = nested submenu
+  
+  // Menu assignment
+  menuId      String?          // Which menu this belongs to
+  menu        NavigationMenu?  @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  
+  // Page linkage (optional - for linking to CMS pages)
+  pageSlug    String?          // Reference to Page.slug
+  openInNewTab Boolean         @default(false)
+  
+  // Visual customization
+  icon        String?          // Icon name (Lucide icon or custom)
+  iconPosition String          @default("left") // left, right, none
+  
+  // Styling
+  cssClass    String?          // Custom CSS classes
+  style       Json             @default("{}") // Custom inline styles
+  
+  // Dropdown/submenu settings
+  dropdownStyle String         @default("dropdown") // dropdown, mega, flyout
+  
+  // State
+  published   Boolean          @default(true)
+  highlighted Boolean          @default(false) // For special styling (e.g., CTA button)
+  
+  // Timestamps
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  // Self-referencing relations
+  parent      NavigationItem?  @relation("NavigationHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    NavigationItem[] @relation("NavigationHierarchy")
 
+  @@index([menuId, order])
   @@index([parentId, order])
+  @@index([published])
+  @@index([pageSlug])
+}
+
+// Navigation Menus - container for navigation items (header, footer, sidebar, etc.)
+model NavigationMenu {
+  id          String           @id @default(cuid())
+  name        String           // Internal name: "Main Header", "Footer Links"
+  slug        String           @unique // Unique identifier: "header", "footer", "sidebar"
+  description String?          // Admin description
+  
+  // Menu Type & Position
+  type        String           @default("header") // header, footer, sidebar, mobile
+  position    String           @default("top")    // top, bottom, left, right
+  
+  // Layout & Style
+  layout      String           @default("horizontal") // horizontal, vertical, grid
+  alignment   String           @default("center")     // left, center, right, space-between
+  
+  // Animation settings
+  animation   String           @default("none")   // none, fade, slide, scale
+  animationDuration Int        @default(200)      // milliseconds
+  
+  // Styling
+  backgroundColor String?      // Menu background color
+  textColor       String?      // Menu text color
+  hoverColor      String?      // Hover state color
+  activeColor     String?      // Active item color
+  borderColor     String?      // Border color
+  
+  // Spacing
+  itemSpacing     Int          @default(24)  // Space between items (px)
+  padding         String?      // CSS padding value
+  
+  // Dropdown global settings
+  dropdownAnimation String     @default("fadeDown") // fadeDown, slideDown, scale, none
+  dropdownDelay   Int          @default(0)    // Delay before showing dropdown (ms)
+  
+  // Advanced styling
+  customCSS       String?      // Custom CSS for this menu
+  cssClasses      String?      // Additional CSS classes
+  
+  // Responsive
+  mobileBreakpoint Int         @default(768)  // Pixel width for mobile behavior
+  mobileStyle     String       @default("hamburger") // hamburger, slide, accordion
+  
+  // State
+  published   Boolean          @default(true)
+  
+  // Timestamps
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  // Relations
+  items       NavigationItem[]
+
+  @@index([slug])
+  @@index([type])
   @@index([published])
 }
 
@@ -179,4 +417,69 @@ model Settings {
   updatedAt DateTime @updatedAt
 
   @@index([key])
+}
+
+// ============================================
+// Analytics Models
+// ============================================
+
+// Individual page view tracking
+model PageView {
+  id          String   @id @default(cuid())
+  path        String   // URL path: /maison, /magasins/reunion
+  pageId      String?  // Reference to Page if it's a CMS page
+  sessionId   String   // Anonymous session identifier
+  userAgent   String?  // Browser/device info
+  referrer    String?  // Traffic source
+  country     String?  // Geo location (from IP)
+  city        String?  // City (from IP)
+  device      String?  // desktop, mobile, tablet
+  browser     String?  // chrome, firefox, safari, etc.
+  os          String?  // windows, macos, ios, android
+  duration    Int?     // Time on page in seconds
+  createdAt   DateTime @default(now())
+
+  @@index([path])
+  @@index([pageId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([device])
+}
+
+// Daily aggregated statistics (for performance)
+model DailyStats {
+  id            String   @id @default(cuid())
+  date          DateTime @db.Date // Day of stats
+  path          String   // URL path
+  pageId        String?  // Reference to Page if CMS page
+  views         Int      @default(0) // Total page views
+  uniqueVisitors Int     @default(0) // Unique sessions
+  avgDuration   Float?   // Average time on page (seconds)
+  bounceRate    Float?   // Percentage of single-page visits
+  
+  // Device breakdown
+  desktopViews  Int      @default(0)
+  mobileViews   Int      @default(0)
+  tabletViews   Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([date, path])
+  @@index([date])
+  @@index([path])
+  @@index([pageId])
+}
+
+// Real-time active sessions
+model ActiveSession {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
+  path        String   // Current page
+  startedAt   DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+  pageViews   Int      @default(1)
+  
+  @@index([lastSeenAt])
+  @@index([path])
 }

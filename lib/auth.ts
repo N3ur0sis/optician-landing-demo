@@ -1,11 +1,8 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
 import type { NextAuthConfig } from "next-auth"
 
-// Don't import prisma here to avoid Edge runtime issues in middleware
-// Prisma will be imported dynamically in the authorize function
-
+// Edge-compatible auth config (no database imports)
 export const authConfig = {
   providers: [
     Credentials({
@@ -19,33 +16,44 @@ export const authConfig = {
           return null
         }
 
-        // Import prisma dynamically to avoid Edge runtime issues
-        const { default: prisma } = await import("@/lib/prisma")
-
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email as string
-          }
+        // Dynamic imports for Node.js runtime only
+        const bcrypt = await import("bcryptjs")
+        const { PrismaClient } = await import("../prisma/generated/prisma/client")
+        const { PrismaPg } = await import("@prisma/adapter-pg")
+        
+        const adapter = new PrismaPg({ 
+          connectionString: process.env.DATABASE_URL 
         })
+        const prisma = new PrismaClient({ adapter })
 
-        if (!user || !user.password) {
-          return null
-        }
+        try {
+          const user = await prisma.user.findUnique({
+            where: {
+              email: credentials.email as string
+            }
+          })
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        )
+          if (!user || !user.password) {
+            return null
+          }
 
-        if (!isPasswordValid) {
-          return null
-        }
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          )
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
+          if (!isPasswordValid) {
+            return null
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          }
+        } finally {
+          await prisma.$disconnect()
         }
       }
     })
@@ -73,6 +81,7 @@ export const authConfig = {
     }
   },
   secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
 } satisfies NextAuthConfig
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)

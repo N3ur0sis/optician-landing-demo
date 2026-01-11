@@ -1,0 +1,7 @@
+# Media uploads directory
+This directory stores uploaded media files for the CMS.
+
+Files are organized by year and month:
+- /uploads/2025/12/image-123456.jpg
+
+Do not delete this directory or its contents unless you want to remove uploaded media.

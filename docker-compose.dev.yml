@@ -1,21 +1,51 @@
+# ============================================
+# OPTICIAN CMS - Docker Compose Development Override
+# ============================================
+#
+# This file extends docker-compose.yml for local development.
+# NOT tracked in git - create locally for development only.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+#
+# ============================================
+
 services:
+  # =================================
+  # Database (Development Overrides)
+  # =================================
   db:
-    image: postgres:16-alpine
     container_name: optician-db-dev
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-optician_db}
-      POSTGRES_USER: ${POSTGRES_USER:-optician}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-OpticianisDev2025Secure}
+    # Expose port for local database tools
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-optician}"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
 
+  # =================================
+  # Web Application (Development Overrides)
+  # =================================
+  web:
+    container_name: optician-web-dev
+    
+    build:
+      target: development
+    
+    environment:
+      NODE_ENV: development
+    
+    volumes:
+      # Mount source code for hot-reload
+      - .:/app
+      # Prevent overwriting container's node_modules
+      - /app/node_modules
+      - /app/.next
+      # Keep uploads accessible locally
+      - ./public/uploads:/app/public/uploads
+
+# =================================
+# Development Volumes
+# =================================
 volumes:
   postgres_data_dev:
     name: optician-postgres-data-dev

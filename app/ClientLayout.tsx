@@ -3,6 +3,7 @@
 import { createContext, useEffect, ReactNode } from 'react';
 import { AnimatePresence, useMotionValue, MotionValue } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { AnalyticsTracker } from '@/components/AnalyticsTracker';
 
 // Scroll context for custom scroll logic
 export type ScrollContextType = { scroll: MotionValue<number>; setScroll: (v: number) => void };
@@ -12,6 +13,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const scroll = useMotionValue(0);
   const isMainPage = pathname === '/';
+  const isAdminPage = pathname?.startsWith('/admin');
   
   const setScroll = (v: number) => {
     scroll.set(Math.max(0, Math.min(1, v)));
@@ -191,6 +193,8 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   return (
     <ScrollContext.Provider value={{ scroll, setScroll }}>
+      {/* Analytics tracker - only on public pages */}
+      {!isAdminPage && <AnalyticsTracker />}
       <AnimatePresence mode="wait">{children}</AnimatePresence>
     </ScrollContext.Provider>
   );

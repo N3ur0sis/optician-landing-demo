@@ -6,6 +6,16 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface NavigationItem {
+  id: string;
+  label: string;
+  href: string;
+  order: number;
+  published: boolean;
+  highlighted?: boolean;
+  openInNewTab?: boolean;
+}
+
 interface PageNavigationProps {
   title?: string;
   subtitle?: string;
@@ -24,7 +34,38 @@ const PageNavigation = ({
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cameFromContentReveal, setCameFromContentReveal] = useState(false);
+  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([]);
   const isHome = variant === 'home';
+
+  // Fetch navigation items from database
+  useEffect(() => {
+    const fetchNavigation = async () => {
+      try {
+        const response = await fetch('/api/navigation/items?onlyPublished=true');
+        if (response.ok) {
+          const items = await response.json();
+          // Sort by order and filter published items
+          const sortedItems = items
+            .filter((item: NavigationItem) => item.published)
+            .sort((a: NavigationItem, b: NavigationItem) => a.order - b.order);
+          setNavigationItems(sortedItems);
+        }
+      } catch (error) {
+        console.error('Failed to fetch navigation:', error);
+        // Fallback to default navigation
+        setNavigationItems([
+          { id: '1', label: 'Accueil', href: '/', order: 1, published: true },
+          { id: '2', label: 'Qui est ODB ?', href: '/maison', order: 2, published: true },
+          { id: '3', label: 'Nos boutiques', href: '/boutiques', order: 3, published: true },
+          { id: '4', label: 'Actualités', href: '/magazine', order: 4, published: true },
+          { id: '5', label: 'Services', href: '/services', order: 5, published: true },
+          { id: '6', label: 'Rendez-vous', href: '/rendez-vous', order: 6, published: true },
+        ]);
+      }
+    };
+
+    fetchNavigation();
+  }, []);
 
   useEffect(() => {
     const fromContentReveal = sessionStorage.getItem('fromContentReveal');
@@ -48,14 +89,6 @@ const PageNavigation = ({
     }
     router.back();
   };
-
-  const navigationItems = [
-    { label: 'Accueil', href: '/' },
-    { label: 'Qui sommes nous ?', href: '/notre-histoire' },
-    { label: 'Nos boutiques', href: '/nos-boutiques' },
-    { label: 'Prendre rendez-vous', href: '/prendre-rendez-vous' },
-    { label: 'Zinfos', href: '/nos-actualités' },
-  ];
 
   const navBackgroundClass = isHome
     ? 'bg-white/20 backdrop-blur-md shadow-[0_12px_30px_-20px_rgba(0,0,0,0.35)]'
@@ -167,14 +200,20 @@ const PageNavigation = ({
                 <div className="space-y-6">
                   {navigationItems.map((item, index) => (
                     <motion.div
-                      key={item.href}
+                      key={item.id}
                       initial={{ opacity: 0, x: 50 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                     >
                       <Link
                         href={item.href}
-                        className="block text-white hover:text-gray-300 text-lg font-medium tracking-wide border-b border-white/10 pb-3 transition-colors duration-200"
+                        target={item.openInNewTab ? '_blank' : undefined}
+                        rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+                        className={`block text-lg font-medium tracking-wide border-b border-white/10 pb-3 transition-colors duration-200 ${
+                          item.highlighted 
+                            ? 'text-yellow-400 hover:text-yellow-300' 
+                            : 'text-white hover:text-gray-300'
+                        }`}
                         onClick={() => {
                           if (!showBackButton && item.href !== '/') {
                             sessionStorage.setItem('fromContentReveal', 'true');

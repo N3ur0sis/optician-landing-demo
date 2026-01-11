@@ -1,6 +1,8 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files
 
-# dependencies
+# =================================
+# DEPENDENCIES
+# =================================
 /node_modules
 /.pnp
 .pnp.*
@@ -10,45 +12,66 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# =================================
+# TESTING
+# =================================
 /coverage
 
-# next.js
+# =================================
+# NEXT.JS BUILD
+# =================================
 /.next/
 /out/
-
-# production
 /build
 
-# misc
+# =================================
+# ENVIRONMENT FILES (CRITICAL)
+# =================================
+# ALL .env files are ignored except .env.example
+.env
+.env.*
+!.env.example
+
+# =================================
+# SYSTEM & IDE
+# =================================
 .DS_Store
 *.pem
 *.db
 *.db-journal
 *.log
-README_OLD.md
+.vscode/settings.json
+.idea/
 
-# debug
+# =================================
+# DEBUG LOGS
+# =================================
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Environment files - protect secrets but allow examples
-.env
-.env.local
-.env.*.local
-
-# Allow example environment files
-!.env.example
-!.env.development
-!.env.production
-
-# vercel
+# =================================
+# DEPLOYMENT
+# =================================
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Docker development override (not for production)
+docker-compose.dev.yml
+docker-compose.override.yml
 
-/app/generated/prisma
+# =================================
+# TYPESCRIPT
+# =================================
+*.tsbuildinfo
+
+# =================================
+# PRISMA
+# =================================
+prisma/generated/
+
+# =================================
+# UPLOADS (user content - not tracked)
+# =================================
+public/uploads/*
+!public/uploads/.gitkeep

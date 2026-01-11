@@ -1,56 +1,132 @@
+# ============================================
+# OPTICIAN CMS - Docker Compose (Production/Staging)
+# ============================================
+#
+# Usage:
+#   Production: docker compose up -d --build
+#   Stop:       docker compose down
+#   Logs:       docker compose logs -f
+#   Clean:      docker compose down -v
+#
+# Requirements:
+#   - Copy .env.example to .env and configure all values
+#   - Ensure all CHANGE_ME values are replaced with secure values
+#
+# ============================================
+
 services:
+  # =================================
+  # PostgreSQL Database
+  # =================================
   db:
     image: postgres:16-alpine
     container_name: optician-db
+    restart: unless-stopped
+    
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-optician_db}
-      POSTGRES_USER: ${POSTGRES_USER:-optician}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-optician_password}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      # Optimize PostgreSQL for container environment
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-optician}"]
-      interval: 5s
-      timeout: 3s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
       retries: 5
+      start_period: 10s
+    
     networks:
-      - optician-network
+      - optician-internal
+    
+    # Security: Database only accessible from internal network
+    # DO NOT expose ports in production!
+    # ports:
+    #   - "5432:5432"  # Uncomment only for debugging
 
+    # Resource limits (adjust based on your server)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # =================================
+  # Next.js Web Application
+  # =================================
   web:
     container_name: optician-web
+    restart: unless-stopped
+    
     build:
       context: .
       dockerfile: Dockerfile
-      target: ${BUILD_TARGET:-development}
-      args:
-        - NODE_ENV=${NODE_ENV:-development}
+      target: production
+    
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-optician}:${POSTGRES_PASSWORD:-optician_password}@db:5432/${POSTGRES_DB:-optician_db}?schema=public
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@optician.com}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      NODE_ENV: production
+      PORT: 3000
+      # Database connection (uses internal Docker network)
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      # Authentication
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?NEXTAUTH_SECRET is required}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:?NEXTAUTH_URL is required}
+      # Initial admin credentials
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}
+    
     ports:
       - "${PORT:-3000}:3000"
+    
     volumes:
-      # Mount source code for development hot-reload (only in dev mode)
-      - .:/app
-      - /app/node_modules
-      - /app/.next
+      # Persist user uploads
+      - uploads_data:/app/public/uploads
+    
     depends_on:
       db:
         condition: service_healthy
+    
     networks:
-      - optician-network
+      - optician-internal
+    
+    # Resource limits (adjust based on your server)
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
 
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# =================================
+# Persistent Volumes
+# =================================
 volumes:
   postgres_data:
     name: optician-postgres-data
+    driver: local
+  
+  uploads_data:
+    name: optician-uploads-data
+    driver: local
 
+# =================================
+# Internal Network
+# =================================
 networks:
-  optician-network:
+  optician-internal:
     name: optician-network
     driver: bridge
+    # Internal network - not accessible from host except through published ports
+    internal: false

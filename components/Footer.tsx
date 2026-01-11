@@ -94,16 +94,25 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Newsletter (placeholder for future implementation) */}
+          {/* Newsletter */}
           <div>
             <h3 className="text-sm font-bold tracking-wider uppercase mb-4">Newsletter</h3>
             <p className="text-sm text-white/60 mb-4">
               Recevez nos actualités et offres exclusives
             </p>
-            {/* Newsletter form to be implemented */}
-            <div className="text-xs text-white/40">
-              À venir
-            </div>
+            <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
+              <input
+                type="email"
+                placeholder="Votre email"
+                className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-white/40"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-white text-black text-sm font-medium rounded-lg hover:bg-white/90 transition-colors"
+              >
+                OK
+              </button>
+            </form>
           </div>
         </div>
 

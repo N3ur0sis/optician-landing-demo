@@ -199,7 +199,7 @@ export default function GridManagerClient() {
         <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-16 text-center shadow-sm">
           <div className="max-w-md mx-auto">
             <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-10 h-10 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

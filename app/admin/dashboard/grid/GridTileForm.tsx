@@ -97,7 +97,8 @@ export default function GridTileForm({ tile, onSave, onClose }: GridTileFormProp
 
   const handleBlur = (fieldName: string) => {
     setTouched({ ...touched, [fieldName]: true });
-    const error = validateField(fieldName, formData[fieldName as keyof typeof formData]);
+    const fieldValue = formData[fieldName as keyof typeof formData];
+    const error = validateField(fieldName, typeof fieldValue === 'boolean' ? String(fieldValue) : fieldValue);
     setErrors({ ...errors, [fieldName]: error });
   };
 
@@ -148,7 +149,7 @@ export default function GridTileForm({ tile, onSave, onClose }: GridTileFormProp
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0"
+            className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 rounded-xl hover:bg-gray-100 transition-colors flex-shrink-0"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -174,7 +175,7 @@ export default function GridTileForm({ tile, onSave, onClose }: GridTileFormProp
                 }
               }}
               onBlur={() => handleBlur('title')}
-              className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
                 touched.title && errors.title ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
               placeholder="ex: Qui est ODB ?"
@@ -194,7 +195,7 @@ export default function GridTileForm({ tile, onSave, onClose }: GridTileFormProp
               type="text"
               value={formData.caption}
               onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
               placeholder="ex: Découvrir la maison"
             />
           </div>
@@ -215,7 +216,7 @@ export default function GridTileForm({ tile, onSave, onClose }: GridTileFormProp
                 }
               }}
               onBlur={() => handleBlur('href')}
-              className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
                 touched.href && errors.href ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
               placeholder="/maison"
@@ -254,7 +255,7 @@ export default function GridTileForm({ tile, onSave, onClose }: GridTileFormProp
                 }
               }}
               onBlur={() => handleBlur('backgroundUrl')}
-              className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
                 touched.backgroundUrl && errors.backgroundUrl ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
               placeholder="https://images.unsplash.com/photo-1234..."
@@ -360,7 +361,7 @@ export default function GridTileForm({ tile, onSave, onClose }: GridTileFormProp
                 }}
                 onBlur={() => handleBlur('rowStart')}
                 min={1}
-                className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+                className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
                   touched.rowStart && errors.rowStart ? 'border-red-500 bg-red-50' : 'border-gray-300'
                 }`}
               />
