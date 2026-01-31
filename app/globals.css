@@ -3,40 +3,40 @@
 
 /* Gotham Font Family */
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/Gotham-Light.otf') format('opentype');
+  font-family: "Gotham";
+  src: url("/fonts/Gotham-Light.otf") format("opentype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/Gotham-Book.otf') format('opentype');
+  font-family: "Gotham";
+  src: url("/fonts/Gotham-Book.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/GothamMedium.ttf') format('truetype');
+  font-family: "Gotham";
+  src: url("/fonts/GothamMedium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/Gotham-Bold.otf') format('opentype');
+  font-family: "Gotham";
+  src: url("/fonts/Gotham-Bold.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/Gotham-Black.otf') format('opentype');
+  font-family: "Gotham";
+  src: url("/fonts/Gotham-Black.otf") format("opentype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -44,56 +44,56 @@
 
 /* Gotham Narrow Font Family */
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-XLight.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-XLight.otf") format("opentype");
   font-weight: 200;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Light.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Light.otf") format("opentype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Book.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Book.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Medium.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Medium.otf") format("opentype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Bold.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Bold.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Black.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Black.otf") format("opentype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Ultra.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Ultra.otf") format("opentype");
   font-weight: 950;
   font-style: normal;
   font-display: swap;
@@ -102,8 +102,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --font-gotham: 'Gotham', system-ui, sans-serif;
-  --font-gotham-narrow: 'Gotham Narrow', system-ui, sans-serif;
+  --font-gotham: "Gotham", system-ui, sans-serif;
+  --font-gotham-narrow: "Gotham Narrow", system-ui, sans-serif;
   color-scheme: light;
 }
 
@@ -146,7 +146,12 @@ body {
 }
 
 /* Titres avec Gotham Bold/Black pour impact visuel */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-gotham);
   font-weight: 700;
 }
@@ -189,7 +194,7 @@ h2 {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
-  
+
   /* Improve touch responsiveness - only on landing page */
   .cursor-custom {
     touch-action: pan-y;
@@ -201,8 +206,9 @@ h2 {
 
 /* Custom gradient background for hero with vignette effect - ODB 2026 brand colors */
 .radial-gradient-bg {
-  background: radial-gradient(circle at center, 
-    #ffffff 0%, 
+  background: radial-gradient(
+    circle at center,
+    #ffffff 0%,
     #e8f2fc 15%,
     #c5dff7 30%,
     #9dc9f1 45%,
@@ -260,7 +266,7 @@ html {
     font-weight: 600 !important;
     text-align: center !important;
   }
-  
+
   /* On mobile, hero-spacing classes don't apply any positioning - Tailwind handles it */
   .hero-spacing-left,
   .hero-spacing-right {
@@ -268,18 +274,18 @@ html {
     padding: 0 !important;
     margin: 0 !important;
   }
-  
+
   /* Enhanced mobile specific optimizations */
   body {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
   }
-  
+
   /* Hide scroll indicators on mobile to prevent overlap */
   .scroll-indicator-mobile {
     display: none;
   }
-  
+
   /* Mobile model container centering */
   .glasses-model-mobile {
     display: flex !important;
@@ -297,18 +303,18 @@ html {
   .hero-text-desktop {
     font-size: clamp(1.3rem, 5.2vw, 2.1rem) !important;
     max-width: clamp(160px, 45vw, 280px) !important;
-    line-height: 1.0 !important;
+    line-height: 1 !important;
     letter-spacing: 0.06em !important;
     text-align: left !important;
   }
-  
+
   .hero-spacing-left {
     top: 30% !important;
     left: clamp(2rem, 5vw, 4rem) !important;
     right: auto !important;
     transform: translateY(-50%) !important;
   }
-  
+
   .hero-spacing-right {
     top: 75% !important;
     right: clamp(2rem, 5vw, 4rem) !important;
@@ -328,14 +334,14 @@ html {
     line-height: 1.05 !important;
     letter-spacing: 0.065em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(2.2rem, 5.5vw, 5rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
     right: auto !important;
   }
-  
+
   .hero-spacing-right {
     right: clamp(2.2rem, 5.5vw, 5rem) !important;
     top: 58% !important;
@@ -354,14 +360,14 @@ html {
     line-height: 1.05 !important;
     letter-spacing: 0.07em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(2.5rem, 6vw, 7rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
     right: auto !important;
   }
-  
+
   .hero-spacing-right {
     right: clamp(2.5rem, 6vw, 7rem) !important;
     top: 58% !important;
@@ -380,14 +386,14 @@ html {
     line-height: 1.05 !important;
     letter-spacing: 0.07em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(3rem, 7vw, 8rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
     right: auto !important; /* Force right to auto to ensure left positioning */
   }
-  
+
   .hero-spacing-right {
     right: clamp(3rem, 7vw, 8rem) !important;
     top: 58% !important;
@@ -395,7 +401,6 @@ html {
     left: auto !important; /* Force left to auto to ensure right positioning */
   }
 }
-
 
 /* Small phones - text sizing only, positioning handled by Tailwind max-md: classes */
 @media (max-width: 640px) {
@@ -408,7 +413,7 @@ html {
     letter-spacing: 0.04em !important;
     text-align: center !important;
   }
-  
+
   /* Do NOT apply .hero-spacing-left/right positioning on mobile - Tailwind handles it */
 }
 
@@ -419,7 +424,7 @@ html {
   .hero-text-desktop {
     font-size: clamp(1rem, 4.5vw, 1.5rem) !important;
   }
-  
+
   /* Do NOT apply .hero-spacing-left/right positioning on mobile - Tailwind handles it */
 }
 
@@ -428,7 +433,7 @@ html {
   .hero-text-ultra-wide {
     max-width: 25vw;
   }
-  
+
   /* Large desktop text - bigger and more impressive */
   .hero-text-adaptive,
   .hero-text-narrow,
@@ -438,13 +443,13 @@ html {
     line-height: 1.1 !important;
     letter-spacing: 0.08em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(3rem, 7vw, 10rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
   }
-  
+
   .hero-spacing-right {
     right: clamp(3rem, 7vw, 10rem) !important;
     top: 58% !important;
@@ -462,13 +467,13 @@ html {
     line-height: 1.1 !important;
     letter-spacing: 0.08em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(2.5rem, 6vw, 8rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
   }
-  
+
   .hero-spacing-right {
     right: clamp(2.5rem, 6vw, 8rem) !important;
     top: 58% !important;
@@ -483,8 +488,13 @@ section {
 
 /* Enhanced gradient animations */
 @keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .gradient-animate {
@@ -505,9 +515,9 @@ canvas[data-engine*="three.js"] {
 }
 
 /* Curseur pointer sur tous les éléments interactifs */
-a, 
-button, 
-[role="button"], 
+a,
+button,
+[role="button"],
 input[type="button"],
 input[type="submit"],
 input[type="reset"],
@@ -535,8 +545,6 @@ textarea {
   cursor: not-allowed !important;
 }
 
-
-
 /* Professional hover effects - refined */
 .hover-lift {
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -555,13 +563,18 @@ textarea {
 }
 
 .btn-primary::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -592,7 +605,7 @@ textarea {
 }
 
 .underline-animate::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -3px;
   left: 50%;
@@ -656,7 +669,11 @@ textarea {
 }
 
 @keyframes subtleBounce {
-  0%, 20%, 50%, 80%, 100% {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateY(0);
   }
   40% {
@@ -683,7 +700,9 @@ textarea {
 .page-transition-enter-active {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.3s, transform 0.3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
 }
 
 .page-transition-exit {
@@ -694,7 +713,9 @@ textarea {
 .page-transition-exit-active {
   opacity: 0;
   transform: translateY(-20px);
-  transition: opacity 0.3s, transform 0.3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
 }
 
 /* Luxury hover effects for text - refined for smooth experience */
@@ -719,7 +740,7 @@ textarea {
 
 .scroll-indicator:hover {
   transform: scale(1.05);
-  color: rgba(0,0,0,0.8);
+  color: rgba(0, 0, 0, 0.8);
 }
 
 /* Page Builder Inputs */
@@ -759,4 +780,3 @@ textarea {
   --tw-prose-th-borders: rgba(255, 255, 255, 0.3);
   --tw-prose-td-borders: rgba(255, 255, 255, 0.2);
 }
-

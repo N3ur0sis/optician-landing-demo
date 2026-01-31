@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
 import {
   Plus,
   Menu,
@@ -24,7 +24,7 @@ import {
   Star,
   Copy,
   MoreHorizontal,
-} from 'lucide-react';
+} from "lucide-react";
 
 // Types
 interface NavigationMenu {
@@ -89,16 +89,16 @@ export default function NavigationManagerClient() {
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   // Ref to track if initial load is done (prevents infinite loop)
   const initialLoadDone = useRef(false);
   const selectedMenuRef = useRef<NavigationMenu | null>(null);
-  
+
   // Keep ref in sync with state
   useEffect(() => {
     selectedMenuRef.current = selectedMenu;
   }, [selectedMenu]);
-  
+
   // Modal states
   const [showMenuModal, setShowMenuModal] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
@@ -106,30 +106,32 @@ export default function NavigationManagerClient() {
   const [editingMenu, setEditingMenu] = useState<NavigationMenu | null>(null);
   const [editingItem, setEditingItem] = useState<NavigationItem | null>(null);
   const [parentItemId, setParentItemId] = useState<string | null>(null);
-  
+
   // Expanded items for tree view
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   // Fetch menus (stable callback - no dependencies that cause re-creation)
   const fetchMenus = useCallback(async () => {
     try {
-      const response = await fetch('/api/navigation/menus?includeItems=true');
+      const response = await fetch("/api/navigation/menus?includeItems=true");
       if (response.ok) {
         const data = await response.json();
         setMenus(data);
-        
+
         // Use ref to avoid dependency on selectedMenu state
         const currentSelected = selectedMenuRef.current;
         if (data.length > 0 && !currentSelected) {
           setSelectedMenu(data[0]);
         } else if (currentSelected) {
           // Refresh selected menu
-          const updated = data.find((m: NavigationMenu) => m.id === currentSelected.id);
+          const updated = data.find(
+            (m: NavigationMenu) => m.id === currentSelected.id,
+          );
           if (updated) setSelectedMenu(updated);
         }
       }
     } catch (error) {
-      console.error('Error fetching menus:', error);
+      console.error("Error fetching menus:", error);
     } finally {
       setLoading(false);
     }
@@ -138,13 +140,13 @@ export default function NavigationManagerClient() {
   // Fetch pages for linking
   const fetchPages = useCallback(async () => {
     try {
-      const response = await fetch('/api/navigation/pages');
+      const response = await fetch("/api/navigation/pages");
       if (response.ok) {
         const data = await response.json();
         setPages(data);
       }
     } catch (error) {
-      console.error('Error fetching pages:', error);
+      console.error("Error fetching pages:", error);
     }
   }, []);
 
@@ -161,13 +163,13 @@ export default function NavigationManagerClient() {
   const handleSaveMenu = async (menuData: Partial<NavigationMenu>) => {
     setSaving(true);
     try {
-      const url = editingMenu 
+      const url = editingMenu
         ? `/api/navigation/menus/${editingMenu.slug}`
-        : '/api/navigation/menus';
-      
+        : "/api/navigation/menus";
+
       const response = await fetch(url, {
-        method: editingMenu ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: editingMenu ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(menuData),
       });
 
@@ -177,7 +179,7 @@ export default function NavigationManagerClient() {
         setEditingMenu(null);
       }
     } catch (error) {
-      console.error('Error saving menu:', error);
+      console.error("Error saving menu:", error);
     } finally {
       setSaving(false);
     }
@@ -186,21 +188,24 @@ export default function NavigationManagerClient() {
   // Update Menu Style (for StyleModal - uses selectedMenu)
   const handleSaveMenuStyle = async (styleData: Partial<NavigationMenu>) => {
     if (!selectedMenu) return;
-    
+
     setSaving(true);
     try {
-      const response = await fetch(`/api/navigation/menus/${selectedMenu.slug}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(styleData),
-      });
+      const response = await fetch(
+        `/api/navigation/menus/${selectedMenu.slug}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(styleData),
+        },
+      );
 
       if (response.ok) {
         await fetchMenus();
         setShowStyleModal(false);
       }
     } catch (error) {
-      console.error('Error saving menu style:', error);
+      console.error("Error saving menu style:", error);
     } finally {
       setSaving(false);
     }
@@ -208,11 +213,11 @@ export default function NavigationManagerClient() {
 
   // Delete Menu
   const handleDeleteMenu = async (slug: string) => {
-    if (!confirm('Supprimer ce menu et tous ses éléments ?')) return;
-    
+    if (!confirm("Supprimer ce menu et tous ses éléments ?")) return;
+
     try {
       const response = await fetch(`/api/navigation/menus/${slug}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (response.ok) {
@@ -222,7 +227,7 @@ export default function NavigationManagerClient() {
         await fetchMenus();
       }
     } catch (error) {
-      console.error('Error deleting menu:', error);
+      console.error("Error deleting menu:", error);
     }
   };
 
@@ -230,13 +235,13 @@ export default function NavigationManagerClient() {
   const handleSaveItem = async (itemData: Partial<NavigationItem>) => {
     setSaving(true);
     try {
-      const url = editingItem 
+      const url = editingItem
         ? `/api/navigation/items/${editingItem.id}`
-        : '/api/navigation/items';
-      
+        : "/api/navigation/items";
+
       const response = await fetch(url, {
-        method: editingItem ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: editingItem ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...itemData,
           menuId: selectedMenu?.id,
@@ -251,7 +256,7 @@ export default function NavigationManagerClient() {
         setParentItemId(null);
       }
     } catch (error) {
-      console.error('Error saving item:', error);
+      console.error("Error saving item:", error);
     } finally {
       setSaving(false);
     }
@@ -259,18 +264,18 @@ export default function NavigationManagerClient() {
 
   // Delete Item
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('Supprimer cet élément ?')) return;
-    
+    if (!confirm("Supprimer cet élément ?")) return;
+
     try {
       const response = await fetch(`/api/navigation/items/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (response.ok) {
         await fetchMenus();
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
+      console.error("Error deleting item:", error);
     }
   };
 
@@ -278,18 +283,21 @@ export default function NavigationManagerClient() {
   const handleToggleItemPublished = async (item: NavigationItem) => {
     try {
       await fetch(`/api/navigation/items/${item.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ published: !item.published }),
       });
       await fetchMenus();
     } catch (error) {
-      console.error('Error toggling item:', error);
+      console.error("Error toggling item:", error);
     }
   };
 
   // Reorder items
-  const handleReorderItems = async (items: NavigationItem[], parentId: string | null = null) => {
+  const handleReorderItems = async (
+    items: NavigationItem[],
+    parentId: string | null = null,
+  ) => {
     const updates = items.map((item, index) => ({
       id: item.id,
       order: index,
@@ -297,23 +305,26 @@ export default function NavigationManagerClient() {
     }));
 
     try {
-      await fetch('/api/navigation/items', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/navigation/items", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items: updates }),
       });
       await fetchMenus();
     } catch (error) {
-      console.error('Error reordering items:', error);
+      console.error("Error reordering items:", error);
     }
   };
 
   // Build nested items structure
-  const buildNestedItems = (items: NavigationItem[], parentId: string | null = null): NavigationItem[] => {
+  const buildNestedItems = (
+    items: NavigationItem[],
+    parentId: string | null = null,
+  ): NavigationItem[] => {
     return items
-      .filter(item => item.parentId === parentId)
+      .filter((item) => item.parentId === parentId)
       .sort((a, b) => a.order - b.order)
-      .map(item => ({
+      .map((item) => ({
         ...item,
         children: buildNestedItems(items, item.id),
       }));
@@ -321,7 +332,7 @@ export default function NavigationManagerClient() {
 
   // Toggle expanded state
   const toggleExpanded = (itemId: string) => {
-    setExpandedItems(prev => {
+    setExpandedItems((prev) => {
       const next = new Set(prev);
       if (next.has(itemId)) {
         next.delete(itemId);
@@ -355,7 +366,9 @@ export default function NavigationManagerClient() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Navigation</h1>
-            <p className="text-gray-600 mt-1">Gérez les menus et la navigation de votre site</p>
+            <p className="text-gray-600 mt-1">
+              Gérez les menus et la navigation de votre site
+            </p>
           </div>
           <button
             onClick={() => {
@@ -392,17 +405,21 @@ export default function NavigationManagerClient() {
                       onClick={() => setSelectedMenu(menu)}
                       className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                         selectedMenu?.id === menu.id
-                          ? 'bg-black text-white'
-                          : 'hover:bg-gray-100 text-gray-900'
+                          ? "bg-black text-white"
+                          : "hover:bg-gray-100 text-gray-900"
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="truncate font-medium">{menu.name}</span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${
-                          selectedMenu?.id === menu.id
-                            ? 'bg-white/20 text-white'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}>
+                        <span className="truncate font-medium">
+                          {menu.name}
+                        </span>
+                        <span
+                          className={`text-xs px-1.5 py-0.5 rounded ${
+                            selectedMenu?.id === menu.id
+                              ? "bg-white/20 text-white"
+                              : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
                           {menu.items?.length || 0}
                         </span>
                       </div>
@@ -414,7 +431,9 @@ export default function NavigationManagerClient() {
                             setShowMenuModal(true);
                           }}
                           className={`p-1 rounded hover:bg-white/20 ${
-                            selectedMenu?.id === menu.id ? 'text-white' : 'text-gray-600'
+                            selectedMenu?.id === menu.id
+                              ? "text-white"
+                              : "text-gray-600"
                           }`}
                         >
                           <Pencil className="w-3.5 h-3.5" />
@@ -425,7 +444,9 @@ export default function NavigationManagerClient() {
                             handleDeleteMenu(menu.slug);
                           }}
                           className={`p-1 rounded hover:bg-red-500/20 ${
-                            selectedMenu?.id === menu.id ? 'text-white' : 'text-gray-600'
+                            selectedMenu?.id === menu.id
+                              ? "text-white"
+                              : "text-gray-600"
                           }`}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -445,9 +466,12 @@ export default function NavigationManagerClient() {
                 {/* Menu Header */}
                 <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                   <div>
-                    <h2 className="font-semibold text-gray-900">{selectedMenu.name}</h2>
+                    <h2 className="font-semibold text-gray-900">
+                      {selectedMenu.name}
+                    </h2>
                     <p className="text-sm text-gray-500">
-                      {selectedMenu.type} • {selectedMenu.layout} • {selectedMenu.items?.length || 0} éléments
+                      {selectedMenu.type} • {selectedMenu.layout} •{" "}
+                      {selectedMenu.items?.length || 0} éléments
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -478,7 +502,9 @@ export default function NavigationManagerClient() {
                     <div className="text-center py-12 text-gray-500">
                       <Link2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p className="font-medium">Aucun élément dans ce menu</p>
-                      <p className="text-sm mt-1">Ajoutez des liens, pages ou sous-menus</p>
+                      <p className="text-sm mt-1">
+                        Ajoutez des liens, pages ou sous-menus
+                      </p>
                       <button
                         onClick={() => {
                           setEditingItem(null);
@@ -603,14 +629,14 @@ function NavigationTree({
         <Reorder.Item key={item.id} value={item}>
           <div
             className={`group border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors ${
-              !item.published ? 'opacity-60' : ''
+              !item.published ? "opacity-60" : ""
             }`}
             style={{ marginLeft: depth * 24 }}
           >
             <div className="flex items-center gap-2 p-3">
               {/* Drag Handle */}
               <GripVertical className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing" />
-              
+
               {/* Expand/Collapse */}
               {item.children && item.children.length > 0 ? (
                 <button
@@ -630,7 +656,9 @@ function NavigationTree({
               {/* Item Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-900 truncate">{item.label}</span>
+                  <span className="font-medium text-gray-900 truncate">
+                    {item.label}
+                  </span>
                   {item.highlighted && (
                     <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
                   )}
@@ -667,7 +695,7 @@ function NavigationTree({
                 <button
                   onClick={() => onTogglePublished(item)}
                   className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
-                  title={item.published ? 'Masquer' : 'Afficher'}
+                  title={item.published ? "Masquer" : "Afficher"}
                 >
                   {item.published ? (
                     <Eye className="w-4 h-4" />
@@ -694,22 +722,24 @@ function NavigationTree({
           </div>
 
           {/* Children */}
-          {item.children && item.children.length > 0 && expandedItems.has(item.id) && (
-            <div className="mt-1">
-              <NavigationTree
-                items={item.children}
-                expandedItems={expandedItems}
-                onToggleExpand={onToggleExpand}
-                onEdit={onEdit}
-                onAddChild={onAddChild}
-                onDelete={onDelete}
-                onTogglePublished={onTogglePublished}
-                onReorder={onReorder}
-                depth={depth + 1}
-                parentId={item.id}
-              />
-            </div>
-          )}
+          {item.children &&
+            item.children.length > 0 &&
+            expandedItems.has(item.id) && (
+              <div className="mt-1">
+                <NavigationTree
+                  items={item.children}
+                  expandedItems={expandedItems}
+                  onToggleExpand={onToggleExpand}
+                  onEdit={onEdit}
+                  onAddChild={onAddChild}
+                  onDelete={onDelete}
+                  onTogglePublished={onTogglePublished}
+                  onReorder={onReorder}
+                  depth={depth + 1}
+                  parentId={item.id}
+                />
+              </div>
+            )}
         </Reorder.Item>
       ))}
     </Reorder.Group>
@@ -727,14 +757,14 @@ interface MenuModalProps {
 
 function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    type: 'header',
-    position: 'top',
-    layout: 'horizontal',
-    alignment: 'center',
-    mobileStyle: 'hamburger',
+    name: "",
+    slug: "",
+    description: "",
+    type: "header",
+    position: "top",
+    layout: "horizontal",
+    alignment: "center",
+    mobileStyle: "hamburger",
     published: true,
   });
 
@@ -743,7 +773,7 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
       setFormData({
         name: menu.name,
         slug: menu.slug,
-        description: menu.description || '',
+        description: menu.description || "",
         type: menu.type,
         position: menu.position,
         layout: menu.layout,
@@ -753,14 +783,14 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
       });
     } else {
       setFormData({
-        name: '',
-        slug: '',
-        description: '',
-        type: 'header',
-        position: 'top',
-        layout: 'horizontal',
-        alignment: 'center',
-        mobileStyle: 'hamburger',
+        name: "",
+        slug: "",
+        description: "",
+        type: "header",
+        position: "top",
+        layout: "horizontal",
+        alignment: "center",
+        mobileStyle: "hamburger",
         published: true,
       });
     }
@@ -782,7 +812,7 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
-            {menu ? 'Modifier le menu' : 'Nouveau menu'}
+            {menu ? "Modifier le menu" : "Nouveau menu"}
           </h2>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
             <X className="w-5 h-5 text-gray-600" />
@@ -792,22 +822,33 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nom
+              </label>
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
                 placeholder="Menu principal"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Slug
+              </label>
               <input
                 type="text"
                 value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    slug: e.target.value.toLowerCase().replace(/\s+/g, "-"),
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
                 placeholder="header"
                 required
@@ -816,10 +857,14 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
               placeholder="Description optionnelle"
               rows={2}
@@ -828,10 +873,14 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Type
+              </label>
               <select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, type: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
               >
                 <option value="header">Header</option>
@@ -841,10 +890,14 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Position
+              </label>
               <select
                 value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, position: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
               >
                 <option value="top">Haut</option>
@@ -857,10 +910,14 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Layout</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Layout
+              </label>
               <select
                 value={formData.layout}
-                onChange={(e) => setFormData({ ...formData, layout: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, layout: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
               >
                 <option value="horizontal">Horizontal</option>
@@ -869,10 +926,14 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Alignement</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Alignement
+              </label>
               <select
                 value={formData.alignment}
-                onChange={(e) => setFormData({ ...formData, alignment: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, alignment: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
               >
                 <option value="left">Gauche</option>
@@ -884,10 +945,14 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Style mobile</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Style mobile
+            </label>
             <select
               value={formData.mobileStyle}
-              onChange={(e) => setFormData({ ...formData, mobileStyle: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, mobileStyle: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
             >
               <option value="hamburger">Menu hamburger</option>
@@ -900,7 +965,9 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
             <input
               type="checkbox"
               checked={formData.published}
-              onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
+              onChange={(e) =>
+                setFormData({ ...formData, published: e.target.checked })
+              }
               className="rounded border-gray-300"
             />
             <span className="text-sm text-gray-700">Publié</span>
@@ -927,7 +994,7 @@ function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  {menu ? 'Enregistrer' : 'Créer'}
+                  {menu ? "Enregistrer" : "Créer"}
                 </>
               )}
             </button>
@@ -948,15 +1015,22 @@ interface ItemModalProps {
   saving: boolean;
 }
 
-function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalProps) {
+function ItemModal({
+  isOpen,
+  onClose,
+  item,
+  pages,
+  onSave,
+  saving,
+}: ItemModalProps) {
   const [formData, setFormData] = useState({
-    label: '',
-    href: '',
-    pageSlug: '',
-    linkType: 'custom' as 'custom' | 'page',
+    label: "",
+    href: "",
+    pageSlug: "",
+    linkType: "custom" as "custom" | "page",
     openInNewTab: false,
-    icon: '',
-    iconPosition: 'left',
+    icon: "",
+    iconPosition: "left",
     highlighted: false,
     published: true,
   });
@@ -965,24 +1039,24 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
     if (item) {
       setFormData({
         label: item.label,
-        href: item.href || '',
-        pageSlug: item.pageSlug || '',
-        linkType: item.pageSlug ? 'page' : 'custom',
+        href: item.href || "",
+        pageSlug: item.pageSlug || "",
+        linkType: item.pageSlug ? "page" : "custom",
         openInNewTab: item.openInNewTab,
-        icon: item.icon || '',
+        icon: item.icon || "",
         iconPosition: item.iconPosition,
         highlighted: item.highlighted,
         published: item.published,
       });
     } else {
       setFormData({
-        label: '',
-        href: '',
-        pageSlug: '',
-        linkType: 'custom',
+        label: "",
+        href: "",
+        pageSlug: "",
+        linkType: "custom",
         openInNewTab: false,
-        icon: '',
-        iconPosition: 'left',
+        icon: "",
+        iconPosition: "left",
         highlighted: false,
         published: true,
       });
@@ -991,7 +1065,7 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const data: Partial<NavigationItem> = {
       label: formData.label,
       openInNewTab: formData.openInNewTab,
@@ -1001,7 +1075,7 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
       published: formData.published,
     };
 
-    if (formData.linkType === 'page') {
+    if (formData.linkType === "page") {
       data.pageSlug = formData.pageSlug;
       data.href = `/${formData.pageSlug}`;
     } else {
@@ -1023,7 +1097,7 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
-            {item ? 'Modifier l\'élément' : 'Nouvel élément'}
+            {item ? "Modifier l'élément" : "Nouvel élément"}
           </h2>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
             <X className="w-5 h-5 text-gray-600" />
@@ -1032,11 +1106,15 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Label
+            </label>
             <input
               type="text"
               value={formData.label}
-              onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, label: e.target.value })
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
               placeholder="Accueil"
               required
@@ -1044,13 +1122,17 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type de lien</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type de lien
+            </label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2">
                 <input
                   type="radio"
-                  checked={formData.linkType === 'page'}
-                  onChange={() => setFormData({ ...formData, linkType: 'page' })}
+                  checked={formData.linkType === "page"}
+                  onChange={() =>
+                    setFormData({ ...formData, linkType: "page" })
+                  }
                   className="text-black"
                 />
                 <span className="text-sm text-gray-700">Page du site</span>
@@ -1058,8 +1140,10 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
               <label className="flex items-center gap-2">
                 <input
                   type="radio"
-                  checked={formData.linkType === 'custom'}
-                  onChange={() => setFormData({ ...formData, linkType: 'custom' })}
+                  checked={formData.linkType === "custom"}
+                  onChange={() =>
+                    setFormData({ ...formData, linkType: "custom" })
+                  }
                   className="text-black"
                 />
                 <span className="text-sm text-gray-700">URL personnalisée</span>
@@ -1067,12 +1151,16 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
             </div>
           </div>
 
-          {formData.linkType === 'page' ? (
+          {formData.linkType === "page" ? (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Page</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Page
+              </label>
               <select
                 value={formData.pageSlug}
-                onChange={(e) => setFormData({ ...formData, pageSlug: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, pageSlug: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
               >
                 <option value="">Sélectionner une page...</option>
@@ -1085,36 +1173,49 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
             </div>
           ) : (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                URL
+              </label>
               <input
                 type="text"
                 value={formData.href}
-                onChange={(e) => setFormData({ ...formData, href: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, href: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
                 placeholder="https://... ou /page"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Laissez vide pour un élément parent sans lien (sous-menu uniquement)
+                Laissez vide pour un élément parent sans lien (sous-menu
+                uniquement)
               </p>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Icône (optionnel)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Icône (optionnel)
+              </label>
               <input
                 type="text"
                 value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, icon: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
                 placeholder="home, menu, star..."
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Position icône</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Position icône
+              </label>
               <select
                 value={formData.iconPosition}
-                onChange={(e) => setFormData({ ...formData, iconPosition: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, iconPosition: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
               >
                 <option value="left">Gauche</option>
@@ -1128,25 +1229,35 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
               <input
                 type="checkbox"
                 checked={formData.openInNewTab}
-                onChange={(e) => setFormData({ ...formData, openInNewTab: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, openInNewTab: e.target.checked })
+                }
                 className="rounded border-gray-300"
               />
-              <span className="text-sm text-gray-700">Ouvrir dans un nouvel onglet</span>
+              <span className="text-sm text-gray-700">
+                Ouvrir dans un nouvel onglet
+              </span>
             </label>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={formData.highlighted}
-                onChange={(e) => setFormData({ ...formData, highlighted: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, highlighted: e.target.checked })
+                }
                 className="rounded border-gray-300"
               />
-              <span className="text-sm text-gray-700">Mettre en évidence (style CTA)</span>
+              <span className="text-sm text-gray-700">
+                Mettre en évidence (style CTA)
+              </span>
             </label>
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={formData.published}
-                onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, published: e.target.checked })
+                }
                 className="rounded border-gray-300"
               />
               <span className="text-sm text-gray-700">Publié</span>
@@ -1174,7 +1285,7 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  {item ? 'Enregistrer' : 'Ajouter'}
+                  {item ? "Enregistrer" : "Ajouter"}
                 </>
               )}
             </button>
@@ -1194,38 +1305,44 @@ interface StyleModalProps {
   saving: boolean;
 }
 
-function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) {
+function StyleModal({
+  isOpen,
+  onClose,
+  menu,
+  onSave,
+  saving,
+}: StyleModalProps) {
   const [formData, setFormData] = useState({
-    backgroundColor: '',
-    textColor: '',
-    hoverColor: '',
-    activeColor: '',
-    borderColor: '',
+    backgroundColor: "",
+    textColor: "",
+    hoverColor: "",
+    activeColor: "",
+    borderColor: "",
     itemSpacing: 24,
-    padding: '',
-    animation: 'none',
+    padding: "",
+    animation: "none",
     animationDuration: 200,
-    dropdownAnimation: 'fadeDown',
+    dropdownAnimation: "fadeDown",
     dropdownDelay: 0,
-    customCSS: '',
-    cssClasses: '',
+    customCSS: "",
+    cssClasses: "",
   });
 
   useEffect(() => {
     setFormData({
-      backgroundColor: menu.backgroundColor || '',
-      textColor: menu.textColor || '',
-      hoverColor: menu.hoverColor || '',
-      activeColor: menu.activeColor || '',
-      borderColor: menu.borderColor || '',
+      backgroundColor: menu.backgroundColor || "",
+      textColor: menu.textColor || "",
+      hoverColor: menu.hoverColor || "",
+      activeColor: menu.activeColor || "",
+      borderColor: menu.borderColor || "",
       itemSpacing: menu.itemSpacing,
-      padding: menu.padding || '',
+      padding: menu.padding || "",
       animation: menu.animation,
       animationDuration: menu.animationDuration,
       dropdownAnimation: menu.dropdownAnimation,
       dropdownDelay: menu.dropdownDelay,
-      customCSS: menu.customCSS || '',
-      cssClasses: menu.cssClasses || '',
+      customCSS: menu.customCSS || "",
+      cssClasses: menu.cssClasses || "",
     });
   }, [menu, isOpen]);
 
@@ -1253,60 +1370,87 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-6 overflow-y-auto flex-1">
+        <form
+          onSubmit={handleSubmit}
+          className="p-4 space-y-6 overflow-y-auto flex-1"
+        >
           {/* Colors */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Couleurs</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              Couleurs
+            </h3>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs text-gray-600 mb-1">Fond</label>
                 <div className="flex gap-2">
                   <input
                     type="color"
-                    value={formData.backgroundColor || '#ffffff'}
-                    onChange={(e) => setFormData({ ...formData, backgroundColor: e.target.value })}
+                    value={formData.backgroundColor || "#ffffff"}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        backgroundColor: e.target.value,
+                      })
+                    }
                     className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={formData.backgroundColor}
-                    onChange={(e) => setFormData({ ...formData, backgroundColor: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        backgroundColor: e.target.value,
+                      })
+                    }
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
                     placeholder="#ffffff"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Texte</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Texte
+                </label>
                 <div className="flex gap-2">
                   <input
                     type="color"
-                    value={formData.textColor || '#000000'}
-                    onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
+                    value={formData.textColor || "#000000"}
+                    onChange={(e) =>
+                      setFormData({ ...formData, textColor: e.target.value })
+                    }
                     className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={formData.textColor}
-                    onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, textColor: e.target.value })
+                    }
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
                     placeholder="#000000"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Survol</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Survol
+                </label>
                 <div className="flex gap-2">
                   <input
                     type="color"
-                    value={formData.hoverColor || '#666666'}
-                    onChange={(e) => setFormData({ ...formData, hoverColor: e.target.value })}
+                    value={formData.hoverColor || "#666666"}
+                    onChange={(e) =>
+                      setFormData({ ...formData, hoverColor: e.target.value })
+                    }
                     className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={formData.hoverColor}
-                    onChange={(e) => setFormData({ ...formData, hoverColor: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, hoverColor: e.target.value })
+                    }
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
                     placeholder="#666666"
                   />
@@ -1317,24 +1461,37 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
 
           {/* Spacing */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Espacement</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              Espacement
+            </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Espace entre items (px)</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Espace entre items (px)
+                </label>
                 <input
                   type="number"
                   value={formData.itemSpacing}
-                  onChange={(e) => setFormData({ ...formData, itemSpacing: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      itemSpacing: parseInt(e.target.value) || 0,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
                   min="0"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Padding (CSS)</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Padding (CSS)
+                </label>
                 <input
                   type="text"
                   value={formData.padding}
-                  onChange={(e) => setFormData({ ...formData, padding: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, padding: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
                   placeholder="16px 24px"
                 />
@@ -1344,13 +1501,19 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
 
           {/* Animations */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Animations</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              Animations
+            </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Animation menu</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Animation menu
+                </label>
                 <select
                   value={formData.animation}
-                  onChange={(e) => setFormData({ ...formData, animation: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, animation: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
                 >
                   <option value="none">Aucune</option>
@@ -1360,21 +1523,35 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Durée (ms)</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Durée (ms)
+                </label>
                 <input
                   type="number"
                   value={formData.animationDuration}
-                  onChange={(e) => setFormData({ ...formData, animationDuration: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      animationDuration: parseInt(e.target.value) || 0,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
                   min="0"
                   step="50"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Animation dropdown</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Animation dropdown
+                </label>
                 <select
                   value={formData.dropdownAnimation}
-                  onChange={(e) => setFormData({ ...formData, dropdownAnimation: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      dropdownAnimation: e.target.value,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
                 >
                   <option value="none">Aucune</option>
@@ -1384,11 +1561,18 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Délai dropdown (ms)</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Délai dropdown (ms)
+                </label>
                 <input
                   type="number"
                   value={formData.dropdownDelay}
-                  onChange={(e) => setFormData({ ...formData, dropdownDelay: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      dropdownDelay: parseInt(e.target.value) || 0,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
                   min="0"
                   step="50"
@@ -1399,22 +1583,32 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
 
           {/* Custom CSS */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">CSS personnalisé</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              CSS personnalisé
+            </h3>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Classes CSS additionnelles</label>
+              <label className="block text-xs text-gray-600 mb-1">
+                Classes CSS additionnelles
+              </label>
               <input
                 type="text"
                 value={formData.cssClasses}
-                onChange={(e) => setFormData({ ...formData, cssClasses: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, cssClasses: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 mb-3"
                 placeholder="my-custom-class another-class"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">CSS personnalisé</label>
+              <label className="block text-xs text-gray-600 mb-1">
+                CSS personnalisé
+              </label>
               <textarea
                 value={formData.customCSS}
-                onChange={(e) => setFormData({ ...formData, customCSS: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, customCSS: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 font-mono text-sm"
                 rows={4}
                 placeholder=".nav-item { font-weight: 600; }"

@@ -2,7 +2,19 @@
 
 import React, { useState } from "react";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
-import { LayoutDashboard, Grid3x3, Settings, LogOut, User, FileText, Navigation, Image as ImageIcon, BarChart3, Users, Palette } from "lucide-react";
+import {
+  LayoutDashboard,
+  Grid3x3,
+  Settings,
+  LogOut,
+  User,
+  FileText,
+  Navigation,
+  Image as ImageIcon,
+  BarChart3,
+  Users,
+  Palette,
+} from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -16,70 +28,56 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, session }: AdminLayoutProps) {
   const isAdmin = session.user?.role === "ADMIN";
-  
+
   const links = [
     {
       label: "Tableau de Bord",
       href: "/admin/dashboard",
-      icon: (
-        <LayoutDashboard className="text-black h-5 w-5 shrink-0" />
-      ),
+      icon: <LayoutDashboard className="text-black h-5 w-5 shrink-0" />,
     },
     {
       label: "Pages",
       href: "/admin/dashboard/pages",
-      icon: (
-        <FileText className="text-black h-5 w-5 shrink-0" />
-      ),
+      icon: <FileText className="text-black h-5 w-5 shrink-0" />,
     },
     {
       label: "Gestionnaire de Grille",
       href: "/admin/dashboard/grid",
-      icon: (
-        <Grid3x3 className="text-black h-5 w-5 shrink-0" />
-      ),
+      icon: <Grid3x3 className="text-black h-5 w-5 shrink-0" />,
     },
     {
       label: "Navigation",
       href: "/admin/dashboard/navigation",
-      icon: (
-        <Navigation className="text-black h-5 w-5 shrink-0" />
-      ),
+      icon: <Navigation className="text-black h-5 w-5 shrink-0" />,
     },
     {
       label: "Médiathèque",
       href: "/admin/dashboard/media",
-      icon: (
-        <ImageIcon className="text-black h-5 w-5 shrink-0" />
-      ),
+      icon: <ImageIcon className="text-black h-5 w-5 shrink-0" />,
     },
     {
       label: "Analytics",
       href: "/admin/dashboard/analytics",
-      icon: (
-        <BarChart3 className="text-black h-5 w-5 shrink-0" />
-      ),
+      icon: <BarChart3 className="text-black h-5 w-5 shrink-0" />,
     },
-    ...(isAdmin ? [{
-      label: "Utilisateurs",
-      href: "/admin/dashboard/users",
-      icon: (
-        <Users className="text-black h-5 w-5 shrink-0" />
-      ),
-    }] : []),
+    ...(isAdmin
+      ? [
+          {
+            label: "Utilisateurs",
+            href: "/admin/dashboard/users",
+            icon: <Users className="text-black h-5 w-5 shrink-0" />,
+          },
+        ]
+      : []),
     {
       label: "Apparence",
       href: "/admin/dashboard/apparence",
-      icon: (
-        <Palette className="text-black h-5 w-5 shrink-0" />
-      ),
+      icon: <Palette className="text-black h-5 w-5 shrink-0" />,
     },
     {
       label: "Paramètres",
       href: "/admin/dashboard/settings",
-      icon: (
-        <Settings className="text-black h-5 w-5 shrink-0" />
-      ),
+      icon: <Settings className="text-black h-5 w-5 shrink-0" />,
     },
   ];
 
@@ -93,9 +91,9 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
     <div
       className={cn(
         "flex flex-col md:flex-row bg-gray-50 w-full flex-1 overflow-hidden",
-        "h-screen"
+        "h-screen",
       )}
-      style={{ colorScheme: 'light' }}
+      style={{ colorScheme: "light" }}
     >
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10">
@@ -138,9 +136,7 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
         </SidebarBody>
       </Sidebar>
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto">{children}</div>
       </div>
     </div>
   );
@@ -174,4 +170,3 @@ const LogoIcon = () => {
     </Link>
   );
 };
-

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback, useRef, useEffect } from "react";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Save,
@@ -30,11 +30,17 @@ import {
   AlignRight,
   Columns,
   Ruler,
-} from 'lucide-react';
-import { Page, PageBlock, BlockType, BLOCK_DEFINITIONS, BLOCK_CATEGORIES } from '@/types/page-builder';
-import BlockEditor from './block-editor';
-import InlineEditableBlock from './InlineEditableBlock';
-import SpacingOverlay from './block-editor/SpacingOverlay';
+} from "lucide-react";
+import {
+  Page,
+  PageBlock,
+  BlockType,
+  BLOCK_DEFINITIONS,
+  BLOCK_CATEGORIES,
+} from "@/types/page-builder";
+import BlockEditor from "./block-editor";
+import InlineEditableBlock from "./InlineEditableBlock";
+import SpacingOverlay from "./block-editor/SpacingOverlay";
 
 interface PageRevision {
   id: string;
@@ -52,29 +58,36 @@ interface PageBuilderEditorProps {
   isNew?: boolean;
 }
 
-type ViewMode = 'edit' | 'preview';
-type DeviceMode = 'desktop' | 'tablet' | 'mobile';
+type ViewMode = "edit" | "preview";
+type DeviceMode = "desktop" | "tablet" | "mobile";
 
 // Maximum history size for undo/redo
 const MAX_HISTORY_SIZE = 50;
 
-export default function PageBuilderEditor({ page: initialPage, isNew = false }: PageBuilderEditorProps) {
+export default function PageBuilderEditor({
+  page: initialPage,
+  isNew = false,
+}: PageBuilderEditorProps) {
   const router = useRouter();
   const [page, setPage] = useState<Page>(initialPage);
   const [blocks, setBlocks] = useState<PageBlock[]>(initialPage.blocks || []);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('edit');
-  const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
+  const [viewMode, setViewMode] = useState<ViewMode>("edit");
+  const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const [showBlockPicker, setShowBlockPicker] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [insertAfterBlockId, setInsertAfterBlockId] = useState<string | null>(null);
+  const [insertAfterBlockId, setInsertAfterBlockId] = useState<string | null>(
+    null,
+  );
   const [showRevisions, setShowRevisions] = useState(false);
   const [revisions, setRevisions] = useState<PageRevision[]>([]);
   const [loadingRevisions, setLoadingRevisions] = useState(false);
-  const [selectedRevision, setSelectedRevision] = useState<PageRevision | null>(null);
+  const [selectedRevision, setSelectedRevision] = useState<PageRevision | null>(
+    null,
+  );
   const [restoringRevision, setRestoringRevision] = useState(false);
   const [showSpacingOverlay, setShowSpacingOverlay] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);
@@ -90,42 +103,48 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
   const isInitializedRef = useRef(false); // Track if initial render is complete
 
   // Update history when blocks change (debounced to avoid loops)
-  const updateHistory = useCallback((newBlocks: PageBlock[]) => {
-    const newBlocksJson = JSON.stringify(newBlocks);
-    
-    // Skip if blocks haven't actually changed
-    if (newBlocksJson === lastBlocksJsonRef.current) {
-      return;
-    }
-    
-    // Skip if this is an undo/redo action
-    if (isUndoRedoAction.current) {
-      isUndoRedoAction.current = false;
+  const updateHistory = useCallback(
+    (newBlocks: PageBlock[]) => {
+      const newBlocksJson = JSON.stringify(newBlocks);
+
+      // Skip if blocks haven't actually changed
+      if (newBlocksJson === lastBlocksJsonRef.current) {
+        return;
+      }
+
+      // Skip if this is an undo/redo action
+      if (isUndoRedoAction.current) {
+        isUndoRedoAction.current = false;
+        lastBlocksJsonRef.current = newBlocksJson;
+        return;
+      }
+
       lastBlocksJsonRef.current = newBlocksJson;
-      return;
-    }
-    
-    lastBlocksJsonRef.current = newBlocksJson;
-    
-    // Trim history to current index and add new state
-    const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
-    newHistory.push(newBlocks);
-    
-    // Limit history size
-    if (newHistory.length > MAX_HISTORY_SIZE) {
-      newHistory.shift();
-    } else {
-      historyIndexRef.current = newHistory.length - 1;
-    }
-    
-    historyRef.current = newHistory;
-    
-    // Update undo/redo state directly - only if values actually changed
-    const newCanUndo = historyIndexRef.current > 0;
-    const newCanRedo = false;
-    if (canUndo !== newCanUndo) setCanUndo(newCanUndo);
-    if (canRedo !== newCanRedo) setCanRedo(newCanRedo);
-  }, [canUndo, canRedo]);
+
+      // Trim history to current index and add new state
+      const newHistory = historyRef.current.slice(
+        0,
+        historyIndexRef.current + 1,
+      );
+      newHistory.push(newBlocks);
+
+      // Limit history size
+      if (newHistory.length > MAX_HISTORY_SIZE) {
+        newHistory.shift();
+      } else {
+        historyIndexRef.current = newHistory.length - 1;
+      }
+
+      historyRef.current = newHistory;
+
+      // Update undo/redo state directly - only if values actually changed
+      const newCanUndo = historyIndexRef.current > 0;
+      const newCanRedo = false;
+      if (canUndo !== newCanUndo) setCanUndo(newCanUndo);
+      if (canRedo !== newCanRedo) setCanRedo(newCanRedo);
+    },
+    [canUndo, canRedo],
+  );
 
   // Call updateHistory when blocks change
   useEffect(() => {
@@ -161,7 +180,7 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
         e.preventDefault();
         if (e.shiftKey) {
           handleRedo();
@@ -169,14 +188,14 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
           handleUndo();
         }
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "y") {
         e.preventDefault();
         handleRedo();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleUndo, handleRedo]);
 
   // Track changes - skip initial render to avoid unnecessary state updates
@@ -192,16 +211,18 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
   // Fetch revisions
   const fetchRevisions = useCallback(async () => {
     if (isNew) return;
-    
+
     try {
       setLoadingRevisions(true);
-      const response = await fetch(`/api/pages/${encodeURIComponent(page.slug)}/revisions`);
+      const response = await fetch(
+        `/api/pages/${encodeURIComponent(page.slug)}/revisions`,
+      );
       if (response.ok) {
         const data = await response.json();
         setRevisions(data.revisions || []);
       }
     } catch (error) {
-      console.error('Error fetching revisions:', error);
+      console.error("Error fetching revisions:", error);
     } finally {
       setLoadingRevisions(false);
     }
@@ -217,27 +238,36 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
   // Fetch full revision details
   const fetchRevisionDetails = async (revisionId: string) => {
     try {
-      const response = await fetch(`/api/pages/${encodeURIComponent(page.slug)}/revisions/${revisionId}`);
+      const response = await fetch(
+        `/api/pages/${encodeURIComponent(page.slug)}/revisions/${revisionId}`,
+      );
       if (response.ok) {
         const revision = await response.json();
         setSelectedRevision(revision);
       }
     } catch (error) {
-      console.error('Error fetching revision details:', error);
+      console.error("Error fetching revision details:", error);
     }
   };
 
   // Restore a revision
   const handleRestoreRevision = async (revisionId: string) => {
-    if (!confirm('Voulez-vous restaurer cette version ? La version actuelle sera sauvegardée avant la restauration.')) {
+    if (
+      !confirm(
+        "Voulez-vous restaurer cette version ? La version actuelle sera sauvegardée avant la restauration.",
+      )
+    ) {
       return;
     }
 
     try {
       setRestoringRevision(true);
-      const response = await fetch(`/api/pages/${encodeURIComponent(page.slug)}/revisions/${revisionId}`, {
-        method: 'POST',
-      });
+      const response = await fetch(
+        `/api/pages/${encodeURIComponent(page.slug)}/revisions/${revisionId}`,
+        {
+          method: "POST",
+        },
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -251,7 +281,7 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
         fetchRevisions();
       }
     } catch (error) {
-      console.error('Error restoring revision:', error);
+      console.error("Error restoring revision:", error);
     } finally {
       setRestoringRevision(false);
     }
@@ -260,12 +290,14 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const url = isNew ? '/api/pages' : `/api/pages/${encodeURIComponent(page.slug)}`;
-      const method = isNew ? 'POST' : 'PUT';
+      const url = isNew
+        ? "/api/pages"
+        : `/api/pages/${encodeURIComponent(page.slug)}`;
+      const method = isNew ? "POST" : "PUT";
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...page,
           blocks: blocks.map((block, index) => ({
@@ -281,72 +313,85 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
         setBlocks(updatedPage.blocks || []);
         setSaved(true);
         setHasChanges(false);
-        
+
         // Refresh revisions after save
         if (!isNew) {
           fetchRevisions();
         }
-        
+
         if (isNew) {
-          router.push(`/admin/dashboard/pages/edit/${updatedPage.slug.replace(/^\//, '')}`);
+          router.push(
+            `/admin/dashboard/pages/edit/${updatedPage.slug.replace(/^\//, "")}`,
+          );
         }
       }
     } catch (error) {
-      console.error('Error saving page:', error);
+      console.error("Error saving page:", error);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleAddBlock = useCallback((type: BlockType) => {
-    const definition = BLOCK_DEFINITIONS.find(d => d.type === type);
-    if (!definition) return;
+  const handleAddBlock = useCallback(
+    (type: BlockType) => {
+      const definition = BLOCK_DEFINITIONS.find((d) => d.type === type);
+      if (!definition) return;
 
-    const newBlock: PageBlock = {
-      id: `temp-${Date.now()}`,
-      pageId: page.id,
-      type,
-      order: 0, // Will be calculated in setBlocks
-      content: definition.defaultContent,
-      settings: {},
-      styles: definition.defaultStyles,
-      visible: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      const newBlock: PageBlock = {
+        id: `temp-${Date.now()}`,
+        pageId: page.id,
+        type,
+        order: 0, // Will be calculated in setBlocks
+        content: definition.defaultContent,
+        settings: {},
+        styles: definition.defaultStyles,
+        visible: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-    setBlocks(prevBlocks => {
-      newBlock.order = prevBlocks.length;
-      
-      if (insertAfterBlockId) {
-        const insertIndex = prevBlocks.findIndex(b => b.id === insertAfterBlockId) + 1;
-        const newBlocks = [...prevBlocks];
-        newBlocks.splice(insertIndex, 0, newBlock);
-        return newBlocks;
-      } else {
-        return [...prevBlocks, newBlock];
-      }
-    });
+      setBlocks((prevBlocks) => {
+        newBlock.order = prevBlocks.length;
 
-    setShowBlockPicker(false);
-    setInsertAfterBlockId(null);
-    setSelectedBlockId(newBlock.id);
-  }, [page.id, insertAfterBlockId]);
+        if (insertAfterBlockId) {
+          const insertIndex =
+            prevBlocks.findIndex((b) => b.id === insertAfterBlockId) + 1;
+          const newBlocks = [...prevBlocks];
+          newBlocks.splice(insertIndex, 0, newBlock);
+          return newBlocks;
+        } else {
+          return [...prevBlocks, newBlock];
+        }
+      });
 
-  const handleUpdateBlock = useCallback((blockId: string, updates: Partial<PageBlock>) => {
-    setBlocks(prevBlocks => prevBlocks.map(b =>
-      b.id === blockId ? { ...b, ...updates, updatedAt: new Date() } : b
-    ));
-  }, []);
+      setShowBlockPicker(false);
+      setInsertAfterBlockId(null);
+      setSelectedBlockId(newBlock.id);
+    },
+    [page.id, insertAfterBlockId],
+  );
+
+  const handleUpdateBlock = useCallback(
+    (blockId: string, updates: Partial<PageBlock>) => {
+      setBlocks((prevBlocks) =>
+        prevBlocks.map((b) =>
+          b.id === blockId ? { ...b, ...updates, updatedAt: new Date() } : b,
+        ),
+      );
+    },
+    [],
+  );
 
   const handleDeleteBlock = useCallback((blockId: string) => {
-    setBlocks(prevBlocks => prevBlocks.filter(b => b.id !== blockId));
-    setSelectedBlockId(prevSelected => prevSelected === blockId ? null : prevSelected);
+    setBlocks((prevBlocks) => prevBlocks.filter((b) => b.id !== blockId));
+    setSelectedBlockId((prevSelected) =>
+      prevSelected === blockId ? null : prevSelected,
+    );
   }, []);
 
   const handleDuplicateBlock = useCallback((blockId: string) => {
-    setBlocks(prevBlocks => {
-      const block = prevBlocks.find(b => b.id === blockId);
+    setBlocks((prevBlocks) => {
+      const block = prevBlocks.find((b) => b.id === blockId);
       if (!block) return prevBlocks;
 
       const duplicatedBlock: PageBlock = {
@@ -356,7 +401,7 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
         updatedAt: new Date(),
       };
 
-      const index = prevBlocks.findIndex(b => b.id === blockId);
+      const index = prevBlocks.findIndex((b) => b.id === blockId);
       const newBlocks = [...prevBlocks];
       newBlocks.splice(index + 1, 0, duplicatedBlock);
       return newBlocks;
@@ -364,21 +409,23 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
   }, []);
 
   const handleToggleBlockVisibility = useCallback((blockId: string) => {
-    setBlocks(prevBlocks => prevBlocks.map(b =>
-      b.id === blockId ? { ...b, visible: !b.visible } : b
-    ));
+    setBlocks((prevBlocks) =>
+      prevBlocks.map((b) =>
+        b.id === blockId ? { ...b, visible: !b.visible } : b,
+      ),
+    );
   }, []);
 
   const handleReorderBlocks = useCallback((newBlocks: PageBlock[]) => {
     setBlocks(newBlocks);
   }, []);
 
-  const selectedBlock = blocks.find(b => b.id === selectedBlockId);
+  const selectedBlock = blocks.find((b) => b.id === selectedBlockId);
 
   const deviceWidths = {
-    desktop: '100%',
-    tablet: '768px',
-    mobile: '375px',
+    desktop: "100%",
+    tablet: "768px",
+    mobile: "375px",
   };
 
   return (
@@ -387,7 +434,7 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
       <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push('/admin/dashboard/pages')}
+            onClick={() => router.push("/admin/dashboard/pages")}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -405,8 +452,13 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
               <span>/</span>
               <input
                 type="text"
-                value={page.slug.replace(/^\//, '')}
-                onChange={(e) => setPage({ ...page, slug: `/${e.target.value.replace(/^\//, '')}` })}
+                value={page.slug.replace(/^\//, "")}
+                onChange={(e) =>
+                  setPage({
+                    ...page,
+                    slug: `/${e.target.value.replace(/^\//, "")}`,
+                  })
+                }
                 className="bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-black/10 rounded px-1 text-gray-700 placeholder:text-gray-500"
                 placeholder="url-de-la-page"
               />
@@ -418,15 +470,17 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
           {/* Device Preview Toggle */}
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             {[
-              { mode: 'desktop' as DeviceMode, icon: Monitor },
-              { mode: 'tablet' as DeviceMode, icon: Tablet },
-              { mode: 'mobile' as DeviceMode, icon: Smartphone },
+              { mode: "desktop" as DeviceMode, icon: Monitor },
+              { mode: "tablet" as DeviceMode, icon: Tablet },
+              { mode: "mobile" as DeviceMode, icon: Smartphone },
             ].map(({ mode, icon: Icon }) => (
               <button
                 key={mode}
                 onClick={() => setDeviceMode(mode)}
                 className={`p-2 rounded-md transition-colors ${
-                  deviceMode === mode ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                  deviceMode === mode
+                    ? "bg-white shadow-sm text-gray-900"
+                    : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -439,17 +493,21 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
           {/* View Mode Toggle */}
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             <button
-              onClick={() => setViewMode('edit')}
+              onClick={() => setViewMode("edit")}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'edit' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                viewMode === "edit"
+                  ? "bg-white shadow-sm text-gray-900"
+                  : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
               }`}
             >
               Éditer
             </button>
             <button
-              onClick={() => setViewMode('preview')}
+              onClick={() => setViewMode("preview")}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'preview' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                viewMode === "preview"
+                  ? "bg-white shadow-sm text-gray-900"
+                  : "text-gray-600 hover:bg-gray-200 hover:text-gray-900"
               }`}
             >
               Aperçu
@@ -464,7 +522,9 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
               onClick={handleUndo}
               disabled={!canUndo}
               className={`p-2 rounded-lg transition-colors ${
-                canUndo ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'
+                canUndo
+                  ? "hover:bg-gray-100 text-gray-700"
+                  : "text-gray-300 cursor-not-allowed"
               }`}
               title="Annuler (Ctrl+Z)"
             >
@@ -474,7 +534,9 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
               onClick={handleRedo}
               disabled={!canRedo}
               className={`p-2 rounded-lg transition-colors ${
-                canRedo ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'
+                canRedo
+                  ? "hover:bg-gray-100 text-gray-700"
+                  : "text-gray-300 cursor-not-allowed"
               }`}
               title="Rétablir (Ctrl+Y)"
             >
@@ -488,9 +550,15 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
           <button
             onClick={() => setShowSpacingOverlay(!showSpacingOverlay)}
             className={`p-2 rounded-lg transition-colors ${
-              showSpacingOverlay ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'
+              showSpacingOverlay
+                ? "bg-blue-100 text-blue-600"
+                : "hover:bg-gray-100 text-gray-600"
             }`}
-            title={showSpacingOverlay ? 'Masquer les espacements' : 'Afficher les espacements'}
+            title={
+              showSpacingOverlay
+                ? "Masquer les espacements"
+                : "Afficher les espacements"
+            }
           >
             <Ruler className="w-5 h-5" />
           </button>
@@ -503,7 +571,7 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
                 setShowSettings(false);
               }}
               className={`p-2 rounded-lg transition-colors ${
-                showRevisions ? 'bg-gray-200' : 'hover:bg-gray-100'
+                showRevisions ? "bg-gray-200" : "hover:bg-gray-100"
               }`}
               title="Historique des versions"
             >
@@ -518,7 +586,7 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
               setShowRevisions(false);
             }}
             className={`p-2 rounded-lg transition-colors ${
-              showSettings ? 'bg-gray-200' : 'hover:bg-gray-100'
+              showSettings ? "bg-gray-200" : "hover:bg-gray-100"
             }`}
           >
             <Settings2 className="w-5 h-5 text-gray-700" />
@@ -530,8 +598,8 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
             disabled={saving}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
               hasChanges
-                ? 'bg-black text-white hover:bg-gray-800'
-                : 'bg-gray-200 text-gray-600'
+                ? "bg-black text-white hover:bg-gray-800"
+                : "bg-gray-200 text-gray-600"
             }`}
           >
             {saving ? (
@@ -557,7 +625,7 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Block List */}
-        {viewMode === 'edit' && (
+        {viewMode === "edit" && (
           <div className="w-72 bg-white border-r border-gray-200 flex flex-col overflow-hidden shrink-0">
             <div className="p-4 border-b border-gray-200">
               <button
@@ -571,12 +639,14 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
                 Ajouter un bloc
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-4">
               {blocks.length === 0 ? (
                 <div className="text-center text-gray-700 py-8">
                   <p className="text-sm">Aucun bloc ajouté</p>
-                  <p className="text-xs mt-1 text-gray-600">Cliquez sur "Ajouter un bloc" pour commencer</p>
+                  <p className="text-xs mt-1 text-gray-600">
+                    Cliquez sur "Ajouter un bloc" pour commencer
+                  </p>
                 </div>
               ) : (
                 <Reorder.Group
@@ -587,7 +657,9 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
                   layoutScroll
                 >
                   {blocks.map((block) => {
-                    const definition = BLOCK_DEFINITIONS.find(d => d.type === block.type);
+                    const definition = BLOCK_DEFINITIONS.find(
+                      (d) => d.type === block.type,
+                    );
                     return (
                       <Reorder.Item
                         key={block.id}
@@ -596,20 +668,27 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                         layout
-                        transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-                        dragTransition={{ bounceStiffness: 600, bounceDamping: 30 }}
-                        whileDrag={{ 
-                          scale: 1.02, 
-                          boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 40,
+                        }}
+                        dragTransition={{
+                          bounceStiffness: 600,
+                          bounceDamping: 30,
+                        }}
+                        whileDrag={{
+                          scale: 1.02,
+                          boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
                           zIndex: 50,
-                          cursor: 'grabbing'
+                          cursor: "grabbing",
                         }}
                         className={`bg-gray-50 rounded-lg border transition-colors ${
                           selectedBlockId === block.id
-                            ? 'border-black ring-2 ring-black/10'
-                            : 'border-gray-200 hover:border-gray-300'
-                        } ${!block.visible ? 'opacity-50' : ''}`}
-                        style={{ position: 'relative' }}
+                            ? "border-black ring-2 ring-black/10"
+                            : "border-gray-200 hover:border-gray-300"
+                        } ${!block.visible ? "opacity-50" : ""}`}
+                        style={{ position: "relative" }}
                         onClick={() => setSelectedBlockId(block.id)}
                       >
                         <div className="flex items-center gap-2 p-3 cursor-grab active:cursor-grabbing">
@@ -667,8 +746,8 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
             className="mx-auto transition-all duration-300 bg-white shadow-xl rounded-lg overflow-hidden"
             style={{
               width: deviceWidths[deviceMode],
-              maxWidth: '100%',
-              minHeight: '600px',
+              maxWidth: "100%",
+              minHeight: "600px",
               backgroundColor: page.backgroundColor,
               color: page.textColor,
             }}
@@ -686,197 +765,224 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
                   const isInline = block.styles?.inline === true;
                   const widthPercent = block.styles?.widthPercent;
                   const isSelected = selectedBlockId === block.id;
-                  
+
                   return (
-                  <div
-                    key={block.id}
-                    ref={(el) => {
-                      if (el) blockElementsRef.current.set(block.id, el);
-                      else blockElementsRef.current.delete(block.id);
-                    }}
-                    className={`relative ${viewMode === 'edit' ? 'group' : ''} ${
-                      !block.visible ? 'opacity-30' : ''
-                    }`}
-                    style={{
-                      display: isInline ? 'inline-block' : 'flow-root',
-                      verticalAlign: isInline ? 'top' : undefined,
-                      width: widthPercent ? `${widthPercent}%` : undefined,
-                    }}
-                    onClick={() => viewMode === 'edit' && setSelectedBlockId(block.id)}
-                  >
-                    {/* Spacing Overlay - visible when block is selected */}
-                    {viewMode === 'edit' && isSelected && showSpacingOverlay && (
-                      <SpacingOverlay
-                        blockElement={blockElementsRef.current.get(block.id) || null}
-                        styles={block.styles || {}}
-                        onUpdateStyle={(key, value) => handleUpdateBlock(block.id, {
-                          styles: { ...block.styles, [key]: value }
-                        })}
-                        visible={showSpacingOverlay}
-                      />
-                    )}
-                    
-                    {/* Block Selection Outline */}
-                    {viewMode === 'edit' && (
-                      <div
-                        className={`absolute inset-0 border-2 transition-colors pointer-events-none z-10 ${
-                          isSelected
-                            ? 'border-blue-500'
-                            : 'border-transparent group-hover:border-blue-300'
-                        }`}
-                      />
-                    )}
-                    
-                    {/* Block Actions */}
-                    {viewMode === 'edit' && isSelected && (
-                      <>
-                        {/* Top Toolbar - Compact and Responsive */}
-                        <div className="absolute top-2 right-2 z-20 flex items-center gap-0.5 bg-white rounded-lg shadow-lg p-0.5 border border-gray-200">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setInsertAfterBlockId(block.id);
-                              setShowBlockPicker(true);
-                            }}
-                            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                            title="Ajouter après"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDuplicateBlock(block.id);
-                            }}
-                            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                            title="Dupliquer"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteBlock(block.id);
-                            }}
-                            className="p-1.5 hover:bg-red-100 rounded transition-colors"
-                            title="Supprimer"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </button>
-                        </div>
-                        
-                        {/* Bottom Quick Toolbar - Size & Alignment - Scrollable on small screens */}
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 max-w-[calc(100%-1rem)] overflow-x-auto">
-                          <div className="flex items-center gap-0.5 bg-white rounded-lg shadow-lg p-0.5 border border-gray-200">
-                          {/* Inline Toggle */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
+                    <div
+                      key={block.id}
+                      ref={(el) => {
+                        if (el) blockElementsRef.current.set(block.id, el);
+                        else blockElementsRef.current.delete(block.id);
+                      }}
+                      className={`relative ${viewMode === "edit" ? "group" : ""} ${
+                        !block.visible ? "opacity-30" : ""
+                      }`}
+                      style={{
+                        display: isInline ? "inline-block" : "flow-root",
+                        verticalAlign: isInline ? "top" : undefined,
+                        width: widthPercent ? `${widthPercent}%` : undefined,
+                      }}
+                      onClick={() =>
+                        viewMode === "edit" && setSelectedBlockId(block.id)
+                      }
+                    >
+                      {/* Spacing Overlay - visible when block is selected */}
+                      {viewMode === "edit" &&
+                        isSelected &&
+                        showSpacingOverlay && (
+                          <SpacingOverlay
+                            blockElement={
+                              blockElementsRef.current.get(block.id) || null
+                            }
+                            styles={block.styles || {}}
+                            onUpdateStyle={(key, value) =>
                               handleUpdateBlock(block.id, {
-                                styles: { ...block.styles, inline: !block.styles?.inline }
-                              });
-                            }}
-                            className={`p-1.5 rounded transition-colors border-r border-gray-200 mr-1 ${
-                              block.styles?.inline
-                                ? 'bg-blue-500 text-white'
-                                : 'hover:bg-gray-100 text-gray-700'
-                            }`}
-                            title="Affichage en ligne (côte à côte)"
-                          >
-                            <Columns className="w-3.5 h-3.5" />
-                          </button>
-                          
-                          {/* Block Width Quick Selectors */}
-                          <div className="flex items-center gap-0.5 border-r border-gray-200 pr-1 mr-1">
-                            {[
-                              { value: 25, label: '25%' },
-                              { value: 50, label: '50%' },
-                              { value: 75, label: '75%' },
-                              { value: 100, label: '100%' },
-                            ].map((opt) => (
+                                styles: { ...block.styles, [key]: value },
+                              })
+                            }
+                            visible={showSpacingOverlay}
+                          />
+                        )}
+
+                      {/* Block Selection Outline */}
+                      {viewMode === "edit" && (
+                        <div
+                          className={`absolute inset-0 border-2 transition-colors pointer-events-none z-10 ${
+                            isSelected
+                              ? "border-blue-500"
+                              : "border-transparent group-hover:border-blue-300"
+                          }`}
+                        />
+                      )}
+
+                      {/* Block Actions */}
+                      {viewMode === "edit" && isSelected && (
+                        <>
+                          {/* Top Toolbar - Compact and Responsive */}
+                          <div className="absolute top-2 right-2 z-20 flex items-center gap-0.5 bg-white rounded-lg shadow-lg p-0.5 border border-gray-200">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setInsertAfterBlockId(block.id);
+                                setShowBlockPicker(true);
+                              }}
+                              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                              title="Ajouter après"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDuplicateBlock(block.id);
+                              }}
+                              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                              title="Dupliquer"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteBlock(block.id);
+                              }}
+                              className="p-1.5 hover:bg-red-100 rounded transition-colors"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </button>
+                          </div>
+
+                          {/* Bottom Quick Toolbar - Size & Alignment - Scrollable on small screens */}
+                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 max-w-[calc(100%-1rem)] overflow-x-auto">
+                            <div className="flex items-center gap-0.5 bg-white rounded-lg shadow-lg p-0.5 border border-gray-200">
+                              {/* Inline Toggle */}
                               <button
-                                key={opt.value}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleUpdateBlock(block.id, {
-                                    styles: { ...block.styles, widthPercent: opt.value }
+                                    styles: {
+                                      ...block.styles,
+                                      inline: !block.styles?.inline,
+                                    },
                                   });
                                 }}
-                                className={`px-2 py-1 text-xs rounded transition-colors ${
-                                  block.styles?.widthPercent === opt.value
-                                    ? 'bg-black text-white'
-                                    : 'hover:bg-gray-100 text-gray-700'
+                                className={`p-1.5 rounded transition-colors border-r border-gray-200 mr-1 ${
+                                  block.styles?.inline
+                                    ? "bg-blue-500 text-white"
+                                    : "hover:bg-gray-100 text-gray-700"
                                 }`}
-                                title={`Largeur ${opt.label}`}
+                                title="Affichage en ligne (côte à côte)"
                               >
-                                {opt.label}
+                                <Columns className="w-3.5 h-3.5" />
                               </button>
-                            ))}
-                          </div>
-                          
-                          {/* Block Alignment */}
-                          <div className="flex items-center gap-0.5">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleUpdateBlock(block.id, {
-                                  styles: { ...block.styles, alignment: 'left' }
-                                });
-                              }}
-                              className={`p-1.5 rounded transition-colors ${
-                                block.styles?.alignment === 'left'
-                                  ? 'bg-black text-white'
-                                  : 'hover:bg-gray-100 text-gray-700'
-                              }`}
-                              title="Aligner à gauche"
-                            >
-                              <AlignLeft className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleUpdateBlock(block.id, {
-                                  styles: { ...block.styles, alignment: 'center' }
-                                });
-                              }}
-                              className={`p-1.5 rounded transition-colors ${
-                                block.styles?.alignment === 'center'
-                                  ? 'bg-black text-white'
-                                  : 'hover:bg-gray-100 text-gray-700'
-                              }`}
-                              title="Centrer le bloc"
-                            >
-                              <AlignCenter className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleUpdateBlock(block.id, {
-                                  styles: { ...block.styles, alignment: 'right' }
-                                });
-                              }}
-                              className={`p-1.5 rounded transition-colors ${
-                                block.styles?.alignment === 'right'
-                                  ? 'bg-black text-white'
-                                  : 'hover:bg-gray-100 text-gray-700'
-                              }`}
-                              title="Aligner à droite"
-                            >
-                              <AlignRight className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                        </div>
-                      </>
-                    )}
 
-                    {/* Block Content - Inline Editable */}
-                    <InlineEditableBlock 
-                      block={block} 
-                      isEditing={viewMode === 'edit' && selectedBlockId === block.id}
-                      onUpdate={(updates) => handleUpdateBlock(block.id, updates)}
-                    />
-                  </div>
+                              {/* Block Width Quick Selectors */}
+                              <div className="flex items-center gap-0.5 border-r border-gray-200 pr-1 mr-1">
+                                {[
+                                  { value: 25, label: "25%" },
+                                  { value: 50, label: "50%" },
+                                  { value: 75, label: "75%" },
+                                  { value: 100, label: "100%" },
+                                ].map((opt) => (
+                                  <button
+                                    key={opt.value}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleUpdateBlock(block.id, {
+                                        styles: {
+                                          ...block.styles,
+                                          widthPercent: opt.value,
+                                        },
+                                      });
+                                    }}
+                                    className={`px-2 py-1 text-xs rounded transition-colors ${
+                                      block.styles?.widthPercent === opt.value
+                                        ? "bg-black text-white"
+                                        : "hover:bg-gray-100 text-gray-700"
+                                    }`}
+                                    title={`Largeur ${opt.label}`}
+                                  >
+                                    {opt.label}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* Block Alignment */}
+                              <div className="flex items-center gap-0.5">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateBlock(block.id, {
+                                      styles: {
+                                        ...block.styles,
+                                        alignment: "left",
+                                      },
+                                    });
+                                  }}
+                                  className={`p-1.5 rounded transition-colors ${
+                                    block.styles?.alignment === "left"
+                                      ? "bg-black text-white"
+                                      : "hover:bg-gray-100 text-gray-700"
+                                  }`}
+                                  title="Aligner à gauche"
+                                >
+                                  <AlignLeft className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateBlock(block.id, {
+                                      styles: {
+                                        ...block.styles,
+                                        alignment: "center",
+                                      },
+                                    });
+                                  }}
+                                  className={`p-1.5 rounded transition-colors ${
+                                    block.styles?.alignment === "center"
+                                      ? "bg-black text-white"
+                                      : "hover:bg-gray-100 text-gray-700"
+                                  }`}
+                                  title="Centrer le bloc"
+                                >
+                                  <AlignCenter className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateBlock(block.id, {
+                                      styles: {
+                                        ...block.styles,
+                                        alignment: "right",
+                                      },
+                                    });
+                                  }}
+                                  className={`p-1.5 rounded transition-colors ${
+                                    block.styles?.alignment === "right"
+                                      ? "bg-black text-white"
+                                      : "hover:bg-gray-100 text-gray-700"
+                                  }`}
+                                  title="Aligner à droite"
+                                >
+                                  <AlignRight className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Block Content - Inline Editable */}
+                      <InlineEditableBlock
+                        block={block}
+                        isEditing={
+                          viewMode === "edit" && selectedBlockId === block.id
+                        }
+                        onUpdate={(updates) =>
+                          handleUpdateBlock(block.id, updates)
+                        }
+                      />
+                    </div>
                   );
                 })}
               </div>
@@ -885,33 +991,40 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
         </div>
 
         {/* Right Sidebar - Block Editor / Settings / Revisions */}
-        {viewMode === 'edit' && (selectedBlock || showSettings || showRevisions) && (
-          <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto shrink-0">
-            {showRevisions ? (
-              <RevisionHistory
-                revisions={revisions}
-                loading={loadingRevisions}
-                selectedRevision={selectedRevision}
-                onSelectRevision={fetchRevisionDetails}
-                onClearSelection={() => setSelectedRevision(null)}
-                onRestore={handleRestoreRevision}
-                onClose={() => {
-                  setShowRevisions(false);
-                  setSelectedRevision(null);
-                }}
-                restoring={restoringRevision}
-              />
-            ) : showSettings ? (
-              <PageSettings page={page} onUpdate={setPage} onClose={() => setShowSettings(false)} />
-            ) : selectedBlock ? (
-              <BlockEditor
-                block={selectedBlock}
-                onUpdate={(updates) => handleUpdateBlock(selectedBlock.id, updates)}
-                onClose={() => setSelectedBlockId(null)}
-              />
-            ) : null}
-          </div>
-        )}
+        {viewMode === "edit" &&
+          (selectedBlock || showSettings || showRevisions) && (
+            <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto shrink-0">
+              {showRevisions ? (
+                <RevisionHistory
+                  revisions={revisions}
+                  loading={loadingRevisions}
+                  selectedRevision={selectedRevision}
+                  onSelectRevision={fetchRevisionDetails}
+                  onClearSelection={() => setSelectedRevision(null)}
+                  onRestore={handleRestoreRevision}
+                  onClose={() => {
+                    setShowRevisions(false);
+                    setSelectedRevision(null);
+                  }}
+                  restoring={restoringRevision}
+                />
+              ) : showSettings ? (
+                <PageSettings
+                  page={page}
+                  onUpdate={setPage}
+                  onClose={() => setShowSettings(false)}
+                />
+              ) : selectedBlock ? (
+                <BlockEditor
+                  block={selectedBlock}
+                  onUpdate={(updates) =>
+                    handleUpdateBlock(selectedBlock.id, updates)
+                  }
+                  onClose={() => setSelectedBlockId(null)}
+                />
+              ) : null}
+            </div>
+          )}
       </div>
 
       {/* Block Picker Modal */}
@@ -931,35 +1044,46 @@ export default function PageBuilderEditor({ page: initialPage, isNew = false }: 
 }
 
 // Page Settings Panel
-function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page: Page) => void; onClose: () => void }) {
+function PageSettings({
+  page,
+  onUpdate,
+  onClose,
+}: {
+  page: Page;
+  onUpdate: (page: Page) => void;
+  onClose: () => void;
+}) {
   // Local state for color inputs to avoid infinite loops during continuous updates
   const [bgColor, setBgColor] = useState(page.backgroundColor);
   const [txtColor, setTxtColor] = useState(page.textColor);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Debounced update for colors
-  const handleColorChange = useCallback((field: 'backgroundColor' | 'textColor', value: string) => {
-    if (field === 'backgroundColor') {
-      setBgColor(value);
-    } else {
-      setTxtColor(value);
-    }
-    
-    // Debounce the parent update
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-    updateTimeoutRef.current = setTimeout(() => {
-      onUpdate({ ...page, [field]: value });
-    }, 100);
-  }, [page, onUpdate]);
-  
+  const handleColorChange = useCallback(
+    (field: "backgroundColor" | "textColor", value: string) => {
+      if (field === "backgroundColor") {
+        setBgColor(value);
+      } else {
+        setTxtColor(value);
+      }
+
+      // Debounce the parent update
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+      updateTimeoutRef.current = setTimeout(() => {
+        onUpdate({ ...page, [field]: value });
+      }, 100);
+    },
+    [page, onUpdate],
+  );
+
   // Sync local state when page prop changes (e.g., from undo/redo)
   useEffect(() => {
     setBgColor(page.backgroundColor);
     setTxtColor(page.textColor);
   }, [page.backgroundColor, page.textColor]);
-  
+
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
@@ -968,7 +1092,7 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
       }
     };
   }, []);
-  
+
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
@@ -986,7 +1110,7 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
           </label>
           <input
             type="text"
-            value={page.metaTitle || ''}
+            value={page.metaTitle || ""}
             onChange={(e) => onUpdate({ ...page, metaTitle: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900 placeholder:text-gray-500"
             placeholder={page.title}
@@ -998,8 +1122,10 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
             Description SEO
           </label>
           <textarea
-            value={page.metaDescription || ''}
-            onChange={(e) => onUpdate({ ...page, metaDescription: e.target.value })}
+            value={page.metaDescription || ""}
+            onChange={(e) =>
+              onUpdate({ ...page, metaDescription: e.target.value })
+            }
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900 placeholder:text-gray-500"
             rows={3}
             placeholder="Description de la page pour les moteurs de recherche..."
@@ -1015,13 +1141,17 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
             <input
               type="color"
               value={bgColor}
-              onChange={(e) => handleColorChange('backgroundColor', e.target.value)}
+              onChange={(e) =>
+                handleColorChange("backgroundColor", e.target.value)
+              }
               className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
             />
             <input
               type="text"
               value={bgColor}
-              onChange={(e) => handleColorChange('backgroundColor', e.target.value)}
+              onChange={(e) =>
+                handleColorChange("backgroundColor", e.target.value)
+              }
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 font-mono text-sm text-gray-900"
             />
           </div>
@@ -1035,13 +1165,13 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
             <input
               type="color"
               value={txtColor}
-              onChange={(e) => handleColorChange('textColor', e.target.value)}
+              onChange={(e) => handleColorChange("textColor", e.target.value)}
               className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
             />
             <input
               type="text"
               value={txtColor}
-              onChange={(e) => handleColorChange('textColor', e.target.value)}
+              onChange={(e) => handleColorChange("textColor", e.target.value)}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 font-mono text-sm text-gray-900"
             />
           </div>
@@ -1067,15 +1197,19 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
         {/* Navigation */}
         <div className="pt-4 border-t border-gray-200">
           <h4 className="font-medium mb-3 text-gray-900">Navigation</h4>
-          
+
           <label className="flex items-center gap-2 mb-3">
             <input
               type="checkbox"
               checked={page.showInNav}
-              onChange={(e) => onUpdate({ ...page, showInNav: e.target.checked })}
+              onChange={(e) =>
+                onUpdate({ ...page, showInNav: e.target.checked })
+              }
               className="w-4 h-4 rounded border-gray-300"
             />
-            <span className="text-sm text-gray-800">Afficher dans la navigation</span>
+            <span className="text-sm text-gray-800">
+              Afficher dans la navigation
+            </span>
           </label>
 
           {page.showInNav && (
@@ -1086,13 +1220,15 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
                 </label>
                 <input
                   type="text"
-                  value={page.navLabel || ''}
-                  onChange={(e) => onUpdate({ ...page, navLabel: e.target.value })}
+                  value={page.navLabel || ""}
+                  onChange={(e) =>
+                    onUpdate({ ...page, navLabel: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900 placeholder:text-gray-500"
                   placeholder={page.title}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm text-gray-800 mb-1">
                   Ordre dans le menu
@@ -1100,7 +1236,12 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
                 <input
                   type="number"
                   value={page.navOrder}
-                  onChange={(e) => onUpdate({ ...page, navOrder: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    onUpdate({
+                      ...page,
+                      navOrder: parseInt(e.target.value) || 0,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
                 />
               </div>
@@ -1114,11 +1255,13 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
             <input
               type="checkbox"
               checked={page.published}
-              onChange={(e) => onUpdate({ ...page, published: e.target.checked })}
+              onChange={(e) =>
+                onUpdate({ ...page, published: e.target.checked })
+              }
               className="w-4 h-4 rounded border-gray-300"
             />
             <span className="text-sm font-medium text-gray-800">
-              {page.published ? 'Publié' : 'Brouillon'}
+              {page.published ? "Publié" : "Brouillon"}
             </span>
           </label>
         </div>
@@ -1128,24 +1271,37 @@ function PageSettings({ page, onUpdate, onClose }: { page: Page; onUpdate: (page
 }
 
 // Block Picker Modal
-function BlockPickerModal({ onSelect, onClose }: { onSelect: (type: BlockType) => void; onClose: () => void }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<keyof typeof BLOCK_CATEGORIES | 'all'>('all');
+function BlockPickerModal({
+  onSelect,
+  onClose,
+}: {
+  onSelect: (type: BlockType) => void;
+  onClose: () => void;
+}) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<
+    keyof typeof BLOCK_CATEGORIES | "all"
+  >("all");
 
-  const filteredBlocks = BLOCK_DEFINITIONS.filter(block => {
-    const matchesSearch = block.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          block.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || block.category === selectedCategory;
+  const filteredBlocks = BLOCK_DEFINITIONS.filter((block) => {
+    const matchesSearch =
+      block.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      block.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || block.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const groupedBlocks = filteredBlocks.reduce((acc, block) => {
-    if (!acc[block.category]) {
-      acc[block.category] = [];
-    }
-    acc[block.category].push(block);
-    return acc;
-  }, {} as Record<string, typeof BLOCK_DEFINITIONS>);
+  const groupedBlocks = filteredBlocks.reduce(
+    (acc, block) => {
+      if (!acc[block.category]) {
+        acc[block.category] = [];
+      }
+      acc[block.category].push(block);
+      return acc;
+    },
+    {} as Record<string, typeof BLOCK_DEFINITIONS>,
+  );
 
   return (
     <motion.div
@@ -1169,7 +1325,7 @@ function BlockPickerModal({ onSelect, onClose }: { onSelect: (type: BlockType) =
               <X className="w-5 h-5" />
             </button>
           </div>
-          
+
           <input
             type="text"
             placeholder="Rechercher un bloc..."
@@ -1181,19 +1337,28 @@ function BlockPickerModal({ onSelect, onClose }: { onSelect: (type: BlockType) =
 
           <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-2">
             <button
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => setSelectedCategory("all")}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                selectedCategory === 'all' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'
+                selectedCategory === "all"
+                  ? "bg-black text-white"
+                  : "bg-gray-100 hover:bg-gray-200"
               }`}
             >
               Tous
             </button>
-            {(Object.entries(BLOCK_CATEGORIES) as [keyof typeof BLOCK_CATEGORIES, string][]).map(([key, label]) => (
+            {(
+              Object.entries(BLOCK_CATEGORIES) as [
+                keyof typeof BLOCK_CATEGORIES,
+                string,
+              ][]
+            ).map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setSelectedCategory(key)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                  selectedCategory === key ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'
+                  selectedCategory === key
+                    ? "bg-black text-white"
+                    : "bg-gray-100 hover:bg-gray-200"
                 }`}
               >
                 {label}
@@ -1254,12 +1419,12 @@ function RevisionHistory({
 }) {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -1308,32 +1473,45 @@ function RevisionHistory({
             </button>
             <div className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-gray-900">Version {selectedRevision.version}</span>
-                <span className={`text-xs px-2 py-0.5 rounded ${
-                  selectedRevision.published ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
-                }`}>
-                  {selectedRevision.published ? 'Publié' : 'Brouillon'}
+                <span className="font-medium text-gray-900">
+                  Version {selectedRevision.version}
+                </span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded ${
+                    selectedRevision.published
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  {selectedRevision.published ? "Publié" : "Brouillon"}
                 </span>
               </div>
-              <p className="text-sm text-gray-600">{formatDate(selectedRevision.createdAt)}</p>
+              <p className="text-sm text-gray-600">
+                {formatDate(selectedRevision.createdAt)}
+              </p>
               {selectedRevision.changeNote && (
-                <p className="text-sm text-gray-700 mt-2 italic">{selectedRevision.changeNote}</p>
+                <p className="text-sm text-gray-700 mt-2 italic">
+                  {selectedRevision.changeNote}
+                </p>
               )}
             </div>
           </div>
 
           <div className="flex-1 p-4 overflow-y-auto">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Aperçu du contenu</h4>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              Aperçu du contenu
+            </h4>
             <div className="space-y-2">
               <div className="text-sm">
-                <span className="text-gray-500">Titre:</span>{' '}
+                <span className="text-gray-500">Titre:</span>{" "}
                 <span className="text-gray-900">{selectedRevision.title}</span>
               </div>
               {selectedRevision.blocksSnapshot && (
                 <div className="text-sm">
-                  <span className="text-gray-500">Blocs:</span>{' '}
+                  <span className="text-gray-500">Blocs:</span>{" "}
                   <span className="text-gray-900">
-                    {(selectedRevision.blocksSnapshot as unknown[]).length} bloc(s)
+                    {(selectedRevision.blocksSnapshot as unknown[]).length}{" "}
+                    bloc(s)
                   </span>
                 </div>
               )}
@@ -1341,16 +1519,28 @@ function RevisionHistory({
 
             {selectedRevision.blocksSnapshot && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Blocs dans cette version</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Blocs dans cette version
+                </h4>
                 <div className="space-y-1">
-                  {(selectedRevision.blocksSnapshot as Array<{ type: string; content?: { title?: string; text?: string } }>).map((block, index) => (
-                    <div key={index} className="text-xs p-2 bg-gray-50 rounded flex items-center gap-2">
+                  {(
+                    selectedRevision.blocksSnapshot as Array<{
+                      type: string;
+                      content?: { title?: string; text?: string };
+                    }>
+                  ).map((block, index) => (
+                    <div
+                      key={index}
+                      className="text-xs p-2 bg-gray-50 rounded flex items-center gap-2"
+                    >
                       <span className="w-5 h-5 bg-gray-200 rounded flex items-center justify-center text-gray-600">
                         {index + 1}
                       </span>
                       <span className="text-gray-700">{block.type}</span>
                       {block.content?.title && (
-                        <span className="text-gray-500 truncate">- {block.content.title}</span>
+                        <span className="text-gray-500 truncate">
+                          - {block.content.title}
+                        </span>
                       )}
                     </div>
                   ))}
@@ -1392,7 +1582,9 @@ function RevisionHistory({
           ) : revisions.length === 0 ? (
             <div className="text-center py-12 px-4">
               <Clock className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-              <p className="text-gray-600 text-sm">Aucune version sauvegardée</p>
+              <p className="text-gray-600 text-sm">
+                Aucune version sauvegardée
+              </p>
               <p className="text-gray-500 text-xs mt-1">
                 Les versions sont créées automatiquement à chaque sauvegarde
               </p>
@@ -1406,7 +1598,9 @@ function RevisionHistory({
                   className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-medium text-gray-900">Version {revision.version}</span>
+                    <span className="font-medium text-gray-900">
+                      Version {revision.version}
+                    </span>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -1414,13 +1608,19 @@ function RevisionHistory({
                     {formatRelativeTime(revision.createdAt)}
                   </div>
                   {revision.changeNote && (
-                    <p className="text-xs text-gray-500 mt-1 truncate">{revision.changeNote}</p>
+                    <p className="text-xs text-gray-500 mt-1 truncate">
+                      {revision.changeNote}
+                    </p>
                   )}
                   <div className="flex items-center gap-2 mt-2">
-                    <span className={`text-xs px-2 py-0.5 rounded ${
-                      revision.published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {revision.published ? 'Publié' : 'Brouillon'}
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded ${
+                        revision.published
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {revision.published ? "Publié" : "Brouillon"}
                     </span>
                   </div>
                 </button>
@@ -1432,4 +1632,3 @@ function RevisionHistory({
     </div>
   );
 }
-

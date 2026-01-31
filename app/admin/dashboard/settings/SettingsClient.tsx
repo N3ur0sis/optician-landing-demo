@@ -1,18 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { 
-  Save, 
-  Globe, 
-  Search, 
-  Database, 
-  Download, 
-  Upload, 
+import {
+  Save,
+  Globe,
+  Search,
+  Database,
+  Download,
+  Upload,
   Loader2,
   Check,
   AlertCircle,
   Building2,
-  Mail
+  Mail,
 } from "lucide-react";
 
 interface SiteSettings {
@@ -51,10 +51,17 @@ export default function SettingsClient() {
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"general" | "seo" | "backup">("general");
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<"general" | "seo" | "backup">(
+    "general",
+  );
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [backupLoading, setBackupLoading] = useState(false);
-  const [availablePages, setAvailablePages] = useState<{ slug: string; title: string }[]>([]);
+  const [availablePages, setAvailablePages] = useState<
+    { slug: string; title: string }[]
+  >([]);
 
   useEffect(() => {
     fetchSettings();
@@ -80,7 +87,12 @@ export default function SettingsClient() {
       const response = await fetch("/api/pages");
       if (response.ok) {
         const data = await response.json();
-        setAvailablePages(data.map((p: { slug: string; title: string }) => ({ slug: p.slug, title: p.title })));
+        setAvailablePages(
+          data.map((p: { slug: string; title: string }) => ({
+            slug: p.slug,
+            title: p.title,
+          })),
+        );
       }
     } catch (error) {
       console.error("Failed to fetch pages:", error);
@@ -97,7 +109,10 @@ export default function SettingsClient() {
         body: JSON.stringify({ settings }),
       });
       if (response.ok) {
-        setMessage({ type: "success", text: "Paramètres sauvegardés avec succès" });
+        setMessage({
+          type: "success",
+          text: "Paramètres sauvegardés avec succès",
+        });
       } else {
         throw new Error("Failed to save");
       }
@@ -145,7 +160,10 @@ export default function SettingsClient() {
         body: formData,
       });
       if (response.ok) {
-        setMessage({ type: "success", text: "Import réussi - Rechargez la page" });
+        setMessage({
+          type: "success",
+          text: "Import réussi - Rechargez la page",
+        });
         fetchSettings();
       } else {
         throw new Error("Import failed");
@@ -243,7 +261,9 @@ export default function SettingsClient() {
                 </label>
                 <textarea
                   value={settings.site_description}
-                  onChange={(e) => updateSetting("site_description", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("site_description", e.target.value)
+                  }
                   rows={3}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
@@ -264,7 +284,9 @@ export default function SettingsClient() {
                 <input
                   type="email"
                   value={settings.contact_email}
-                  onChange={(e) => updateSetting("contact_email", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("contact_email", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
               </div>
@@ -275,7 +297,9 @@ export default function SettingsClient() {
                 <input
                   type="tel"
                   value={settings.contact_phone}
-                  onChange={(e) => updateSetting("contact_phone", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("contact_phone", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
               </div>
@@ -286,7 +310,9 @@ export default function SettingsClient() {
                 <input
                   type="text"
                   value={settings.contact_address}
-                  onChange={(e) => updateSetting("contact_address", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("contact_address", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
               </div>
@@ -305,7 +331,9 @@ export default function SettingsClient() {
                 <input
                   type="url"
                   value={settings.social_facebook}
-                  onChange={(e) => updateSetting("social_facebook", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("social_facebook", e.target.value)
+                  }
                   placeholder="https://facebook.com/..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
@@ -317,7 +345,9 @@ export default function SettingsClient() {
                 <input
                   type="url"
                   value={settings.social_instagram}
-                  onChange={(e) => updateSetting("social_instagram", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("social_instagram", e.target.value)
+                  }
                   placeholder="https://instagram.com/..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
@@ -329,7 +359,9 @@ export default function SettingsClient() {
                 <input
                   type="url"
                   value={settings.social_linkedin}
-                  onChange={(e) => updateSetting("social_linkedin", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("social_linkedin", e.target.value)
+                  }
                   placeholder="https://linkedin.com/..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
@@ -350,7 +382,9 @@ export default function SettingsClient() {
                 </label>
                 <select
                   value={settings.homepage_slug}
-                  onChange={(e) => updateSetting("homepage_slug", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("homepage_slug", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 >
                   <option value="">Page par défaut (index)</option>
@@ -385,7 +419,9 @@ export default function SettingsClient() {
                 <input
                   type="text"
                   value={settings.site_keywords}
-                  onChange={(e) => updateSetting("site_keywords", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("site_keywords", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
               </div>
@@ -398,7 +434,9 @@ export default function SettingsClient() {
                   onChange={(e) => updateSetting("meta_robots", e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 >
-                  <option value="index, follow">index, follow (recommandé)</option>
+                  <option value="index, follow">
+                    index, follow (recommandé)
+                  </option>
                   <option value="noindex, follow">noindex, follow</option>
                   <option value="index, nofollow">index, nofollow</option>
                   <option value="noindex, nofollow">noindex, nofollow</option>
@@ -419,7 +457,9 @@ export default function SettingsClient() {
                 <input
                   type="text"
                   value={settings.google_analytics_id}
-                  onChange={(e) => updateSetting("google_analytics_id", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("google_analytics_id", e.target.value)
+                  }
                   placeholder="G-XXXXXXXXXX"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
@@ -434,7 +474,9 @@ export default function SettingsClient() {
                 <input
                   type="text"
                   value={settings.google_search_console}
-                  onChange={(e) => updateSetting("google_search_console", e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("google_search_console", e.target.value)
+                  }
                   placeholder="Code de vérification"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
@@ -453,7 +495,8 @@ export default function SettingsClient() {
               Sauvegarde des données
             </h2>
             <p className="text-gray-600 mb-6">
-              Exportez ou importez les données du site (pages, navigation, paramètres, grille).
+              Exportez ou importez les données du site (pages, navigation,
+              paramètres, grille).
             </p>
             <div className="flex flex-wrap gap-4">
               <button
@@ -487,8 +530,8 @@ export default function SettingsClient() {
               Attention
             </h3>
             <p className="text-amber-700 text-sm">
-              L&apos;import de données remplacera les données existantes. Assurez-vous d&apos;avoir
-              une sauvegarde avant d&apos;importer.
+              L&apos;import de données remplacera les données existantes.
+              Assurez-vous d&apos;avoir une sauvegarde avant d&apos;importer.
             </p>
           </div>
         </div>

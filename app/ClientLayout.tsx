@@ -1,21 +1,27 @@
 "use client";
 
-import { createContext, useEffect, ReactNode } from 'react';
-import { AnimatePresence, useMotionValue, MotionValue } from 'framer-motion';
-import { usePathname } from 'next/navigation';
-import { AnalyticsTracker } from '@/components/AnalyticsTracker';
-import { ApparenceProvider } from '@/lib/apparence-context';
+import { createContext, useEffect, ReactNode } from "react";
+import { AnimatePresence, useMotionValue, MotionValue } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { AnalyticsTracker } from "@/components/AnalyticsTracker";
+import { ApparenceProvider } from "@/lib/apparence-context";
 
 // Scroll context for custom scroll logic
-export type ScrollContextType = { scroll: MotionValue<number>; setScroll: (v: number) => void };
-export const ScrollContext = createContext<ScrollContextType>({ scroll: ({} as unknown) as MotionValue<number>, setScroll: () => {} });
+export type ScrollContextType = {
+  scroll: MotionValue<number>;
+  setScroll: (v: number) => void;
+};
+export const ScrollContext = createContext<ScrollContextType>({
+  scroll: {} as unknown as MotionValue<number>,
+  setScroll: () => {},
+});
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const scroll = useMotionValue(0);
-  const isMainPage = pathname === '/';
-  const isAdminPage = pathname?.startsWith('/admin');
-  
+  const isMainPage = pathname === "/";
+  const isAdminPage = pathname?.startsWith("/admin");
+
   const setScroll = (v: number) => {
     scroll.set(Math.max(0, Math.min(1, v)));
   };
@@ -24,17 +30,17 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     // Apply custom scroll behavior only on the main page
     if (!isMainPage) {
       // Reset body style for other pages to allow normal scrolling
-      document.body.style.height = 'auto';
-      document.body.style.overflow = 'auto';
+      document.body.style.height = "auto";
+      document.body.style.overflow = "auto";
       return;
     }
 
     // Apply custom scroll styles for main page
-    document.body.style.height = '100vh';
-    document.body.style.overflow = 'hidden';
+    document.body.style.height = "100vh";
+    document.body.style.overflow = "hidden";
 
     const getRevealContainer = () =>
-      document.querySelector('[data-reveal-scroll]') as HTMLElement | null;
+      document.querySelector("[data-reveal-scroll]") as HTMLElement | null;
 
     const resolveScrollTarget = (delta: number) => {
       const current = scroll.get();
@@ -43,35 +49,38 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       const epsilon = 0.001;
 
       if (!container) {
-        return 'animation' as const;
+        return "animation" as const;
       }
 
       const maxScroll = container.scrollHeight - container.clientHeight;
 
       if (isScrollingDown) {
         if (current < 1 - epsilon) {
-          return 'animation' as const;
+          return "animation" as const;
         }
         if (container.scrollTop < maxScroll - 1) {
-          return 'content' as const;
+          return "content" as const;
         }
-        return 'content' as const;
+        return "content" as const;
       }
 
       // Scrolling up
       if (container.scrollTop > 0) {
-        return 'content' as const;
+        return "content" as const;
       }
       if (current > 0 + epsilon) {
-        return 'animation' as const;
+        return "animation" as const;
       }
-      return 'content' as const;
+      return "content" as const;
     };
 
     const handleWheel = (e: WheelEvent) => {
       // Allow normal interaction if clicking on content reveal cards
       const target = e.target as HTMLElement;
-      if (target.closest('.content-reveal-card') || target.closest('[data-reveal-scroll]')?.contains(target)) {
+      if (
+        target.closest(".content-reveal-card") ||
+        target.closest("[data-reveal-scroll]")?.contains(target)
+      ) {
         // If we're at scroll = 1 (content fully revealed), allow normal scrolling within content
         if (scroll.get() >= 0.99) {
           return; // Don't prevent default, allow normal wheel events
@@ -81,7 +90,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       const scrollTarget = resolveScrollTarget(e.deltaY);
       const container = getRevealContainer();
 
-      if (scrollTarget === 'animation') {
+      if (scrollTarget === "animation") {
         e.preventDefault();
         const delta = e.deltaY * 0.0008;
         setScroll(scroll.get() + delta);
@@ -90,18 +99,21 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
       if (container) {
         e.preventDefault();
-        container.scrollBy({ top: e.deltaY, behavior: 'auto' });
+        container.scrollBy({ top: e.deltaY, behavior: "auto" });
       }
     };
-    
+
     let lastY = 0;
     let touchStartTime = 0;
     let lastVelocity = 0;
-    
+
     const handleTouch = (e: TouchEvent) => {
       // Allow normal interaction if touching content reveal cards
       const target = e.target as HTMLElement;
-      if (target.closest('.content-reveal-card') || target.closest('[data-reveal-scroll]')?.contains(target)) {
+      if (
+        target.closest(".content-reveal-card") ||
+        target.closest("[data-reveal-scroll]")?.contains(target)
+      ) {
         // If we're at scroll = 1 (content fully revealed), allow normal touch events
         if (scroll.get() >= 0.99) {
           return; // Don't prevent default, allow normal touch events
@@ -111,15 +123,15 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       if (e.touches.length === 1) {
         const y = e.touches[0].clientY;
         const now = Date.now();
-        
-        if (e.type === 'touchstart') {
+
+        if (e.type === "touchstart") {
           touchStartTime = now;
           lastY = y;
           lastVelocity = 0;
           return;
         }
-        
-        if (lastY !== 0 && e.type === 'touchmove') {
+
+        if (lastY !== 0 && e.type === "touchmove") {
           const deltaY = y - lastY;
           const deltaTime = now - touchStartTime;
 
@@ -132,7 +144,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           const target = resolveScrollTarget(intendedScroll);
           const container = getRevealContainer();
 
-          if (target === 'animation') {
+          if (target === "animation") {
             e.preventDefault();
             const scrollDelta = intendedScroll * sensitivity * momentum;
             setScroll(scroll.get() + scrollDelta);
@@ -151,12 +163,12 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         lastY = y;
       }
 
-      if (e.type === 'touchend') {
+      if (e.type === "touchend") {
         // Add momentum-based continuation for elegant feel
         const intendedScroll = -lastVelocity; // Align direction with wheel delta sign
         if (Math.abs(lastVelocity) > 0.5) {
           const target = resolveScrollTarget(intendedScroll);
-          if (target === 'animation') {
+          if (target === "animation") {
             const momentum = Math.min(Math.abs(lastVelocity) * 0.001, 0.05);
             const direction = intendedScroll > 0 ? 1 : -1;
             setScroll(scroll.get() + momentum * direction);
@@ -166,29 +178,29 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         lastVelocity = 0;
       }
     };
-    
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    window.addEventListener('touchstart', handleTouch, { passive: false });
-    window.addEventListener('touchmove', handleTouch, { passive: false });
-    window.addEventListener('touchend', handleTouch, { passive: false });
-    
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouch, { passive: false });
+    window.addEventListener("touchmove", handleTouch, { passive: false });
+    window.addEventListener("touchend", handleTouch, { passive: false });
+
     // Add click event listener to ensure cards remain clickable
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest('.content-reveal-card')) {
+      if (target.closest(".content-reveal-card")) {
         // Don't prevent click events on content reveal cards
         return;
       }
     };
-    
-    window.addEventListener('click', handleClick, { passive: true });
-    
+
+    window.addEventListener("click", handleClick, { passive: true });
+
     return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('touchstart', handleTouch);
-      window.removeEventListener('touchmove', handleTouch);
-      window.removeEventListener('touchend', handleTouch);
-      window.removeEventListener('click', handleClick);
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouch);
+      window.removeEventListener("touchmove", handleTouch);
+      window.removeEventListener("touchend", handleTouch);
+      window.removeEventListener("click", handleClick);
     };
   }, [scroll, isMainPage]);
 

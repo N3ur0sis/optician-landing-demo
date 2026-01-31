@@ -1,20 +1,41 @@
-'use client';
+"use client";
 
-import { useState, useEffect, type JSX } from 'react';
-import { motion, AnimatePresence, type Variants, type TargetAndTransition } from 'framer-motion';
-import Link from 'next/link';
-import Image from 'next/image';
-import { ChevronDown, Check, Star, Download, MapPin, Mail, Phone, User, Send, Clock, Calendar, ExternalLink } from 'lucide-react';
-import { PageBlock, BlockStyles } from '@/types/page-builder';
-import { spacingToCss } from '@/app/admin/dashboard/pages/block-editor/types';
+import { useState, useEffect, type JSX } from "react";
+import {
+  motion,
+  AnimatePresence,
+  type Variants,
+  type TargetAndTransition,
+} from "framer-motion";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  ChevronDown,
+  Check,
+  Star,
+  Download,
+  MapPin,
+  Mail,
+  Phone,
+  User,
+  Send,
+  Clock,
+  Calendar,
+  ExternalLink,
+} from "lucide-react";
+import { PageBlock, BlockStyles } from "@/types/page-builder";
+import { spacingToCss } from "@/app/admin/dashboard/pages/block-editor/types";
 
 interface BlockRendererProps {
   block: PageBlock;
 }
 
 // Get section wrapper styles (full-width background container)
-function getSectionWrapperStyles(styles: BlockStyles): { className: string; style: React.CSSProperties } {
-  const classNames: string[] = ['w-full', 'relative'];
+function getSectionWrapperStyles(styles: BlockStyles): {
+  className: string;
+  style: React.CSSProperties;
+} {
+  const classNames: string[] = ["w-full", "relative"];
   const inlineStyles: React.CSSProperties = {};
 
   // Section background color (full-width)
@@ -25,34 +46,37 @@ function getSectionWrapperStyles(styles: BlockStyles): { className: string; styl
   // Section background image (full-width)
   if (styles.sectionBackgroundImage) {
     inlineStyles.backgroundImage = `url(${styles.sectionBackgroundImage})`;
-    inlineStyles.backgroundSize = 'cover';
-    inlineStyles.backgroundPosition = 'center';
+    inlineStyles.backgroundSize = "cover";
+    inlineStyles.backgroundPosition = "center";
   }
 
   // Section vertical padding
-  if (styles.sectionPaddingTop && styles.sectionPaddingTop !== 'none') {
-    inlineStyles.paddingTop = spacingToCss(styles.sectionPaddingTop) || '0';
+  if (styles.sectionPaddingTop && styles.sectionPaddingTop !== "none") {
+    inlineStyles.paddingTop = spacingToCss(styles.sectionPaddingTop) || "0";
   }
-  if (styles.sectionPaddingBottom && styles.sectionPaddingBottom !== 'none') {
-    inlineStyles.paddingBottom = spacingToCss(styles.sectionPaddingBottom) || '0';
+  if (styles.sectionPaddingBottom && styles.sectionPaddingBottom !== "none") {
+    inlineStyles.paddingBottom =
+      spacingToCss(styles.sectionPaddingBottom) || "0";
   }
 
   return {
-    className: classNames.join(' '),
+    className: classNames.join(" "),
     style: inlineStyles,
   };
 }
 
 // Get overlay styles for section background
-function getSectionOverlayStyles(styles: BlockStyles): React.CSSProperties | null {
+function getSectionOverlayStyles(
+  styles: BlockStyles,
+): React.CSSProperties | null {
   if (!styles.sectionOverlayColor || !styles.sectionOverlayOpacity) return null;
-  
+
   return {
-    position: 'absolute' as const,
+    position: "absolute" as const,
     inset: 0,
     backgroundColor: styles.sectionOverlayColor,
     opacity: styles.sectionOverlayOpacity / 100,
-    pointerEvents: 'none' as const,
+    pointerEvents: "none" as const,
   };
 }
 
@@ -67,28 +91,36 @@ function needsSectionWrapper(styles: BlockStyles): boolean {
 }
 
 // Convert style settings to CSS classes/styles
-function getBlockStyles(styles: BlockStyles): { className: string; style: React.CSSProperties } {
+function getBlockStyles(styles: BlockStyles): {
+  className: string;
+  style: React.CSSProperties;
+} {
   const classNames: string[] = [];
   const inlineStyles: React.CSSProperties = {};
 
   // Inline display for side-by-side blocks
   if (styles.inline) {
-    inlineStyles.display = 'inline-block';
-    inlineStyles.verticalAlign = 'top';
+    inlineStyles.display = "inline-block";
+    inlineStyles.verticalAlign = "top";
   }
 
   // Width percent - precise horizontal control
-  if (styles.widthPercent && styles.widthPercent > 0 && styles.widthPercent <= 100) {
+  if (
+    styles.widthPercent &&
+    styles.widthPercent > 0 &&
+    styles.widthPercent <= 100
+  ) {
     inlineStyles.width = `${styles.widthPercent}%`;
   }
 
   // Always add flex column for consistent layout
-  classNames.push('flex flex-col');
+  classNames.push("flex flex-col");
 
   // Handle horizontal margins and alignment
   // Priority: Manual margins > Alignment auto margins
-  const hasManualMarginLeft = styles.marginLeft && styles.marginLeft !== 'none';
-  const hasManualMarginRight = styles.marginRight && styles.marginRight !== 'none';
+  const hasManualMarginLeft = styles.marginLeft && styles.marginLeft !== "none";
+  const hasManualMarginRight =
+    styles.marginRight && styles.marginRight !== "none";
 
   if (hasManualMarginLeft) {
     const resolved = spacingToCss(styles.marginLeft);
@@ -100,54 +132,54 @@ function getBlockStyles(styles: BlockStyles): { className: string; style: React.
   }
 
   // Block Alignment (only apply auto margins if no manual margins set)
-  if (styles.alignment === 'left') {
+  if (styles.alignment === "left") {
     if (!hasManualMarginRight && !styles.inline) {
-      inlineStyles.marginRight = 'auto';
+      inlineStyles.marginRight = "auto";
     }
-    classNames.push('items-start');
-  } else if (styles.alignment === 'right') {
+    classNames.push("items-start");
+  } else if (styles.alignment === "right") {
     if (!hasManualMarginLeft && !styles.inline) {
-      inlineStyles.marginLeft = 'auto';
+      inlineStyles.marginLeft = "auto";
     }
-    classNames.push('items-end');
+    classNames.push("items-end");
   } else {
     // Default and 'center': centered with mx-auto (only if no manual margins)
     if (!hasManualMarginLeft && !hasManualMarginRight && !styles.inline) {
-      inlineStyles.marginLeft = 'auto';
-      inlineStyles.marginRight = 'auto';
+      inlineStyles.marginLeft = "auto";
+      inlineStyles.marginRight = "auto";
     }
-    classNames.push('items-center');
+    classNames.push("items-center");
   }
 
   // Text Alignment (separate from block alignment)
   if (styles.textAlign) {
     const textAlignMap: Record<string, string> = {
-      left: 'text-left',
-      center: 'text-center',
-      right: 'text-right',
-      justify: 'text-justify',
+      left: "text-left",
+      center: "text-center",
+      right: "text-right",
+      justify: "text-justify",
     };
     classNames.push(textAlignMap[styles.textAlign]);
   }
 
   // Vertical Alignment (when height is defined)
-  if (styles.verticalAlign && styles.height && styles.height !== 'auto') {
+  if (styles.verticalAlign && styles.height && styles.height !== "auto") {
     const verticalAlignMap: Record<string, string> = {
-      top: 'justify-start',
-      center: 'justify-center',
-      bottom: 'justify-end',
+      top: "justify-start",
+      center: "justify-center",
+      bottom: "justify-end",
     };
     classNames.push(verticalAlignMap[styles.verticalAlign]);
   }
 
   // Height
-  if (styles.height && styles.height !== 'auto') {
+  if (styles.height && styles.height !== "auto") {
     const heightMap: Record<string, string> = {
-      small: '200px',
-      medium: '350px',
-      large: '500px',
-      xlarge: '700px',
-      screen: '100vh',
+      small: "200px",
+      medium: "350px",
+      large: "500px",
+      xlarge: "700px",
+      screen: "100vh",
     };
     inlineStyles.minHeight = heightMap[styles.height];
   }
@@ -155,32 +187,32 @@ function getBlockStyles(styles: BlockStyles): { className: string; style: React.
   // Container width (only if no specific width percent is set)
   if (!styles.widthPercent && styles.containerWidth) {
     const widthMap: Record<string, string> = {
-      NARROW: 'max-w-2xl',
-      MEDIUM: 'max-w-4xl',
-      WIDE: 'max-w-6xl',
-      FULL: 'max-w-7xl',
-      EDGE: 'max-w-none',
+      NARROW: "max-w-2xl",
+      MEDIUM: "max-w-4xl",
+      WIDE: "max-w-6xl",
+      FULL: "max-w-7xl",
+      EDGE: "max-w-none",
     };
-    classNames.push('px-6', widthMap[styles.containerWidth] || 'max-w-6xl');
+    classNames.push("px-6", widthMap[styles.containerWidth] || "max-w-6xl");
   }
 
   // Vertical margins (top/bottom)
   const marginTopResolved = spacingToCss(styles.marginTop);
   if (marginTopResolved) inlineStyles.marginTop = marginTopResolved;
-  
+
   const marginBottomResolved = spacingToCss(styles.marginBottom);
   if (marginBottomResolved) inlineStyles.marginBottom = marginBottomResolved;
 
   // Paddings
   const paddingTopResolved = spacingToCss(styles.paddingTop);
   if (paddingTopResolved) inlineStyles.paddingTop = paddingTopResolved;
-  
+
   const paddingBottomResolved = spacingToCss(styles.paddingBottom);
   if (paddingBottomResolved) inlineStyles.paddingBottom = paddingBottomResolved;
-  
+
   const paddingLeftResolved = spacingToCss(styles.paddingLeft);
   if (paddingLeftResolved) inlineStyles.paddingLeft = paddingLeftResolved;
-  
+
   const paddingRightResolved = spacingToCss(styles.paddingRight);
   if (paddingRightResolved) inlineStyles.paddingRight = paddingRightResolved;
 
@@ -193,32 +225,32 @@ function getBlockStyles(styles: BlockStyles): { className: string; style: React.
   }
   if (styles.backgroundImage) {
     inlineStyles.backgroundImage = `url(${styles.backgroundImage})`;
-    inlineStyles.backgroundSize = 'cover';
-    inlineStyles.backgroundPosition = 'center';
+    inlineStyles.backgroundSize = "cover";
+    inlineStyles.backgroundPosition = "center";
   }
 
   // Border radius
   const radiusMap: Record<string, string> = {
-    none: '0',
-    sm: '0.25rem',
-    md: '0.5rem',
-    lg: '0.75rem',
-    xl: '1rem',
-    full: '9999px',
+    none: "0",
+    sm: "0.25rem",
+    md: "0.5rem",
+    lg: "0.75rem",
+    xl: "1rem",
+    full: "9999px",
   };
-  if (styles.borderRadius && styles.borderRadius !== 'none') {
+  if (styles.borderRadius && styles.borderRadius !== "none") {
     inlineStyles.borderRadius = radiusMap[styles.borderRadius];
   }
 
   // Shadow
   const shadowMap: Record<string, string> = {
-    sm: 'shadow-sm',
-    md: 'shadow-md',
-    lg: 'shadow-lg',
-    xl: 'shadow-xl',
+    sm: "shadow-sm",
+    md: "shadow-md",
+    lg: "shadow-lg",
+    xl: "shadow-xl",
   };
-  if (styles.shadow && styles.shadow !== 'none') {
-    classNames.push(shadowMap[styles.shadow] || '');
+  if (styles.shadow && styles.shadow !== "none") {
+    classNames.push(shadowMap[styles.shadow] || "");
   }
 
   // Custom class
@@ -227,26 +259,29 @@ function getBlockStyles(styles: BlockStyles): { className: string; style: React.
   }
 
   return {
-    className: classNames.join(' '),
+    className: classNames.join(" "),
     style: inlineStyles,
   };
 }
 
 // Animation variants
-const animationVariants: Record<string, { initial: TargetAndTransition; animate: TargetAndTransition }> = {
-  'fade-in': {
+const animationVariants: Record<
+  string,
+  { initial: TargetAndTransition; animate: TargetAndTransition }
+> = {
+  "fade-in": {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
   },
-  'slide-up': {
+  "slide-up": {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
   },
-  'slide-left': {
+  "slide-left": {
     initial: { opacity: 0, x: 30 },
     animate: { opacity: 1, x: 0 },
   },
-  'slide-right': {
+  "slide-right": {
     initial: { opacity: 0, x: -30 },
     animate: { opacity: 1, x: 0 },
   },
@@ -259,36 +294,38 @@ const animationVariants: Record<string, { initial: TargetAndTransition; animate:
 // Get responsive visibility classes
 function getResponsiveClasses(settings: Record<string, unknown>): string {
   const classes: string[] = [];
-  
+
   if (settings.hideOnMobile) {
-    classes.push('hidden md:block'); // Hidden on mobile, visible from md up
+    classes.push("hidden md:block"); // Hidden on mobile, visible from md up
   }
   if (settings.hideOnTablet) {
-    classes.push('md:hidden lg:block'); // Hidden on tablet (md-lg), visible on mobile and desktop
+    classes.push("md:hidden lg:block"); // Hidden on tablet (md-lg), visible on mobile and desktop
   }
   if (settings.hideOnDesktop) {
-    classes.push('lg:hidden'); // Hidden on large screens
+    classes.push("lg:hidden"); // Hidden on large screens
   }
-  
-  return classes.join(' ');
+
+  return classes.join(" ");
 }
 
 // Parse custom CSS string to CSSProperties
 function parseCustomCSS(cssString: string): React.CSSProperties {
   if (!cssString) return {};
-  
+
   const styles: Record<string, string> = {};
-  const lines = cssString.split(';').filter(line => line.trim());
-  
+  const lines = cssString.split(";").filter((line) => line.trim());
+
   for (const line of lines) {
-    const [property, value] = line.split(':').map(s => s.trim());
+    const [property, value] = line.split(":").map((s) => s.trim());
     if (property && value) {
       // Convert kebab-case to camelCase
-      const camelProperty = property.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      const camelProperty = property.replace(/-([a-z])/g, (_, letter) =>
+        letter.toUpperCase(),
+      );
       styles[camelProperty] = value;
     }
   }
-  
+
   return styles as React.CSSProperties;
 }
 
@@ -298,16 +335,23 @@ export default function BlockRenderer({ block }: BlockRendererProps) {
   const styles = block.styles as BlockStyles;
   const settings = block.settings as Record<string, unknown>;
   const { className, style } = getBlockStyles(styles);
-  const animation = styles.animation && styles.animation !== 'none' ? animationVariants[styles.animation] : null;
+  const animation =
+    styles.animation && styles.animation !== "none"
+      ? animationVariants[styles.animation]
+      : null;
   const hasSectionWrapper = needsSectionWrapper(styles);
   const responsiveClasses = getResponsiveClasses(settings);
-  const customCSSStyles = settings.customCSS ? parseCustomCSS(settings.customCSS as string) : {};
+  const customCSSStyles = settings.customCSS
+    ? parseCustomCSS(settings.customCSS as string)
+    : {};
 
   const content = renderBlockContent(block);
-  
+
   // Combine className with responsive classes
-  const combinedClassName = [className, responsiveClasses].filter(Boolean).join(' ');
-  
+  const combinedClassName = [className, responsiveClasses]
+    .filter(Boolean)
+    .join(" ");
+
   // Combine styles with custom CSS
   const combinedStyle = { ...style, ...customCSSStyles };
 
@@ -334,13 +378,11 @@ export default function BlockRenderer({ block }: BlockRendererProps) {
   if (hasSectionWrapper) {
     const sectionStyles = getSectionWrapperStyles(styles);
     const overlayStyles = getSectionOverlayStyles(styles);
-    
+
     return (
       <div className={sectionStyles.className} style={sectionStyles.style}>
         {overlayStyles && <div style={overlayStyles} />}
-        <div className="relative z-10">
-          {contentElement}
-        </div>
+        <div className="relative z-10">{contentElement}</div>
       </div>
     );
   }
@@ -352,102 +394,102 @@ function renderBlockContent(block: PageBlock) {
   const content = block.content as Record<string, unknown>;
 
   switch (block.type) {
-    case 'HERO':
+    case "HERO":
       return <HeroBlock content={content} />;
-    case 'TEXT':
+    case "TEXT":
       return <TextBlock content={content} />;
-    case 'HEADING':
+    case "HEADING":
       return <HeadingBlock content={content} />;
-    case 'PARAGRAPH':
+    case "PARAGRAPH":
       return <ParagraphBlock content={content} />;
-    case 'IMAGE':
+    case "IMAGE":
       return <ImageBlock content={content} />;
-    case 'BUTTON':
+    case "BUTTON":
       return <ButtonBlock content={content} />;
-    case 'QUOTE':
+    case "QUOTE":
       return <QuoteBlock content={content} />;
-    case 'SPACER':
+    case "SPACER":
       return <SpacerBlock content={content} />;
-    case 'DIVIDER':
+    case "DIVIDER":
       return <DividerBlock content={content} />;
-    case 'STATS':
+    case "STATS":
       return <StatsBlock content={content} />;
-    case 'CARDS':
+    case "CARDS":
       return <CardsBlock content={content} />;
-    case 'VIDEO':
+    case "VIDEO":
       return <VideoBlock content={content} />;
-    case 'IFRAME':
+    case "IFRAME":
       return <IframeBlock content={content} />;
-    case 'FEATURES':
+    case "FEATURES":
       return <FeaturesBlock content={content} />;
-    case 'LIST':
+    case "LIST":
       return <ListBlock content={content} />;
-    case 'GALLERY':
+    case "GALLERY":
       return <GalleryBlock content={content} />;
-    case 'FILE':
+    case "FILE":
       return <FileBlock content={content} />;
-    case 'COLUMNS':
+    case "COLUMNS":
       return <ColumnsBlock content={content} />;
-    case 'GRID':
+    case "GRID":
       return <GridBlock content={content} />;
-    case 'CONTAINER':
+    case "CONTAINER":
       return <ContainerBlock content={content} />;
-    case 'LINK_BLOCK':
+    case "LINK_BLOCK":
       return <LinkBlockComponent content={content} />;
-    case 'ACCORDION':
+    case "ACCORDION":
       return <AccordionBlock content={content} />;
-    case 'TABS':
+    case "TABS":
       return <TabsBlock content={content} />;
-    case 'TABLE':
+    case "TABLE":
       return <TableBlock content={content} />;
-    case 'TIMELINE':
+    case "TIMELINE":
       return <TimelineBlock content={content} />;
-    case 'MAP':
+    case "MAP":
       return <MapBlock content={content} />;
-    case 'SOCIAL':
+    case "SOCIAL":
       return <SocialBlock content={content} />;
-    case 'TEAM':
+    case "TEAM":
       return <TeamBlock content={content} />;
-    case 'TESTIMONIALS':
+    case "TESTIMONIALS":
       return <TestimonialsBlock content={content} />;
-    case 'PRICING':
+    case "PRICING":
       return <PricingBlock content={content} />;
-    case 'FAQ':
+    case "FAQ":
       return <FAQBlock content={content} />;
-    case 'CONTACT_FORM':
+    case "CONTACT_FORM":
       return <ContactFormBlock content={content} />;
-    case 'NEWSLETTER':
+    case "NEWSLETTER":
       return <NewsletterBlock content={content} />;
-    case 'STORE_LIST':
+    case "STORE_LIST":
       return <StoreListBlock content={content} />;
-    case 'STORE_HERO':
+    case "STORE_HERO":
       return <StoreHeroBlock content={content} />;
-    case 'STORE_CONTACT':
+    case "STORE_CONTACT":
       return <StoreContactBlock content={content} />;
-    case 'STORE_SERVICES':
+    case "STORE_SERVICES":
       return <StoreServicesBlock content={content} />;
-    case 'STORE_CTA':
+    case "STORE_CTA":
       return <StoreCtaBlock content={content} />;
-    case 'STORE_REVIEWS':
+    case "STORE_REVIEWS":
       return <StoreReviewsBlock content={content} />;
-    case 'STORE_MAP':
+    case "STORE_MAP":
       return <StoreMapBlock content={content} />;
-    case 'STORE_LAYOUT':
+    case "STORE_LAYOUT":
       return <StoreLayoutBlock content={content} />;
     // Primitive Blocks
-    case 'INFO_BOX':
+    case "INFO_BOX":
       return <InfoBoxBlock content={content} />;
-    case 'HOURS_TABLE':
+    case "HOURS_TABLE":
       return <HoursTableBlock content={content} />;
-    case 'SERVICES_LIST':
+    case "SERVICES_LIST":
       return <ServicesListBlock content={content} />;
-    case 'CTA_CARD':
+    case "CTA_CARD":
       return <CtaCardBlock content={content} />;
-    case 'REVIEW_BADGE':
+    case "REVIEW_BADGE":
       return <ReviewBadgeBlock content={content} />;
-    case 'LOCATION_CARD':
+    case "LOCATION_CARD":
       return <LocationCardBlock content={content} />;
-    case 'ICON_FEATURE':
+    case "ICON_FEATURE":
       return <IconFeatureBlock content={content} />;
     default:
       return (
@@ -461,25 +503,27 @@ function renderBlockContent(block: PageBlock) {
 // Hero Block
 function HeroBlock({ content }: { content: Record<string, unknown> }) {
   const heightMap: Record<string, string> = {
-    small: 'min-h-[300px]',
-    medium: 'min-h-[500px]',
-    large: 'min-h-[700px]',
-    full: 'min-h-screen',
+    small: "min-h-[300px]",
+    medium: "min-h-[500px]",
+    large: "min-h-[700px]",
+    full: "min-h-screen",
   };
 
   const alignMap: Record<string, string> = {
-    LEFT: 'items-start text-left',
-    CENTER: 'items-center text-center',
-    RIGHT: 'items-end text-right',
+    LEFT: "items-start text-left",
+    CENTER: "items-center text-center",
+    RIGHT: "items-end text-right",
   };
 
   return (
     <section
-      className={`relative flex flex-col justify-center ${heightMap[(content.height as string) || 'large']}`}
+      className={`relative flex flex-col justify-center ${heightMap[(content.height as string) || "large"]}`}
       style={{
-        backgroundImage: content.backgroundImage ? `url(${content.backgroundImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundImage: content.backgroundImage
+          ? `url(${content.backgroundImage})`
+          : undefined,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
       {/* Overlay */}
@@ -487,14 +531,16 @@ function HeroBlock({ content }: { content: Record<string, unknown> }) {
         <div
           className="absolute inset-0"
           style={{
-            backgroundColor: (content.overlayColor as string) || '#000000',
+            backgroundColor: (content.overlayColor as string) || "#000000",
             opacity: ((content.overlayOpacity as number) || 50) / 100,
           }}
         />
       )}
 
       {/* Content */}
-      <div className={`relative z-10 px-6 py-20 max-w-4xl mx-auto w-full flex flex-col ${alignMap[(content.alignment as string) || 'CENTER']}`}>
+      <div
+        className={`relative z-10 px-6 py-20 max-w-4xl mx-auto w-full flex flex-col ${alignMap[(content.alignment as string) || "CENTER"]}`}
+      >
         {Boolean(content.subtitle) && (
           <p className="text-sm tracking-[0.3em] uppercase mb-4 opacity-70">
             {content.subtitle as string}
@@ -512,14 +558,20 @@ function HeroBlock({ content }: { content: Record<string, unknown> }) {
         )}
         {Array.isArray(content.buttons) && content.buttons.length > 0 && (
           <div className="flex flex-wrap gap-4 mt-8">
-            {(content.buttons as Array<{ text: string; url: string; variant?: string }>).map((button, index) => (
+            {(
+              content.buttons as Array<{
+                text: string;
+                url: string;
+                variant?: string;
+              }>
+            ).map((button, index) => (
               <Link
                 key={index}
-                href={button.url || '#'}
+                href={button.url || "#"}
                 className={`px-6 py-3 font-medium transition-all ${
-                  button.variant === 'secondary'
-                    ? 'bg-white/10 hover:bg-white/20 backdrop-blur-sm'
-                    : 'bg-white text-black hover:bg-white/90'
+                  button.variant === "secondary"
+                    ? "bg-white/10 hover:bg-white/20 backdrop-blur-sm"
+                    : "bg-white text-black hover:bg-white/90"
                 }`}
               >
                 {button.text}
@@ -537,45 +589,57 @@ function TextBlock({ content }: { content: Record<string, unknown> }) {
   return (
     <div
       className="prose prose-invert prose-lg max-w-none"
-      dangerouslySetInnerHTML={{ __html: (content.html as string) || '' }}
+      dangerouslySetInnerHTML={{ __html: (content.html as string) || "" }}
     />
   );
 }
 
 // Heading Block
 function HeadingBlock({ content }: { content: Record<string, unknown> }) {
-  const level = (content.level as string) || 'h2';
-  const text = (content.text as string) || '';
+  const level = (content.level as string) || "h2";
+  const text = (content.text as string) || "";
   const subtitle = content.subtitle as string;
 
   const sizeMap: Record<string, string> = {
-    h1: 'text-5xl md:text-6xl lg:text-7xl',
-    h2: 'text-4xl md:text-5xl',
-    h3: 'text-3xl md:text-4xl',
-    h4: 'text-2xl md:text-3xl',
-    h5: 'text-xl md:text-2xl',
-    h6: 'text-lg md:text-xl',
+    h1: "text-5xl md:text-6xl lg:text-7xl",
+    h2: "text-4xl md:text-5xl",
+    h3: "text-3xl md:text-4xl",
+    h4: "text-2xl md:text-3xl",
+    h5: "text-xl md:text-2xl",
+    h6: "text-lg md:text-xl",
   };
 
-  const Tag = level as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+  const Tag = level as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
   return (
     <div>
-      <Tag className={`font-bold tracking-tight whitespace-pre-line ${sizeMap[level]}`}>{text as string}</Tag>
-      {subtitle && <p className="mt-2 text-lg opacity-70 whitespace-pre-line">{subtitle}</p>}
+      <Tag
+        className={`font-bold tracking-tight whitespace-pre-line ${sizeMap[level]}`}
+      >
+        {text as string}
+      </Tag>
+      {subtitle && (
+        <p className="mt-2 text-lg opacity-70 whitespace-pre-line">
+          {subtitle}
+        </p>
+      )}
     </div>
   );
 }
 
 // Paragraph Block
 function ParagraphBlock({ content }: { content: Record<string, unknown> }) {
-  return <p className="text-lg leading-relaxed whitespace-pre-line">{(content.text as string) || ''}</p>;
+  return (
+    <p className="text-lg leading-relaxed whitespace-pre-line">
+      {(content.text as string) || ""}
+    </p>
+  );
 }
 
 // Image Block
 function ImageBlock({ content }: { content: Record<string, unknown> }) {
-  const src = (content.src as string) || '';
-  const alt = (content.alt as string) || '';
+  const src = (content.src as string) || "";
+  const alt = (content.alt as string) || "";
   const caption = content.caption as string;
   const link = content.link as string;
 
@@ -594,11 +658,17 @@ function ImageBlock({ content }: { content: Record<string, unknown> }) {
           src={src}
           alt={alt}
           className="w-full h-auto"
-          style={{ objectFit: (content.objectFit as React.CSSProperties['objectFit']) || 'cover' }}
+          style={{
+            objectFit:
+              (content.objectFit as React.CSSProperties["objectFit"]) ||
+              "cover",
+          }}
         />
       </div>
       {caption && (
-        <figcaption className="mt-2 text-sm text-center opacity-70">{caption}</figcaption>
+        <figcaption className="mt-2 text-sm text-center opacity-70">
+          {caption}
+        </figcaption>
       )}
     </figure>
   );
@@ -616,32 +686,32 @@ function ImageBlock({ content }: { content: Record<string, unknown> }) {
 
 // Button Block
 function ButtonBlock({ content }: { content: Record<string, unknown> }) {
-  const text = (content.text as string) || 'Button';
-  const url = (content.url as string) || '#';
-  const variant = (content.variant as string) || 'primary';
-  const size = (content.size as string) || 'md';
+  const text = (content.text as string) || "Button";
+  const url = (content.url as string) || "#";
+  const variant = (content.variant as string) || "primary";
+  const size = (content.size as string) || "md";
   const fullWidth = content.fullWidth as boolean;
   const newTab = content.newTab as boolean;
 
   const variantStyles: Record<string, string> = {
-    primary: 'bg-white text-black hover:bg-white/90',
-    secondary: 'bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm',
-    outline: 'border-2 border-current hover:bg-white/10',
-    ghost: 'hover:bg-white/10',
+    primary: "bg-white text-black hover:bg-white/90",
+    secondary: "bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm",
+    outline: "border-2 border-current hover:bg-white/10",
+    ghost: "hover:bg-white/10",
   };
 
   const sizeStyles: Record<string, string> = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3',
-    lg: 'px-8 py-4 text-lg',
+    sm: "px-4 py-2 text-sm",
+    md: "px-6 py-3",
+    lg: "px-8 py-4 text-lg",
   };
 
   return (
     <Link
       href={url}
-      target={newTab ? '_blank' : undefined}
-      rel={newTab ? 'noopener noreferrer' : undefined}
-      className={`inline-flex items-center justify-center font-medium transition-all ${variantStyles[variant]} ${sizeStyles[size]} ${fullWidth ? 'w-full' : ''}`}
+      target={newTab ? "_blank" : undefined}
+      rel={newTab ? "noopener noreferrer" : undefined}
+      className={`inline-flex items-center justify-center font-medium transition-all ${variantStyles[variant]} ${sizeStyles[size]} ${fullWidth ? "w-full" : ""}`}
     >
       {text}
     </Link>
@@ -653,12 +723,18 @@ function QuoteBlock({ content }: { content: Record<string, unknown> }) {
   return (
     <blockquote className="border-l-4 border-white/30 pl-6 py-4">
       <p className="text-xl md:text-2xl italic leading-relaxed mb-4">
-        "{(content.text as string) || ''}"
+        "{(content.text as string) || ""}"
       </p>
       {(Boolean(content.author) || Boolean(content.role)) && (
         <footer className="text-sm opacity-70">
-          {Boolean(content.author) && <cite className="not-italic font-medium">{content.author as string}</cite>}
-          {Boolean(content.role) && <span className="ml-2">— {content.role as string}</span>}
+          {Boolean(content.author) && (
+            <cite className="not-italic font-medium">
+              {content.author as string}
+            </cite>
+          )}
+          {Boolean(content.role) && (
+            <span className="ml-2">— {content.role as string}</span>
+          )}
         </footer>
       )}
     </blockquote>
@@ -668,34 +744,37 @@ function QuoteBlock({ content }: { content: Record<string, unknown> }) {
 // Spacer Block
 function SpacerBlock({ content }: { content: Record<string, unknown> }) {
   const heightMap: Record<string, string> = {
-    xs: 'h-2',
-    sm: 'h-4',
-    md: 'h-8',
-    lg: 'h-12',
-    xl: 'h-16',
-    '2xl': 'h-24',
+    xs: "h-2",
+    sm: "h-4",
+    md: "h-8",
+    lg: "h-12",
+    xl: "h-16",
+    "2xl": "h-24",
   };
 
-  return <div className={heightMap[(content.height as string) || 'md']} />;
+  return <div className={heightMap[(content.height as string) || "md"]} />;
 }
 
 // Divider Block
 function DividerBlock({ content }: { content: Record<string, unknown> }) {
-  const style = (content.style as string) || 'solid';
-  const width = (content.width as string) || 'full';
-  const color = (content.color as string) || 'rgba(255,255,255,0.2)';
+  const style = (content.style as string) || "solid";
+  const width = (content.width as string) || "full";
+  const color = (content.color as string) || "rgba(255,255,255,0.2)";
 
   const widthMap: Record<string, string> = {
-    short: 'w-16',
-    medium: 'w-1/3',
-    full: 'w-full',
+    short: "w-16",
+    medium: "w-1/3",
+    full: "w-full",
   };
 
-  if (style === 'gradient') {
+  if (style === "gradient") {
     return (
-      <div className={`${widthMap[width]} h-px mx-auto`} style={{
-        background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
-      }} />
+      <div
+        className={`${widthMap[width]} h-px mx-auto`}
+        style={{
+          background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+        }}
+      />
     );
   }
 
@@ -703,8 +782,8 @@ function DividerBlock({ content }: { content: Record<string, unknown> }) {
     <hr
       className={`${widthMap[width]} mx-auto border-0 h-px`}
       style={{
-        borderTopWidth: '1px',
-        borderTopStyle: style as React.CSSProperties['borderTopStyle'],
+        borderTopWidth: "1px",
+        borderTopStyle: style as React.CSSProperties["borderTopStyle"],
         borderTopColor: color,
       }}
     />
@@ -713,7 +792,13 @@ function DividerBlock({ content }: { content: Record<string, unknown> }) {
 
 // Stats Block
 function StatsBlock({ content }: { content: Record<string, unknown> }) {
-  const stats = (content.stats as Array<{ value: string; label: string; prefix?: string; suffix?: string }>) || [];
+  const stats =
+    (content.stats as Array<{
+      value: string;
+      label: string;
+      prefix?: string;
+      suffix?: string;
+    }>) || [];
   const columns = (content.columns as number) || 4;
 
   return (
@@ -721,9 +806,13 @@ function StatsBlock({ content }: { content: Record<string, unknown> }) {
       {stats.map((stat, index) => (
         <div key={index} className="text-center">
           <div className="text-4xl md:text-5xl font-bold mb-2">
-            {stat.prefix}{stat.value}{stat.suffix}
+            {stat.prefix}
+            {stat.value}
+            {stat.suffix}
           </div>
-          <div className="text-sm opacity-70 uppercase tracking-wider">{stat.label}</div>
+          <div className="text-sm opacity-70 uppercase tracking-wider">
+            {stat.label}
+          </div>
         </div>
       ))}
     </div>
@@ -732,24 +821,33 @@ function StatsBlock({ content }: { content: Record<string, unknown> }) {
 
 // Cards Block
 function CardsBlock({ content }: { content: Record<string, unknown> }) {
-  const cards = (content.cards as Array<{ title: string; description?: string; image?: string; link?: string; tags?: string[] }>) || [];
+  const cards =
+    (content.cards as Array<{
+      title: string;
+      description?: string;
+      image?: string;
+      link?: string;
+      tags?: string[];
+    }>) || [];
   const columns = (content.columns as number) || 3;
-  const variant = (content.variant as string) || 'default';
+  const variant = (content.variant as string) || "default";
 
   const variantStyles: Record<string, string> = {
-    default: 'bg-white/5 hover:bg-white/10',
-    bordered: 'border border-white/10 hover:border-white/30',
-    elevated: 'bg-white/5 shadow-lg hover:shadow-xl',
+    default: "bg-white/5 hover:bg-white/10",
+    bordered: "border border-white/10 hover:border-white/30",
+    elevated: "bg-white/5 shadow-lg hover:shadow-xl",
   };
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-6`}>
+    <div
+      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-6`}
+    >
       {cards.map((card, index) => {
-        const CardWrapper = card.link ? Link : 'div';
+        const CardWrapper = card.link ? Link : "div";
         return (
           <CardWrapper
             key={index}
-            href={card.link || '#'}
+            href={card.link || "#"}
             className={`block overflow-hidden transition-all ${variantStyles[variant]} group`}
           >
             {card.image && (
@@ -788,8 +886,8 @@ function CardsBlock({ content }: { content: Record<string, unknown> }) {
 
 // Video Block
 function VideoBlock({ content }: { content: Record<string, unknown> }) {
-  const type = (content.type as string) || 'youtube';
-  const url = (content.url as string) || '';
+  const type = (content.type as string) || "youtube";
+  const url = (content.url as string) || "";
 
   if (!url) {
     return (
@@ -800,13 +898,15 @@ function VideoBlock({ content }: { content: Record<string, unknown> }) {
   }
 
   // Extract video ID for embeds
-  if (type === 'youtube') {
-    const videoId = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/)?.[1];
+  if (type === "youtube") {
+    const videoId = url.match(
+      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+    )?.[1];
     if (videoId) {
       return (
         <div className="aspect-video">
           <iframe
-            src={`https://www.youtube.com/embed/${videoId}${content.autoplay ? '?autoplay=1' : ''}${content.muted ? '&mute=1' : ''}${content.loop ? '&loop=1' : ''}`}
+            src={`https://www.youtube.com/embed/${videoId}${content.autoplay ? "?autoplay=1" : ""}${content.muted ? "&mute=1" : ""}${content.loop ? "&loop=1" : ""}`}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -816,13 +916,13 @@ function VideoBlock({ content }: { content: Record<string, unknown> }) {
     }
   }
 
-  if (type === 'vimeo') {
+  if (type === "vimeo") {
     const videoId = url.match(/vimeo\.com\/(\d+)/)?.[1];
     if (videoId) {
       return (
         <div className="aspect-video">
           <iframe
-            src={`https://player.vimeo.com/video/${videoId}${content.autoplay ? '?autoplay=1' : ''}${content.muted ? '&muted=1' : ''}${content.loop ? '&loop=1' : ''}`}
+            src={`https://player.vimeo.com/video/${videoId}${content.autoplay ? "?autoplay=1" : ""}${content.muted ? "&muted=1" : ""}${content.loop ? "&loop=1" : ""}`}
             className="w-full h-full"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
@@ -848,13 +948,16 @@ function VideoBlock({ content }: { content: Record<string, unknown> }) {
 
 // Iframe Block
 function IframeBlock({ content }: { content: Record<string, unknown> }) {
-  const url = (content.url as string) || '';
+  const url = (content.url as string) || "";
   const height = (content.height as number) || 400;
-  const title = (content.title as string) || 'Embedded content';
+  const title = (content.title as string) || "Embedded content";
 
   if (!url) {
     return (
-      <div className="bg-gray-200 flex items-center justify-center text-gray-400" style={{ height }}>
+      <div
+        className="bg-gray-200 flex items-center justify-center text-gray-400"
+        style={{ height }}
+      >
         No URL provided
       </div>
     );
@@ -873,11 +976,17 @@ function IframeBlock({ content }: { content: Record<string, unknown> }) {
 
 // Features Block
 function FeaturesBlock({ content }: { content: Record<string, unknown> }) {
-  const features = (content.features as Array<{ icon?: string; title: string; description: string; link?: string }>) || [];
+  const features =
+    (content.features as Array<{
+      icon?: string;
+      title: string;
+      description: string;
+      link?: string;
+    }>) || [];
   const columns = (content.columns as number) || 3;
-  const layout = (content.layout as string) || 'cards';
+  const layout = (content.layout as string) || "cards";
 
-  if (layout === 'list') {
+  if (layout === "list") {
     return (
       <div className="space-y-6">
         {features.map((feature, index) => (
@@ -898,7 +1007,9 @@ function FeaturesBlock({ content }: { content: Record<string, unknown> }) {
   }
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-8`}>
+    <div
+      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-8`}
+    >
       {features.map((feature, index) => (
         <div key={index} className="p-6 bg-white/5 rounded-lg">
           {feature.icon && (
@@ -909,7 +1020,10 @@ function FeaturesBlock({ content }: { content: Record<string, unknown> }) {
           <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
           <p className="opacity-70">{feature.description}</p>
           {feature.link && (
-            <Link href={feature.link} className="inline-block mt-4 text-sm font-medium hover:underline">
+            <Link
+              href={feature.link}
+              className="inline-block mt-4 text-sm font-medium hover:underline"
+            >
               En savoir plus →
             </Link>
           )}
@@ -922,15 +1036,15 @@ function FeaturesBlock({ content }: { content: Record<string, unknown> }) {
 // List Block
 function ListBlock({ content }: { content: Record<string, unknown> }) {
   const items = (content.items as string[]) || [];
-  const style = (content.style as string) || 'bullet';
+  const style = (content.style as string) || "bullet";
 
   const getIcon = (index: number) => {
     switch (style) {
-      case 'number':
+      case "number":
         return <span className="font-medium">{index + 1}.</span>;
-      case 'check':
+      case "check":
         return <Check className="w-5 h-5 text-green-500" />;
-      case 'arrow':
+      case "arrow":
         return <span className="text-current">→</span>;
       default:
         return <span className="w-2 h-2 bg-current rounded-full" />;
@@ -951,27 +1065,31 @@ function ListBlock({ content }: { content: Record<string, unknown> }) {
 
 // Gallery Block
 function GalleryBlock({ content }: { content: Record<string, unknown> }) {
-  const images = (content.images as Array<{ src: string; alt: string; caption?: string }>) || [];
+  const images =
+    (content.images as Array<{ src: string; alt: string; caption?: string }>) ||
+    [];
   const columns = (content.columns as number) || 3;
-  const gap = (content.gap as string) || 'medium';
+  const gap = (content.gap as string) || "medium";
   const lightbox = content.lightbox as boolean;
 
   const gapMap: Record<string, string> = {
-    none: 'gap-0',
-    small: 'gap-2',
-    medium: 'gap-4',
-    large: 'gap-6',
+    none: "gap-0",
+    small: "gap-2",
+    medium: "gap-4",
+    large: "gap-6",
   };
 
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
   return (
     <>
-      <div className={`grid grid-cols-2 md:grid-cols-${columns} ${gapMap[gap]}`}>
+      <div
+        className={`grid grid-cols-2 md:grid-cols-${columns} ${gapMap[gap]}`}
+      >
         {images.map((image, index) => (
           <figure
             key={index}
-            className={`relative overflow-hidden aspect-square ${lightbox ? 'cursor-pointer' : ''}`}
+            className={`relative overflow-hidden aspect-square ${lightbox ? "cursor-pointer" : ""}`}
             onClick={() => lightbox && setSelectedImage(index)}
           >
             <img
@@ -1043,19 +1161,19 @@ function GalleryBlock({ content }: { content: Record<string, unknown> }) {
 
 // File Block
 function FileBlock({ content }: { content: Record<string, unknown> }) {
-  const name = (content.name as string) || 'File';
-  const url = (content.url as string) || '';
+  const name = (content.name as string) || "File";
+  const url = (content.url as string) || "";
   const size = content.size as string;
   const fileType = content.type as string;
   const description = content.description as string;
 
   const getFileIcon = () => {
-    if (fileType?.includes('pdf')) return '📄';
-    if (fileType?.includes('image')) return '🖼️';
-    if (fileType?.includes('video')) return '🎬';
-    if (fileType?.includes('audio')) return '🎵';
-    if (fileType?.includes('zip') || fileType?.includes('archive')) return '📦';
-    return '📎';
+    if (fileType?.includes("pdf")) return "📄";
+    if (fileType?.includes("image")) return "🖼️";
+    if (fileType?.includes("video")) return "🎬";
+    if (fileType?.includes("audio")) return "🎵";
+    if (fileType?.includes("zip") || fileType?.includes("archive")) return "📦";
+    return "📎";
   };
 
   return (
@@ -1066,12 +1184,18 @@ function FileBlock({ content }: { content: Record<string, unknown> }) {
     >
       <div className="text-3xl">{getFileIcon()}</div>
       <div className="flex-1 min-w-0">
-        <div className="font-medium truncate group-hover:text-blue-400 transition-colors">{name}</div>
-        {description && <p className="text-sm opacity-70 truncate">{description}</p>}
+        <div className="font-medium truncate group-hover:text-blue-400 transition-colors">
+          {name}
+        </div>
+        {description && (
+          <p className="text-sm opacity-70 truncate">{description}</p>
+        )}
         {(size || fileType) && (
           <p className="text-xs opacity-50 mt-1">
-            {fileType && <span className="uppercase">{fileType.split('/').pop()}</span>}
-            {size && fileType && ' • '}
+            {fileType && (
+              <span className="uppercase">{fileType.split("/").pop()}</span>
+            )}
+            {size && fileType && " • "}
             {size}
           </p>
         )}
@@ -1085,17 +1209,17 @@ function FileBlock({ content }: { content: Record<string, unknown> }) {
 function ColumnsBlock({ content }: { content: Record<string, unknown> }) {
   const rawColumns = content.columns;
   // Handle case where columns might be a number instead of an array
-  const columns = Array.isArray(rawColumns) 
+  const columns = Array.isArray(rawColumns)
     ? (rawColumns as Array<{ width?: number; content?: string }>)
     : [];
-  const gap = (content.gap as string) || 'medium';
+  const gap = (content.gap as string) || "medium";
   const stackOnMobile = content.stackOnMobile !== false;
 
   const gapMap: Record<string, string> = {
-    none: 'gap-0',
-    small: 'gap-4',
-    medium: 'gap-8',
-    large: 'gap-12',
+    none: "gap-0",
+    small: "gap-4",
+    medium: "gap-8",
+    large: "gap-12",
   };
 
   // Don't render if no columns
@@ -1104,7 +1228,9 @@ function ColumnsBlock({ content }: { content: Record<string, unknown> }) {
   }
 
   return (
-    <div className={`${stackOnMobile ? 'flex flex-col md:flex-row' : 'flex'} ${gapMap[gap]}`}>
+    <div
+      className={`${stackOnMobile ? "flex flex-col md:flex-row" : "flex"} ${gapMap[gap]}`}
+    >
       {columns.map((column, index) => (
         <div
           key={index}
@@ -1122,25 +1248,34 @@ function ColumnsBlock({ content }: { content: Record<string, unknown> }) {
 
 // Grid Block
 function GridBlock({ content }: { content: Record<string, unknown> }) {
-  const items = (content.items as Array<{ title: string; description?: string; image?: string; link?: string; badge?: string }>) || [];
+  const items =
+    (content.items as Array<{
+      title: string;
+      description?: string;
+      image?: string;
+      link?: string;
+      badge?: string;
+    }>) || [];
   const columns = (content.columns as number) || 3;
-  const gap = (content.gap as string) || 'medium';
+  const gap = (content.gap as string) || "medium";
 
   const gapMap: Record<string, string> = {
-    none: 'gap-0',
-    small: 'gap-2',
-    medium: 'gap-4',
-    large: 'gap-6',
+    none: "gap-0",
+    small: "gap-2",
+    medium: "gap-4",
+    large: "gap-6",
   };
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} ${gapMap[gap]}`}>
+    <div
+      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} ${gapMap[gap]}`}
+    >
       {items.map((item, index) => {
-        const Wrapper = item.link ? Link : 'div';
+        const Wrapper = item.link ? Link : "div";
         return (
           <Wrapper
             key={index}
-            href={item.link || '#'}
+            href={item.link || "#"}
             className="relative overflow-hidden rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
           >
             {item.badge && (
@@ -1160,7 +1295,9 @@ function GridBlock({ content }: { content: Record<string, unknown> }) {
             <div className="p-4">
               <h3 className="font-semibold">{item.title}</h3>
               {item.description && (
-                <p className="text-sm opacity-70 mt-1 line-clamp-2">{item.description}</p>
+                <p className="text-sm opacity-70 mt-1 line-clamp-2">
+                  {item.description}
+                </p>
               )}
             </div>
           </Wrapper>
@@ -1173,27 +1310,29 @@ function GridBlock({ content }: { content: Record<string, unknown> }) {
 // Container Block
 function ContainerBlock({ content }: { content: Record<string, unknown> }) {
   const innerContent = content.content as string;
-  
+
   return (
     <div className="p-6">
-      {innerContent && <div dangerouslySetInnerHTML={{ __html: innerContent }} />}
+      {innerContent && (
+        <div dangerouslySetInnerHTML={{ __html: innerContent }} />
+      )}
     </div>
   );
 }
 
 // Link Block
 function LinkBlockComponent({ content }: { content: Record<string, unknown> }) {
-  const title = (content.title as string) || '';
+  const title = (content.title as string) || "";
   const description = content.description as string;
-  const url = (content.url as string) || '#';
+  const url = (content.url as string) || "#";
   const image = content.image as string;
   const newTab = content.newTab as boolean;
 
   return (
     <Link
       href={url}
-      target={newTab ? '_blank' : undefined}
-      rel={newTab ? 'noopener noreferrer' : undefined}
+      target={newTab ? "_blank" : undefined}
+      rel={newTab ? "noopener noreferrer" : undefined}
       className="flex items-center gap-4 p-4 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-all group"
     >
       {image && (
@@ -1202,18 +1341,29 @@ function LinkBlockComponent({ content }: { content: Record<string, unknown> }) {
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium group-hover:text-blue-400 transition-colors">{title}</h3>
-        {description && <p className="text-sm opacity-70 mt-1 line-clamp-2">{description}</p>}
+        <h3 className="font-medium group-hover:text-blue-400 transition-colors">
+          {title}
+        </h3>
+        {description && (
+          <p className="text-sm opacity-70 mt-1 line-clamp-2">{description}</p>
+        )}
         <p className="text-xs opacity-50 mt-2 truncate">{url}</p>
       </div>
-      <span className="text-xl opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all">→</span>
+      <span className="text-xl opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
+        →
+      </span>
     </Link>
   );
 }
 
 // Accordion Block
 function AccordionBlock({ content }: { content: Record<string, unknown> }) {
-  const items = (content.items as Array<{ title: string; content: string; defaultOpen?: boolean }>) || [];
+  const items =
+    (content.items as Array<{
+      title: string;
+      content: string;
+      defaultOpen?: boolean;
+    }>) || [];
   const allowMultiple = content.allowMultiple as boolean;
 
   const [openItems, setOpenItems] = useState<Set<number>>(() => {
@@ -1247,14 +1397,14 @@ function AccordionBlock({ content }: { content: Record<string, unknown> }) {
           >
             <span className="font-medium">{item.title}</span>
             <ChevronDown
-              className={`w-5 h-5 transition-transform ${openItems.has(index) ? 'rotate-180' : ''}`}
+              className={`w-5 h-5 transition-transform ${openItems.has(index) ? "rotate-180" : ""}`}
             />
           </button>
           <AnimatePresence>
             {openItems.has(index) && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
+                animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
@@ -1274,25 +1424,33 @@ function AccordionBlock({ content }: { content: Record<string, unknown> }) {
 
 // Tabs Block
 function TabsBlock({ content }: { content: Record<string, unknown> }) {
-  const tabs = (content.tabs as Array<{ label: string; content: string; icon?: string }>) || [];
-  const variant = (content.variant as string) || 'line';
+  const tabs =
+    (content.tabs as Array<{
+      label: string;
+      content: string;
+      icon?: string;
+    }>) || [];
+  const variant = (content.variant as string) || "line";
   const [activeTab, setActiveTab] = useState(0);
 
-  const tabStyles: Record<string, { container: string; tab: string; activeTab: string }> = {
+  const tabStyles: Record<
+    string,
+    { container: string; tab: string; activeTab: string }
+  > = {
     line: {
-      container: 'border-b border-white/10',
-      tab: 'py-3 px-4 border-b-2 border-transparent hover:border-white/30 transition-colors',
-      activeTab: 'border-b-2 border-white',
+      container: "border-b border-white/10",
+      tab: "py-3 px-4 border-b-2 border-transparent hover:border-white/30 transition-colors",
+      activeTab: "border-b-2 border-white",
     },
     pill: {
-      container: 'bg-white/5 p-1 rounded-lg',
-      tab: 'py-2 px-4 rounded-md hover:bg-white/10 transition-colors',
-      activeTab: 'bg-white text-black',
+      container: "bg-white/5 p-1 rounded-lg",
+      tab: "py-2 px-4 rounded-md hover:bg-white/10 transition-colors",
+      activeTab: "bg-white text-black",
     },
     enclosed: {
-      container: 'border-b border-white/10',
-      tab: 'py-2 px-4 border border-transparent border-b-0 rounded-t-lg hover:bg-white/5 transition-colors',
-      activeTab: 'bg-white/10 border-white/10',
+      container: "border-b border-white/10",
+      tab: "py-2 px-4 border border-transparent border-b-0 rounded-t-lg hover:bg-white/5 transition-colors",
+      activeTab: "bg-white/10 border-white/10",
     },
   };
 
@@ -1305,7 +1463,7 @@ function TabsBlock({ content }: { content: Record<string, unknown> }) {
           <button
             key={index}
             onClick={() => setActiveTab(index)}
-            className={`${styles.tab} ${activeTab === index ? styles.activeTab : ''} flex items-center gap-2`}
+            className={`${styles.tab} ${activeTab === index ? styles.activeTab : ""} flex items-center gap-2`}
           >
             {tab.icon && <span>{tab.icon}</span>}
             {tab.label}
@@ -1331,14 +1489,14 @@ function TableBlock({ content }: { content: Record<string, unknown> }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className={`w-full ${bordered ? 'border border-white/10' : ''}`}>
+      <table className={`w-full ${bordered ? "border border-white/10" : ""}`}>
         {headers.length > 0 && (
           <thead>
             <tr className="bg-white/5">
               {headers.map((header, index) => (
                 <th
                   key={index}
-                  className={`px-4 py-3 text-left font-semibold ${bordered ? 'border border-white/10' : ''}`}
+                  className={`px-4 py-3 text-left font-semibold ${bordered ? "border border-white/10" : ""}`}
                 >
                   {header}
                 </th>
@@ -1351,14 +1509,14 @@ function TableBlock({ content }: { content: Record<string, unknown> }) {
             <tr
               key={rowIndex}
               className={`
-                ${striped && rowIndex % 2 === 1 ? 'bg-white/5' : ''}
-                ${hoverable ? 'hover:bg-white/10 transition-colors' : ''}
+                ${striped && rowIndex % 2 === 1 ? "bg-white/5" : ""}
+                ${hoverable ? "hover:bg-white/10 transition-colors" : ""}
               `}
             >
               {row.map((cell, cellIndex) => (
                 <td
                   key={cellIndex}
-                  className={`px-4 py-3 ${bordered ? 'border border-white/10' : ''}`}
+                  className={`px-4 py-3 ${bordered ? "border border-white/10" : ""}`}
                 >
                   {cell}
                 </td>
@@ -1373,37 +1531,49 @@ function TableBlock({ content }: { content: Record<string, unknown> }) {
 
 // Timeline Block
 function TimelineBlock({ content }: { content: Record<string, unknown> }) {
-  const items = (content.items as Array<{ date: string; title: string; description?: string; image?: string }>) || [];
-  const layout = (content.layout as string) || 'vertical';
+  const items =
+    (content.items as Array<{
+      date: string;
+      title: string;
+      description?: string;
+      image?: string;
+    }>) || [];
+  const layout = (content.layout as string) || "vertical";
 
-  if (layout === 'alternating') {
+  if (layout === "alternating") {
     return (
       <div className="relative">
         {/* Center line */}
         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/20 -translate-x-1/2" />
-        
+
         <div className="space-y-12">
           {items.map((item, index) => (
             <div
               key={index}
               className={`relative flex items-center gap-8 ${
-                index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'
+                index % 2 === 0 ? "flex-row" : "flex-row-reverse"
               }`}
             >
-              <div className={`flex-1 ${index % 2 === 0 ? 'text-right' : 'text-left'}`}>
+              <div
+                className={`flex-1 ${index % 2 === 0 ? "text-right" : "text-left"}`}
+              >
                 <span className="text-sm opacity-50">{item.date}</span>
                 <h3 className="text-lg font-semibold mt-1">{item.title}</h3>
                 {item.description && (
                   <p className="text-sm opacity-70 mt-2">{item.description}</p>
                 )}
               </div>
-              
+
               {/* Center dot */}
               <div className="w-4 h-4 bg-white rounded-full flex-shrink-0 z-10" />
-              
+
               <div className="flex-1">
                 {item.image && (
-                  <img src={item.image} alt={item.title} className="rounded-lg max-w-xs" />
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="rounded-lg max-w-xs"
+                  />
                 )}
               </div>
             </div>
@@ -1420,14 +1590,18 @@ function TimelineBlock({ content }: { content: Record<string, unknown> }) {
           <div key={index} className="relative">
             {/* Dot */}
             <div className="absolute -left-[2.15rem] w-3 h-3 bg-white rounded-full" />
-            
+
             <span className="text-sm opacity-50">{item.date}</span>
             <h3 className="text-lg font-semibold mt-1">{item.title}</h3>
             {item.description && (
               <p className="text-sm opacity-70 mt-2">{item.description}</p>
             )}
             {item.image && (
-              <img src={item.image} alt={item.title} className="mt-4 rounded-lg max-w-sm" />
+              <img
+                src={item.image}
+                alt={item.title}
+                className="mt-4 rounded-lg max-w-sm"
+              />
             )}
           </div>
         ))}
@@ -1445,11 +1619,12 @@ function MapBlock({ content }: { content: Record<string, unknown> }) {
   const height = (content.height as number) || 400;
 
   // If we have coordinates, use them; otherwise try to use address
-  const mapUrl = lat && lng
-    ? `https://www.google.com/maps/embed/v1/view?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&center=${lat},${lng}&zoom=${zoom}`
-    : address
-    ? `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(address)}`
-    : null;
+  const mapUrl =
+    lat && lng
+      ? `https://www.google.com/maps/embed/v1/view?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&center=${lat},${lng}&zoom=${zoom}`
+      : address
+        ? `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(address)}`
+        : null;
 
   if (!mapUrl) {
     return (
@@ -1498,14 +1673,14 @@ function SocialBlock({ content }: { content: Record<string, unknown> }) {
   if (url) {
     return (
       <div className="text-center p-8 bg-white/5 rounded-lg">
-        <p className="opacity-70 mb-4">Contenu {platform || 'social'}</p>
+        <p className="opacity-70 mb-4">Contenu {platform || "social"}</p>
         <Link
           href={url}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block px-4 py-2 bg-white text-black rounded hover:bg-white/90 transition-colors"
         >
-          Voir sur {platform || 'le réseau'}
+          Voir sur {platform || "le réseau"}
         </Link>
       </div>
     );
@@ -1520,24 +1695,29 @@ function SocialBlock({ content }: { content: Record<string, unknown> }) {
 
 // Team Block
 function TeamBlock({ content }: { content: Record<string, unknown> }) {
-  const members = (content.members as Array<{
-    name: string;
-    role: string;
-    image?: string;
-    bio?: string;
-    social?: { instagram?: string; linkedin?: string; email?: string };
-  }>) || [];
+  const members =
+    (content.members as Array<{
+      name: string;
+      role: string;
+      image?: string;
+      bio?: string;
+      social?: { instagram?: string; linkedin?: string; email?: string };
+    }>) || [];
   const columns = (content.columns as number) || 3;
-  const variant = (content.variant as string) || 'card';
+  const variant = (content.variant as string) || "card";
 
-  if (variant === 'minimal') {
+  if (variant === "minimal") {
     return (
       <div className={`grid grid-cols-2 md:grid-cols-${columns} gap-6`}>
         {members.map((member, index) => (
           <div key={index} className="text-center">
             {member.image && (
               <div className="w-24 h-24 mx-auto mb-3 rounded-full overflow-hidden">
-                <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
             )}
             <h3 className="font-semibold">{member.name}</h3>
@@ -1549,9 +1729,14 @@ function TeamBlock({ content }: { content: Record<string, unknown> }) {
   }
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-6`}>
+    <div
+      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${columns} gap-6`}
+    >
       {members.map((member, index) => (
-        <div key={index} className="bg-white/5 rounded-lg overflow-hidden group">
+        <div
+          key={index}
+          className="bg-white/5 rounded-lg overflow-hidden group"
+        >
           {member.image && (
             <div className="aspect-[4/5] overflow-hidden">
               <img
@@ -1564,16 +1749,26 @@ function TeamBlock({ content }: { content: Record<string, unknown> }) {
           <div className="p-6">
             <h3 className="text-xl font-semibold">{member.name}</h3>
             <p className="text-sm opacity-70 mb-3">{member.role}</p>
-            {member.bio && <p className="text-sm opacity-70 mb-4">{member.bio}</p>}
+            {member.bio && (
+              <p className="text-sm opacity-70 mb-4">{member.bio}</p>
+            )}
             {member.social && (
               <div className="flex gap-3">
                 {member.social.email && (
-                  <a href={`mailto:${member.social.email}`} className="opacity-50 hover:opacity-100">
+                  <a
+                    href={`mailto:${member.social.email}`}
+                    className="opacity-50 hover:opacity-100"
+                  >
                     <Mail className="w-5 h-5" />
                   </a>
                 )}
                 {member.social.linkedin && (
-                  <a href={member.social.linkedin} target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100">
+                  <a
+                    href={member.social.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="opacity-50 hover:opacity-100"
+                  >
                     <User className="w-5 h-5" />
                   </a>
                 )}
@@ -1588,15 +1783,16 @@ function TeamBlock({ content }: { content: Record<string, unknown> }) {
 
 // Testimonials Block
 function TestimonialsBlock({ content }: { content: Record<string, unknown> }) {
-  const testimonials = (content.testimonials as Array<{
-    text: string;
-    author: string;
-    role?: string;
-    company?: string;
-    image?: string;
-    rating?: number;
-  }>) || [];
-  const layout = (content.layout as string) || 'grid';
+  const testimonials =
+    (content.testimonials as Array<{
+      text: string;
+      author: string;
+      role?: string;
+      company?: string;
+      image?: string;
+      rating?: number;
+    }>) || [];
+  const layout = (content.layout as string) || "grid";
   const columns = (content.columns as number) || 2;
 
   const renderStars = (rating: number) => {
@@ -1605,7 +1801,7 @@ function TestimonialsBlock({ content }: { content: Record<string, unknown> }) {
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
             key={i}
-            className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-white/20'}`}
+            className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-white/20"}`}
           />
         ))}
       </div>
@@ -1623,7 +1819,11 @@ function TestimonialsBlock({ content }: { content: Record<string, unknown> }) {
           <div className="flex items-center gap-3">
             {testimonial.image && (
               <div className="w-12 h-12 rounded-full overflow-hidden">
-                <img src={testimonial.image} alt={testimonial.author} className="w-full h-full object-cover" />
+                <img
+                  src={testimonial.image}
+                  alt={testimonial.author}
+                  className="w-full h-full object-cover"
+                />
               </div>
             )}
             <div>
@@ -1631,7 +1831,7 @@ function TestimonialsBlock({ content }: { content: Record<string, unknown> }) {
               {(testimonial.role || testimonial.company) && (
                 <div className="text-sm opacity-70">
                   {testimonial.role}
-                  {testimonial.role && testimonial.company && ' · '}
+                  {testimonial.role && testimonial.company && " · "}
                   {testimonial.company}
                 </div>
               )}
@@ -1645,16 +1845,17 @@ function TestimonialsBlock({ content }: { content: Record<string, unknown> }) {
 
 // Pricing Block
 function PricingBlock({ content }: { content: Record<string, unknown> }) {
-  const plans = (content.plans as Array<{
-    name: string;
-    price: string;
-    period?: string;
-    description?: string;
-    features: string[];
-    highlighted?: boolean;
-    buttonText?: string;
-    buttonUrl?: string;
-  }>) || [];
+  const plans =
+    (content.plans as Array<{
+      name: string;
+      price: string;
+      period?: string;
+      description?: string;
+      features: string[];
+      highlighted?: boolean;
+      buttonText?: string;
+      buttonUrl?: string;
+    }>) || [];
   const columns = (content.columns as number) || 3;
 
   return (
@@ -1664,8 +1865,8 @@ function PricingBlock({ content }: { content: Record<string, unknown> }) {
           key={index}
           className={`p-6 rounded-lg ${
             plan.highlighted
-              ? 'bg-white text-black ring-2 ring-white'
-              : 'bg-white/5'
+              ? "bg-white text-black ring-2 ring-white"
+              : "bg-white/5"
           }`}
         >
           {plan.highlighted && (
@@ -1677,20 +1878,26 @@ function PricingBlock({ content }: { content: Record<string, unknown> }) {
           <div className="mt-4 mb-6">
             <span className="text-4xl font-bold">{plan.price}</span>
             {plan.period && (
-              <span className={`text-sm ${plan.highlighted ? 'opacity-60' : 'opacity-70'}`}>
+              <span
+                className={`text-sm ${plan.highlighted ? "opacity-60" : "opacity-70"}`}
+              >
                 /{plan.period}
               </span>
             )}
           </div>
           {plan.description && (
-            <p className={`text-sm mb-6 ${plan.highlighted ? 'opacity-70' : 'opacity-70'}`}>
+            <p
+              className={`text-sm mb-6 ${plan.highlighted ? "opacity-70" : "opacity-70"}`}
+            >
               {plan.description}
             </p>
           )}
           <ul className="space-y-3 mb-6">
             {plan.features.map((feature, featureIndex) => (
               <li key={featureIndex} className="flex items-center gap-2">
-                <Check className={`w-5 h-5 ${plan.highlighted ? 'text-green-600' : 'text-green-400'}`} />
+                <Check
+                  className={`w-5 h-5 ${plan.highlighted ? "text-green-600" : "text-green-400"}`}
+                />
                 <span className="text-sm">{feature}</span>
               </li>
             ))}
@@ -1700,11 +1907,11 @@ function PricingBlock({ content }: { content: Record<string, unknown> }) {
               href={plan.buttonUrl}
               className={`block text-center py-3 rounded-lg font-medium transition-colors ${
                 plan.highlighted
-                  ? 'bg-black text-white hover:bg-gray-800'
-                  : 'bg-white/10 hover:bg-white/20'
+                  ? "bg-black text-white hover:bg-gray-800"
+                  : "bg-white/10 hover:bg-white/20"
               }`}
             >
-              {plan.buttonText || 'Choisir'}
+              {plan.buttonText || "Choisir"}
             </Link>
           )}
         </div>
@@ -1715,12 +1922,13 @@ function PricingBlock({ content }: { content: Record<string, unknown> }) {
 
 // FAQ Block
 function FAQBlock({ content }: { content: Record<string, unknown> }) {
-  const questions = (content.questions as Array<{ question: string; answer: string }>) || [];
-  const layout = (content.layout as string) || 'accordion';
+  const questions =
+    (content.questions as Array<{ question: string; answer: string }>) || [];
+  const layout = (content.layout as string) || "accordion";
 
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  if (layout === 'cards') {
+  if (layout === "cards") {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {questions.map((item, index) => (
@@ -1733,7 +1941,7 @@ function FAQBlock({ content }: { content: Record<string, unknown> }) {
     );
   }
 
-  if (layout === 'two-column') {
+  if (layout === "two-column") {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
         {questions.map((item, index) => (
@@ -1757,7 +1965,7 @@ function FAQBlock({ content }: { content: Record<string, unknown> }) {
             <span className="font-medium pr-4">{item.question}</span>
             <ChevronDown
               className={`w-5 h-5 flex-shrink-0 transition-transform ${
-                openIndex === index ? 'rotate-180' : ''
+                openIndex === index ? "rotate-180" : ""
               }`}
             />
           </button>
@@ -1765,7 +1973,7 @@ function FAQBlock({ content }: { content: Record<string, unknown> }) {
             {openIndex === index && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
+                animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
@@ -1784,15 +1992,16 @@ function FAQBlock({ content }: { content: Record<string, unknown> }) {
 function ContactFormBlock({ content }: { content: Record<string, unknown> }) {
   const title = content.title as string;
   const description = content.description as string;
-  const fields = (content.fields as Array<{
-    type: string;
-    name: string;
-    label: string;
-    placeholder?: string;
-    required?: boolean;
-    options?: string[];
-  }>) || [];
-  const submitText = (content.submitText as string) || 'Envoyer';
+  const fields =
+    (content.fields as Array<{
+      type: string;
+      name: string;
+      label: string;
+      placeholder?: string;
+      required?: boolean;
+      options?: string[];
+    }>) || [];
+  const submitText = (content.submitText as string) || "Envoyer";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -1800,7 +2009,7 @@ function ContactFormBlock({ content }: { content: Record<string, unknown> }) {
     e.preventDefault();
     setIsSubmitting(true);
     // Simulate submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsSubmitting(false);
     setIsSubmitted(true);
   };
@@ -1810,7 +2019,10 @@ function ContactFormBlock({ content }: { content: Record<string, unknown> }) {
       <div className="text-center p-8 bg-white/5 rounded-lg">
         <Check className="w-12 h-12 mx-auto mb-4 text-green-400" />
         <h3 className="text-xl font-semibold mb-2">Message envoyé !</h3>
-        <p className="opacity-70">{(content.successMessage as string) || 'Nous vous répondrons dès que possible.'}</p>
+        <p className="opacity-70">
+          {(content.successMessage as string) ||
+            "Nous vous répondrons dès que possible."}
+        </p>
       </div>
     );
   }
@@ -1830,7 +2042,7 @@ function ContactFormBlock({ content }: { content: Record<string, unknown> }) {
               {field.label}
               {field.required && <span className="text-red-400 ml-1">*</span>}
             </label>
-            {field.type === 'textarea' ? (
+            {field.type === "textarea" ? (
               <textarea
                 name={field.name}
                 placeholder={field.placeholder}
@@ -1838,18 +2050,22 @@ function ContactFormBlock({ content }: { content: Record<string, unknown> }) {
                 rows={4}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-white/30 focus:outline-none transition-colors"
               />
-            ) : field.type === 'select' ? (
+            ) : field.type === "select" ? (
               <select
                 name={field.name}
                 required={field.required}
                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-white/30 focus:outline-none transition-colors"
               >
-                <option value="">{field.placeholder || 'Sélectionner...'}</option>
+                <option value="">
+                  {field.placeholder || "Sélectionner..."}
+                </option>
                 {field.options?.map((option, optIndex) => (
-                  <option key={optIndex} value={option}>{option}</option>
+                  <option key={optIndex} value={option}>
+                    {option}
+                  </option>
                 ))}
               </select>
-            ) : field.type === 'checkbox' ? (
+            ) : field.type === "checkbox" ? (
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -1896,18 +2112,18 @@ function ContactFormBlock({ content }: { content: Record<string, unknown> }) {
 function NewsletterBlock({ content }: { content: Record<string, unknown> }) {
   const title = content.title as string;
   const description = content.description as string;
-  const placeholder = (content.placeholder as string) || 'Votre email';
-  const buttonText = (content.buttonText as string) || 'S\'inscrire';
+  const placeholder = (content.placeholder as string) || "Votre email";
+  const buttonText = (content.buttonText as string) || "S'inscrire";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setIsSubmitting(true);
     // Simulate submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsSubmitting(false);
     setIsSubmitted(true);
   };
@@ -1925,7 +2141,10 @@ function NewsletterBlock({ content }: { content: Record<string, unknown> }) {
     <div className="text-center">
       {title && <h3 className="text-2xl font-semibold mb-2">{title}</h3>}
       {description && <p className="opacity-70 mb-6">{description}</p>}
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+      >
         <input
           type="email"
           value={email}
@@ -1955,15 +2174,17 @@ function NewsletterBlock({ content }: { content: Record<string, unknown> }) {
 
 // Store List Block - Dynamically fetches and displays stores from the database
 function StoreListBlock({ content }: { content: Record<string, unknown> }) {
-  const [stores, setStores] = useState<Array<{
-    id: string;
-    name: string;
-    address: string;
-    phone: string;
-    rating: number;
-    reviews: number;
-    image: string;
-  }>>([]);
+  const [stores, setStores] = useState<
+    Array<{
+      id: string;
+      name: string;
+      address: string;
+      phone: string;
+      rating: number;
+      reviews: number;
+      image: string;
+    }>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const title = content.title as string;
@@ -1975,13 +2196,13 @@ function StoreListBlock({ content }: { content: Record<string, unknown> }) {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const response = await fetch('/api/stores');
+        const response = await fetch("/api/stores");
         if (response.ok) {
           const data = await response.json();
           setStores(data.stores || []);
         }
       } catch (error) {
-        console.error('Error fetching stores:', error);
+        console.error("Error fetching stores:", error);
       } finally {
         setIsLoading(false);
       }
@@ -1990,10 +2211,10 @@ function StoreListBlock({ content }: { content: Record<string, unknown> }) {
   }, []);
 
   const columnClasses: Record<number, string> = {
-    1: 'grid-cols-1',
-    2: 'grid-cols-1 md:grid-cols-2',
-    3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-    4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
+    1: "grid-cols-1",
+    2: "grid-cols-1 md:grid-cols-2",
+    3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+    4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
   };
 
   if (isLoading) {
@@ -2005,9 +2226,14 @@ function StoreListBlock({ content }: { content: Record<string, unknown> }) {
             {subtitle && <p className="text-lg opacity-70">{subtitle}</p>}
           </div>
         )}
-        <div className={`grid ${columnClasses[columns] || columnClasses[3]} gap-6`}>
+        <div
+          className={`grid ${columnClasses[columns] || columnClasses[3]} gap-6`}
+        >
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white/5 rounded-2xl overflow-hidden animate-pulse">
+            <div
+              key={i}
+              className="bg-white/5 rounded-2xl overflow-hidden animate-pulse"
+            >
               <div className="aspect-[4/3] bg-white/10" />
               <div className="p-6 space-y-3">
                 <div className="h-6 bg-white/10 rounded w-3/4" />
@@ -2029,7 +2255,9 @@ function StoreListBlock({ content }: { content: Record<string, unknown> }) {
           {subtitle && <p className="text-lg opacity-70">{subtitle}</p>}
         </div>
       )}
-      <div className={`grid ${columnClasses[columns] || columnClasses[3]} gap-6`}>
+      <div
+        className={`grid ${columnClasses[columns] || columnClasses[3]} gap-6`}
+      >
         {stores.map((store) => (
           <Link
             key={store.id}
@@ -2049,13 +2277,13 @@ function StoreListBlock({ content }: { content: Record<string, unknown> }) {
               <h3 className="text-xl font-bold mb-2 group-hover:text-amber-400 transition-colors">
                 {store.name}
               </h3>
-              
+
               <div className="space-y-2 text-sm opacity-70">
                 <div className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
                   <span>{store.address}</span>
                 </div>
-                
+
                 {showPhone && store.phone && (
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 flex-shrink-0" />
@@ -2070,7 +2298,9 @@ function StoreListBlock({ content }: { content: Record<string, unknown> }) {
                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                     <span className="font-semibold">{store.rating}</span>
                   </div>
-                  <span className="text-sm opacity-50">({store.reviews} avis)</span>
+                  <span className="text-sm opacity-50">
+                    ({store.reviews} avis)
+                  </span>
                 </div>
               )}
             </div>
@@ -2091,38 +2321,45 @@ function StoreHeroBlock({ content }: { content: Record<string, unknown> }) {
   const subtitle = content.subtitle as string;
   const description = content.description as string;
   const backgroundImage = content.backgroundImage as string;
-  const buttons = (content.buttons as Array<{
-    label: string;
-    href: string;
-    variant?: string;
-    openInNewTab?: boolean;
-  }>) || [];
+  const buttons =
+    (content.buttons as Array<{
+      label: string;
+      href: string;
+      variant?: string;
+      openInNewTab?: boolean;
+    }>) || [];
 
   return (
-    <motion.section 
+    <motion.section
       className="relative h-96 bg-gradient-to-r from-neutral-900 to-neutral-800 overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
       style={{
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundImage: backgroundImage
+          ? `url(${backgroundImage})`
+          : undefined,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
       {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'radial-gradient(circle at 25px 25px, white 2%, transparent 0%)',
-          backgroundSize: '50px 50px'
-        }}></div>
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 25px 25px, white 2%, transparent 0%)",
+            backgroundSize: "50px 50px",
+          }}
+        ></div>
       </div>
-      
+
       <div className="absolute inset-0 bg-black/40" />
-      
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
         <div className="text-white">
-          <motion.div 
+          <motion.div
             className="flex items-center gap-3 mb-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2131,7 +2368,7 @@ function StoreHeroBlock({ content }: { content: Record<string, unknown> }) {
             <MapPin className="w-6 h-6 text-amber-400" />
             <span className="text-lg opacity-90">Votre magasin</span>
           </motion.div>
-          <motion.h1 
+          <motion.h1
             className="text-5xl md:text-6xl font-bold mb-4 tracking-tight"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2140,7 +2377,7 @@ function StoreHeroBlock({ content }: { content: Record<string, unknown> }) {
             {title}
           </motion.h1>
           {subtitle && (
-            <motion.p 
+            <motion.p
               className="text-xl opacity-90 mb-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2150,7 +2387,7 @@ function StoreHeroBlock({ content }: { content: Record<string, unknown> }) {
             </motion.p>
           )}
           {description && (
-            <motion.p 
+            <motion.p
               className="text-lg opacity-80 max-w-2xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2169,13 +2406,13 @@ function StoreHeroBlock({ content }: { content: Record<string, unknown> }) {
               {buttons.map((btn, idx) => (
                 <Link
                   key={idx}
-                  href={btn.href || '#'}
-                  target={btn.openInNewTab ? '_blank' : undefined}
-                  rel={btn.openInNewTab ? 'noopener noreferrer' : undefined}
+                  href={btn.href || "#"}
+                  target={btn.openInNewTab ? "_blank" : undefined}
+                  rel={btn.openInNewTab ? "noopener noreferrer" : undefined}
                   className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center gap-2 ${
-                    btn.variant === 'secondary'
-                      ? 'bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30'
-                      : 'bg-amber-500 hover:bg-amber-600 text-black'
+                    btn.variant === "secondary"
+                      ? "bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30"
+                      : "bg-amber-500 hover:bg-amber-600 text-black"
                   }`}
                 >
                   {btn.label}
@@ -2191,7 +2428,7 @@ function StoreHeroBlock({ content }: { content: Record<string, unknown> }) {
 
 // Store Contact Block - Contact information with hours
 function StoreContactBlock({ content }: { content: Record<string, unknown> }) {
-  const title = (content.title as string) || 'Informations de contact';
+  const title = (content.title as string) || "Informations de contact";
   const address = content.address as string;
   const phone = content.phone as string;
   const phone2 = content.phone2 as string;
@@ -2199,7 +2436,7 @@ function StoreContactBlock({ content }: { content: Record<string, unknown> }) {
   const hours = (content.hours as Record<string, string>) || {};
 
   return (
-    <motion.div 
+    <motion.div
       className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-neutral-100"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -2217,7 +2454,9 @@ function StoreContactBlock({ content }: { content: Record<string, unknown> }) {
               <MapPin className="w-5 h-5 text-amber-500 mt-1 opacity-80 group-hover:scale-110 transition-transform duration-300" />
               <div>
                 <h3 className="font-semibold text-neutral-900">Adresse</h3>
-                <p className="text-neutral-600 whitespace-pre-line">{address}</p>
+                <p className="text-neutral-600 whitespace-pre-line">
+                  {address}
+                </p>
               </div>
             </div>
           )}
@@ -2226,11 +2465,17 @@ function StoreContactBlock({ content }: { content: Record<string, unknown> }) {
               <Phone className="w-5 h-5 text-amber-500 mt-1 opacity-80 group-hover:scale-110 transition-transform duration-300" />
               <div>
                 <h3 className="font-semibold text-neutral-900">Téléphone</h3>
-                <a href={`tel:${phone.replace(/\s/g, '')}`} className="text-amber-700 hover:text-amber-900 transition-colors duration-300 block">
+                <a
+                  href={`tel:${phone.replace(/\s/g, "")}`}
+                  className="text-amber-700 hover:text-amber-900 transition-colors duration-300 block"
+                >
                   {phone}
                 </a>
                 {phone2 && (
-                  <a href={`tel:${phone2.replace(/\s/g, '')}`} className="text-amber-700 hover:text-amber-900 transition-colors duration-300 block">
+                  <a
+                    href={`tel:${phone2.replace(/\s/g, "")}`}
+                    className="text-amber-700 hover:text-amber-900 transition-colors duration-300 block"
+                  >
                     {phone2}
                   </a>
                 )}
@@ -2242,7 +2487,10 @@ function StoreContactBlock({ content }: { content: Record<string, unknown> }) {
               <Mail className="w-5 h-5 text-amber-500 mt-1 opacity-80 group-hover:scale-110 transition-transform duration-300" />
               <div>
                 <h3 className="font-semibold text-neutral-900">Email</h3>
-                <a href={`mailto:${email}`} className="text-amber-700 hover:text-amber-900 transition-colors duration-300">
+                <a
+                  href={`mailto:${email}`}
+                  className="text-amber-700 hover:text-amber-900 transition-colors duration-300"
+                >
                   {email}
                 </a>
               </div>
@@ -2252,16 +2500,33 @@ function StoreContactBlock({ content }: { content: Record<string, unknown> }) {
         {Object.keys(hours).length > 0 && (
           <div>
             <div className="flex items-start gap-3 group">
-              <svg className="w-5 h-5 text-amber-500 mt-1 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-5 h-5 text-amber-500 mt-1 opacity-80"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               <div className="flex-1">
-                <h3 className="font-semibold text-neutral-900 mb-3">Horaires d'ouverture</h3>
+                <h3 className="font-semibold text-neutral-900 mb-3">
+                  Horaires d'ouverture
+                </h3>
                 <div className="space-y-2">
                   {Object.entries(hours).map(([day, hoursValue]) => (
-                    <div key={day} className="flex justify-between border-b border-neutral-100 pb-1">
+                    <div
+                      key={day}
+                      className="flex justify-between border-b border-neutral-100 pb-1"
+                    >
                       <span className="text-neutral-600">{day}</span>
-                      <span className="font-medium text-neutral-800">{hoursValue}</span>
+                      <span className="font-medium text-neutral-800">
+                        {hoursValue}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -2276,14 +2541,14 @@ function StoreContactBlock({ content }: { content: Record<string, unknown> }) {
 
 // Store Services Block - Services grid with animations
 function StoreServicesBlock({ content }: { content: Record<string, unknown> }) {
-  const title = (content.title as string) || 'Nos services';
+  const title = (content.title as string) || "Nos services";
   const subtitle = content.subtitle as string;
   const services = (content.services as string[]) || [];
 
   if (services.length === 0) return null;
 
   return (
-    <motion.div 
+    <motion.div
       className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-neutral-100"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -2293,9 +2558,7 @@ function StoreServicesBlock({ content }: { content: Record<string, unknown> }) {
         <span className="inline-block w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
         {title}
       </h2>
-      {subtitle && (
-        <p className="text-neutral-600 mb-4">{subtitle}</p>
-      )}
+      {subtitle && <p className="text-neutral-600 mb-4">{subtitle}</p>}
       <div className="h-px w-16 bg-gradient-to-r from-amber-300 to-amber-100 mb-6"></div>
       <div className="grid md:grid-cols-2 gap-4">
         {services.map((service, index) => (
@@ -2308,7 +2571,9 @@ function StoreServicesBlock({ content }: { content: Record<string, unknown> }) {
             whileHover={{ x: 5 }}
           >
             <div className="w-2 h-2 bg-amber-400 rounded-full" />
-            <span className="font-medium text-neutral-800 group-hover:text-amber-700 transition-colors duration-300">{service}</span>
+            <span className="font-medium text-neutral-800 group-hover:text-amber-700 transition-colors duration-300">
+              {service}
+            </span>
           </motion.div>
         ))}
       </div>
@@ -2318,14 +2583,14 @@ function StoreServicesBlock({ content }: { content: Record<string, unknown> }) {
 
 // Store CTA Block - Call to action buttons
 function StoreCtaBlock({ content }: { content: Record<string, unknown> }) {
-  const title = (content.title as string) || 'Prendre rendez-vous';
+  const title = (content.title as string) || "Prendre rendez-vous";
   const rdvUrl = content.rdvUrl as string;
-  const rdvLabel = (content.rdvLabel as string) || 'JE PRENDS RDV EN LIGNE';
+  const rdvLabel = (content.rdvLabel as string) || "JE PRENDS RDV EN LIGNE";
   const phone = content.phone as string;
-  const phoneLabel = (content.phoneLabel as string) || 'APPELER LE MAGASIN';
+  const phoneLabel = (content.phoneLabel as string) || "APPELER LE MAGASIN";
 
   return (
-    <motion.div 
+    <motion.div
       className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-neutral-100"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -2342,25 +2607,37 @@ function StoreCtaBlock({ content }: { content: Record<string, unknown> }) {
             target="_blank"
             rel="noopener noreferrer"
             className="w-full bg-neutral-900 text-white py-4 px-6 rounded-lg font-semibold hover:bg-amber-700 transition-all duration-500 flex items-center justify-center gap-2 shadow-sm"
-            whileHover={{ 
+            whileHover={{
               y: -2,
-              boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)"
+              boxShadow:
+                "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)",
             }}
             whileTap={{ y: 0 }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
             <span>{rdvLabel}</span>
           </motion.a>
         )}
         {phone && (
           <motion.a
-            href={`tel:${phone.replace(/\s/g, '')}`}
+            href={`tel:${phone.replace(/\s/g, "")}`}
             className="w-full border-2 border-neutral-800 text-neutral-900 py-4 px-6 rounded-lg font-semibold hover:bg-neutral-900 hover:text-white hover:border-neutral-900 transition-all duration-300 flex items-center justify-center gap-2"
-            whileHover={{ 
+            whileHover={{
               y: -2,
-              boxShadow: "0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05)"
+              boxShadow:
+                "0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05)",
             }}
             whileTap={{ y: 0 }}
           >
@@ -2375,13 +2652,13 @@ function StoreCtaBlock({ content }: { content: Record<string, unknown> }) {
 
 // Store Reviews Block - Customer reviews display
 function StoreReviewsBlock({ content }: { content: Record<string, unknown> }) {
-  const title = (content.title as string) || 'Avis clients';
+  const title = (content.title as string) || "Avis clients";
   const rating = (content.rating as number) || 0;
   const reviewCount = (content.reviewCount as number) || 0;
   const source = content.source as string;
 
   return (
-    <motion.div 
+    <motion.div
       className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-neutral-100"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -2397,15 +2674,15 @@ function StoreReviewsBlock({ content }: { content: Record<string, unknown> }) {
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`w-5 h-5 ${i < Math.floor(rating) ? 'text-amber-500 fill-amber-500' : 'text-neutral-300'}`}
+                className={`w-5 h-5 ${i < Math.floor(rating) ? "text-amber-500 fill-amber-500" : "text-neutral-300"}`}
               />
             ))}
           </div>
-          <span className="text-2xl font-bold text-neutral-900">{rating}/5</span>
+          <span className="text-2xl font-bold text-neutral-900">
+            {rating}/5
+          </span>
         </div>
-        <p className="text-neutral-600 mb-4">
-          Sur {reviewCount} avis vérifiés
-        </p>
+        <p className="text-neutral-600 mb-4">Sur {reviewCount} avis vérifiés</p>
         {source && (
           <motion.button
             className="text-amber-700 hover:text-amber-900 font-medium border-b-2 border-transparent hover:border-amber-300 transition-all duration-300"
@@ -2422,13 +2699,13 @@ function StoreReviewsBlock({ content }: { content: Record<string, unknown> }) {
 
 // Store Map Block - Location map with address
 function StoreMapBlock({ content }: { content: Record<string, unknown> }) {
-  const title = (content.title as string) || 'Localisation';
+  const title = (content.title as string) || "Localisation";
   const address = content.address as string;
   const mapUrl = content.mapUrl as string;
   const embedUrl = content.embedUrl as string;
 
   return (
-    <motion.div 
+    <motion.div
       className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg p-8 border border-neutral-100"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -2451,7 +2728,7 @@ function StoreMapBlock({ content }: { content: Record<string, unknown> }) {
           />
         </div>
       ) : (
-        <motion.div 
+        <motion.div
           className="aspect-square bg-gradient-to-br from-neutral-100 to-neutral-200 rounded-lg flex flex-col items-center justify-center overflow-hidden relative group cursor-pointer"
           whileHover={{ scale: 1.02 }}
         >
@@ -2540,17 +2817,17 @@ interface StoreLayoutContent {
 function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
   // Cast content to proper type
   const typedContent = content as StoreLayoutContent;
-  
+
   // Main content (left column - 2/3)
   const contact = typedContent.contact;
   const services = typedContent.services;
   const specialties = typedContent.specialties;
-  
+
   // Sidebar content (right column - 1/3)
   const cta = typedContent.cta;
   const reviews = typedContent.reviews;
   const map = typedContent.map;
-  
+
   // Gallery (full width below)
   const gallery = typedContent.gallery;
 
@@ -2563,7 +2840,7 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
           <div className="lg:col-span-2 space-y-6">
             {/* Contact Information */}
             {contact && (
-              <motion.div 
+              <motion.div
                 className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 border border-neutral-100"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -2571,7 +2848,7 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
               >
                 <h2 className="text-2xl font-bold mb-6 text-neutral-900 flex items-center">
                   <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
-                  {String(contact.title || 'Informations de contact')}
+                  {String(contact.title || "Informations de contact")}
                 </h2>
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* Address & Contact */}
@@ -2582,8 +2859,12 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                           <MapPin className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-neutral-900 mb-1">Adresse</h3>
-                          <p className="text-neutral-600 whitespace-pre-line">{String(contact.address)}</p>
+                          <h3 className="font-semibold text-neutral-900 mb-1">
+                            Adresse
+                          </h3>
+                          <p className="text-neutral-600 whitespace-pre-line">
+                            {String(contact.address)}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -2593,12 +2874,20 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                           <Phone className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-neutral-900 mb-1">Téléphone</h3>
-                          <a href={`tel:${String(contact.phone).replace(/\s/g, '')}`} className="text-amber-700 hover:text-amber-900 transition-colors block font-medium">
+                          <h3 className="font-semibold text-neutral-900 mb-1">
+                            Téléphone
+                          </h3>
+                          <a
+                            href={`tel:${String(contact.phone).replace(/\s/g, "")}`}
+                            className="text-amber-700 hover:text-amber-900 transition-colors block font-medium"
+                          >
                             {String(contact.phone)}
                           </a>
                           {Boolean(contact.phone2) && (
-                            <a href={`tel:${String(contact.phone2).replace(/\s/g, '')}`} className="text-amber-700 hover:text-amber-900 transition-colors block">
+                            <a
+                              href={`tel:${String(contact.phone2).replace(/\s/g, "")}`}
+                              className="text-amber-700 hover:text-amber-900 transition-colors block"
+                            >
                               {String(contact.phone2)}
                             </a>
                           )}
@@ -2611,8 +2900,13 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                           <Mail className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-neutral-900 mb-1">Email</h3>
-                          <a href={`mailto:${String(contact.email)}`} className="text-amber-700 hover:text-amber-900 transition-colors font-medium">
+                          <h3 className="font-semibold text-neutral-900 mb-1">
+                            Email
+                          </h3>
+                          <a
+                            href={`mailto:${String(contact.email)}`}
+                            className="text-amber-700 hover:text-amber-900 transition-colors font-medium"
+                          >
                             {String(contact.email)}
                           </a>
                         </div>
@@ -2620,31 +2914,42 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                     )}
                   </div>
                   {/* Hours */}
-                  {contact.hours && Object.keys(contact.hours as Record<string, string>).length > 0 && (
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
-                        <Clock className="w-5 h-5 text-amber-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-neutral-900 mb-3">Horaires d'ouverture</h3>
-                        <div className="space-y-2">
-                          {Object.entries(contact.hours as Record<string, string>).map(([day, hoursValue]) => (
-                            <div key={day} className="flex justify-between py-1.5 border-b border-neutral-100 last:border-0">
-                              <span className="text-neutral-600">{day}</span>
-                              <span className="font-medium text-neutral-900">{String(hoursValue)}</span>
-                            </div>
-                          ))}
+                  {contact.hours &&
+                    Object.keys(contact.hours as Record<string, string>)
+                      .length > 0 && (
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
+                          <Clock className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-neutral-900 mb-3">
+                            Horaires d'ouverture
+                          </h3>
+                          <div className="space-y-2">
+                            {Object.entries(
+                              contact.hours as Record<string, string>,
+                            ).map(([day, hoursValue]) => (
+                              <div
+                                key={day}
+                                className="flex justify-between py-1.5 border-b border-neutral-100 last:border-0"
+                              >
+                                <span className="text-neutral-600">{day}</span>
+                                <span className="font-medium text-neutral-900">
+                                  {String(hoursValue)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </motion.div>
             )}
 
             {/* Services */}
             {services && (services.items as string[])?.length > 0 && (
-              <motion.div 
+              <motion.div
                 className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 border border-neutral-100"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -2652,10 +2957,12 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
               >
                 <h2 className="text-2xl font-bold mb-2 text-neutral-900 flex items-center">
                   <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
-                  {String(services.title || 'Nos services')}
+                  {String(services.title || "Nos services")}
                 </h2>
                 {Boolean(services.subtitle) && (
-                  <p className="text-neutral-600 mb-6 ml-6">{String(services.subtitle)}</p>
+                  <p className="text-neutral-600 mb-6 ml-6">
+                    {String(services.subtitle)}
+                  </p>
                 )}
                 <div className="grid sm:grid-cols-2 gap-3">
                   {(services.items as string[]).map((service, idx) => (
@@ -2668,7 +2975,9 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                       whileHover={{ x: 4 }}
                     >
                       <div className="w-2 h-2 bg-amber-500 rounded-full flex-shrink-0" />
-                      <span className="font-medium text-neutral-800 group-hover:text-amber-800 transition-colors">{service}</span>
+                      <span className="font-medium text-neutral-800 group-hover:text-amber-800 transition-colors">
+                        {service}
+                      </span>
                     </motion.div>
                   ))}
                 </div>
@@ -2676,46 +2985,63 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
             )}
 
             {/* Specialties */}
-            {specialties && (specialties.items as Array<{ title: string; icon?: string; description?: string }>)?.length > 0 && (
-              <motion.div 
-                className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 lg:p-8 border border-amber-100"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <h2 className="text-2xl font-bold mb-6 text-neutral-900 flex items-center">
-                  <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
-                  {String(specialties.title || 'Nos spécialités')}
-                </h2>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {(specialties.items as Array<{ title: string; icon?: string; description?: string }>).map((spec, idx) => (
-                    <motion.div
-                      key={idx}
-                      className="bg-white/80 backdrop-blur-sm rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300"
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.3 + idx * 0.1 }}
-                      whileHover={{ y: -4 }}
-                    >
-                      <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-3">
-                        <Star className="w-6 h-6 text-amber-600" />
-                      </div>
-                      <h3 className="font-bold text-neutral-900 mb-1">{spec.title}</h3>
-                      {spec.description && (
-                        <p className="text-sm text-neutral-600">{spec.description}</p>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            {specialties &&
+              (
+                specialties.items as Array<{
+                  title: string;
+                  icon?: string;
+                  description?: string;
+                }>
+              )?.length > 0 && (
+                <motion.div
+                  className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 lg:p-8 border border-amber-100"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <h2 className="text-2xl font-bold mb-6 text-neutral-900 flex items-center">
+                    <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
+                    {String(specialties.title || "Nos spécialités")}
+                  </h2>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {(
+                      specialties.items as Array<{
+                        title: string;
+                        icon?: string;
+                        description?: string;
+                      }>
+                    ).map((spec, idx) => (
+                      <motion.div
+                        key={idx}
+                        className="bg-white/80 backdrop-blur-sm rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3 + idx * 0.1 }}
+                        whileHover={{ y: -4 }}
+                      >
+                        <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-3">
+                          <Star className="w-6 h-6 text-amber-600" />
+                        </div>
+                        <h3 className="font-bold text-neutral-900 mb-1">
+                          {spec.title}
+                        </h3>
+                        {spec.description && (
+                          <p className="text-sm text-neutral-600">
+                            {spec.description}
+                          </p>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
           </div>
 
           {/* Right Column - Sidebar (1/3) */}
           <div className="space-y-6">
             {/* CTA - Prendre RDV */}
             {cta && (
-              <motion.div 
+              <motion.div
                 className="bg-neutral-900 rounded-2xl p-6 lg:p-8 text-white"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -2723,7 +3049,7 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
               >
                 <h3 className="text-xl font-bold mb-6 flex items-center">
                   <Calendar className="w-5 h-5 text-amber-400 mr-2" />
-                  {String(cta.title || 'Prendre rendez-vous')}
+                  {String(cta.title || "Prendre rendez-vous")}
                 </h3>
                 <div className="space-y-4">
                   {Boolean(cta.rdvUrl) && (
@@ -2736,18 +3062,18 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                       whileTap={{ scale: 0.98 }}
                     >
                       <Calendar className="w-5 h-5" />
-                      <span>{String(cta.rdvLabel || 'Réserver en ligne')}</span>
+                      <span>{String(cta.rdvLabel || "Réserver en ligne")}</span>
                     </motion.a>
                   )}
                   {Boolean(cta.phone) && (
                     <motion.a
-                      href={`tel:${String(cta.phone).replace(/\s/g, '')}`}
+                      href={`tel:${String(cta.phone).replace(/\s/g, "")}`}
                       className="w-full border-2 border-white/30 hover:border-white/60 text-white py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <Phone className="w-5 h-5" />
-                      <span>{String(cta.phoneLabel || 'Appeler')}</span>
+                      <span>{String(cta.phoneLabel || "Appeler")}</span>
                     </motion.a>
                   )}
                 </div>
@@ -2756,7 +3082,7 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
 
             {/* Reviews */}
             {reviews && (
-              <motion.div 
+              <motion.div
                 className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 border border-neutral-100"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -2764,19 +3090,20 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
               >
                 <h3 className="text-lg font-bold mb-4 text-neutral-900 flex items-center">
                   <Star className="w-5 h-5 text-amber-500 mr-2" />
-                  {String(reviews.title || 'Avis clients')}
+                  {String(reviews.title || "Avis clients")}
                 </h3>
                 <div className="text-center py-4">
                   <div className="flex items-center justify-center gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-6 h-6 ${i < Math.floor(Number(reviews.rating) || 0) ? 'text-amber-500 fill-amber-500' : 'text-neutral-200'}`}
+                        className={`w-6 h-6 ${i < Math.floor(Number(reviews.rating) || 0) ? "text-amber-500 fill-amber-500" : "text-neutral-200"}`}
                       />
                     ))}
                   </div>
                   <div className="text-3xl font-bold text-neutral-900 mb-1">
-                    {Number(reviews.rating) || 0}<span className="text-lg text-neutral-400">/5</span>
+                    {Number(reviews.rating) || 0}
+                    <span className="text-lg text-neutral-400">/5</span>
                   </div>
                   <p className="text-sm text-neutral-600">
                     {Number(reviews.reviewCount) || 0} avis vérifiés
@@ -2792,7 +3119,7 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
 
             {/* Map */}
             {map && (
-              <motion.div 
+              <motion.div
                 className="bg-white rounded-2xl shadow-lg overflow-hidden border border-neutral-100"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -2801,14 +3128,14 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                 <div className="p-6 pb-4">
                   <h3 className="text-lg font-bold text-neutral-900 flex items-center">
                     <MapPin className="w-5 h-5 text-amber-500 mr-2" />
-                    {String(map.title || 'Localisation')}
+                    {String(map.title || "Localisation")}
                   </h3>
                 </div>
                 <div className="aspect-[4/3] bg-gradient-to-br from-neutral-100 to-neutral-200 relative">
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
                     <MapPin className="w-12 h-12 text-amber-500/60 mb-3" />
                     <p className="text-neutral-600 text-center text-sm mb-4 whitespace-pre-line">
-                      {String(map.address || '')}
+                      {String(map.address || "")}
                     </p>
                     {Boolean(map.mapUrl) && (
                       <a
@@ -2830,7 +3157,7 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
 
         {/* Gallery - Full Width */}
         {gallery && (gallery.images as string[])?.length > 0 && (
-          <motion.div 
+          <motion.div
             className="mt-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2838,7 +3165,7 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
           >
             <h2 className="text-2xl font-bold mb-6 text-neutral-900 flex items-center">
               <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
-              {String(gallery.title || 'Découvrez notre magasin')}
+              {String(gallery.title || "Découvrez notre magasin")}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {(gallery.images as string[]).map((img, idx) => (
@@ -2872,53 +3199,70 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
 
 // Icon mapping for primitive blocks
 const iconMap: Record<string, React.FC<{ className?: string }>> = {
-  'map-pin': MapPin,
-  'phone': Phone,
-  'mail': Mail,
-  'clock': Clock,
-  'calendar': Calendar,
-  'user': User,
-  'star': Star,
-  'info': (props) => (
+  "map-pin": MapPin,
+  phone: Phone,
+  mail: Mail,
+  clock: Clock,
+  calendar: Calendar,
+  user: User,
+  star: Star,
+  info: (props) => (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   ),
-  'check': Check,
-  'external-link': ExternalLink,
-  'arrow-right': (props) => (
+  check: Check,
+  "external-link": ExternalLink,
+  "arrow-right": (props) => (
     <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M14 5l7 7m0 0l-7 7m7-7H3"
+      />
     </svg>
   ),
 };
 
 // Info Box Block - Display information with icon
 function InfoBoxBlock({ content }: { content: Record<string, unknown> }) {
-  const icon = (content.icon as string) || 'info';
+  const icon = (content.icon as string) || "info";
   const title = content.title as string;
   const mainContent = content.content as string;
   const link = content.link as string;
   const linkLabel = content.linkLabel as string;
   const secondaryContent = content.secondaryContent as string;
   const secondaryLink = content.secondaryLink as string;
-  const variant = (content.variant as string) || 'default';
+  const variant = (content.variant as string) || "default";
 
-  const IconComponent = iconMap[icon] || iconMap['info'];
+  const IconComponent = iconMap[icon] || iconMap["info"];
 
   const variantClasses = {
-    default: 'bg-white/90 backdrop-blur-sm rounded-xl p-5 border border-neutral-100',
-    compact: 'p-3',
-    card: 'bg-white rounded-2xl shadow-lg p-6 border border-neutral-100 hover:shadow-xl transition-shadow duration-300',
+    default:
+      "bg-white/90 backdrop-blur-sm rounded-xl p-5 border border-neutral-100",
+    compact: "p-3",
+    card: "bg-white rounded-2xl shadow-lg p-6 border border-neutral-100 hover:shadow-xl transition-shadow duration-300",
   };
 
   const ContentWrapper = link ? motion.a : motion.div;
-  const wrapperProps = link ? { href: link, target: link.startsWith('http') ? '_blank' : undefined, rel: link.startsWith('http') ? 'noopener noreferrer' : undefined } : {};
+  const wrapperProps = link
+    ? {
+        href: link,
+        target: link.startsWith("http") ? "_blank" : undefined,
+        rel: link.startsWith("http") ? "noopener noreferrer" : undefined,
+      }
+    : {};
 
   return (
     <ContentWrapper
       {...wrapperProps}
-      className={`flex items-start gap-4 group ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default} ${link ? 'cursor-pointer' : ''}`}
+      className={`flex items-start gap-4 group ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default} ${link ? "cursor-pointer" : ""}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={link ? { scale: 1.01 } : undefined}
@@ -2931,15 +3275,17 @@ function InfoBoxBlock({ content }: { content: Record<string, unknown> }) {
         {mainContent && (
           <p className="text-neutral-600 whitespace-pre-line">{mainContent}</p>
         )}
-        {secondaryContent && (
-          secondaryLink ? (
-            <a href={secondaryLink} className="text-amber-700 hover:text-amber-900 transition-colors block mt-1">
+        {secondaryContent &&
+          (secondaryLink ? (
+            <a
+              href={secondaryLink}
+              className="text-amber-700 hover:text-amber-900 transition-colors block mt-1"
+            >
               {secondaryContent}
             </a>
           ) : (
             <p className="text-neutral-500 text-sm mt-1">{secondaryContent}</p>
-          )
-        )}
+          ))}
         {linkLabel && (
           <span className="text-amber-700 font-medium text-sm mt-2 inline-flex items-center gap-1">
             {linkLabel}
@@ -2957,15 +3303,15 @@ function HoursTableBlock({ content }: { content: Record<string, unknown> }) {
   const hours = (content.hours as Record<string, string>) || {};
   const showIcon = content.showIcon !== false;
   const highlightToday = content.highlightToday !== false;
-  const variant = (content.variant as string) || 'table';
+  const variant = (content.variant as string) || "table";
 
-  const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long' });
+  const today = new Date().toLocaleDateString("fr-FR", { weekday: "long" });
   const todayCapitalized = today.charAt(0).toUpperCase() + today.slice(1);
 
   if (Object.keys(hours).length === 0) return null;
 
   return (
-    <motion.div 
+    <motion.div
       className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-neutral-100"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -2980,23 +3326,33 @@ function HoursTableBlock({ content }: { content: Record<string, unknown> }) {
           <h3 className="font-semibold text-neutral-900">{title}</h3>
         </div>
       )}
-      <div className={`space-y-2 ${title ? '' : 'pt-0'}`}>
+      <div className={`space-y-2 ${title ? "" : "pt-0"}`}>
         {Object.entries(hours).map(([day, hoursValue]) => {
-          const isToday = highlightToday && day.toLowerCase() === todayCapitalized.toLowerCase();
+          const isToday =
+            highlightToday &&
+            day.toLowerCase() === todayCapitalized.toLowerCase();
           return (
-            <div 
-              key={day} 
+            <div
+              key={day}
               className={`flex justify-between py-2 px-3 rounded-lg transition-colors ${
-                isToday 
-                  ? 'bg-amber-50 border border-amber-200' 
-                  : 'border-b border-neutral-100 last:border-0'
+                isToday
+                  ? "bg-amber-50 border border-amber-200"
+                  : "border-b border-neutral-100 last:border-0"
               }`}
             >
-              <span className={`${isToday ? 'font-semibold text-amber-800' : 'text-neutral-600'}`}>
+              <span
+                className={`${isToday ? "font-semibold text-amber-800" : "text-neutral-600"}`}
+              >
                 {day}
-                {isToday && <span className="ml-2 text-xs text-amber-600">(Aujourd'hui)</span>}
+                {isToday && (
+                  <span className="ml-2 text-xs text-amber-600">
+                    (Aujourd'hui)
+                  </span>
+                )}
               </span>
-              <span className={`font-medium ${isToday ? 'text-amber-900' : 'text-neutral-900'}`}>
+              <span
+                className={`font-medium ${isToday ? "text-amber-900" : "text-neutral-900"}`}
+              >
                 {hoursValue}
               </span>
             </div>
@@ -3013,44 +3369,52 @@ function ServicesListBlock({ content }: { content: Record<string, unknown> }) {
   const subtitle = content.subtitle as string;
   const services = (content.services as string[]) || [];
   const columns = (content.columns as number) || 2;
-  const variant = (content.variant as string) || 'bullets';
-  const iconColor = (content.iconColor as string) || 'amber';
+  const variant = (content.variant as string) || "bullets";
+  const iconColor = (content.iconColor as string) || "amber";
 
   if (services.length === 0) return null;
 
   const gridCols = {
-    1: 'grid-cols-1',
-    2: 'sm:grid-cols-2',
-    3: 'sm:grid-cols-2 lg:grid-cols-3',
+    1: "grid-cols-1",
+    2: "sm:grid-cols-2",
+    3: "sm:grid-cols-2 lg:grid-cols-3",
   };
 
   const variantStyles = {
     bullets: {
-      container: 'bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-neutral-100',
-      item: 'flex items-center gap-3 p-3 hover:bg-neutral-50 rounded-lg transition-colors group',
-      icon: <div className={`w-2 h-2 bg-${iconColor}-500 rounded-full flex-shrink-0`} />,
+      container:
+        "bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-neutral-100",
+      item: "flex items-center gap-3 p-3 hover:bg-neutral-50 rounded-lg transition-colors group",
+      icon: (
+        <div
+          className={`w-2 h-2 bg-${iconColor}-500 rounded-full flex-shrink-0`}
+        />
+      ),
     },
     checks: {
-      container: 'bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-neutral-100',
-      item: 'flex items-center gap-3 p-3 hover:bg-green-50 rounded-lg transition-colors group',
+      container:
+        "bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-neutral-100",
+      item: "flex items-center gap-3 p-3 hover:bg-green-50 rounded-lg transition-colors group",
       icon: <Check className="w-4 h-4 text-green-600 flex-shrink-0" />,
     },
     cards: {
-      container: '',
-      item: 'bg-white rounded-xl p-4 shadow-sm border border-neutral-100 hover:shadow-md hover:border-amber-200 transition-all group',
+      container: "",
+      item: "bg-white rounded-xl p-4 shadow-sm border border-neutral-100 hover:shadow-md hover:border-amber-200 transition-all group",
       icon: <Star className="w-4 h-4 text-amber-500 flex-shrink-0" />,
     },
     badges: {
-      container: 'flex flex-wrap gap-2',
-      item: 'inline-flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-amber-100 rounded-full transition-colors group',
+      container: "flex flex-wrap gap-2",
+      item: "inline-flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-amber-100 rounded-full transition-colors group",
       icon: <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />,
     },
   };
 
-  const styles = variantStyles[variant as keyof typeof variantStyles] || variantStyles.bullets;
+  const styles =
+    variantStyles[variant as keyof typeof variantStyles] ||
+    variantStyles.bullets;
 
   return (
-    <motion.div 
+    <motion.div
       className={styles.container}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -3062,7 +3426,9 @@ function ServicesListBlock({ content }: { content: Record<string, unknown> }) {
         </h3>
       )}
       {subtitle && <p className="text-neutral-600 mb-4 ml-5">{subtitle}</p>}
-      <div className={`grid gap-3 ${gridCols[columns as keyof typeof gridCols] || gridCols[2]}`}>
+      <div
+        className={`grid gap-3 ${gridCols[columns as keyof typeof gridCols] || gridCols[2]}`}
+      >
         {services.map((service, idx) => (
           <motion.div
             key={idx}
@@ -3070,7 +3436,7 @@ function ServicesListBlock({ content }: { content: Record<string, unknown> }) {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: idx * 0.03 }}
-            whileHover={{ x: variant === 'badges' ? 0 : 3 }}
+            whileHover={{ x: variant === "badges" ? 0 : 3 }}
           >
             {styles.icon}
             <span className="font-medium text-neutral-800 group-hover:text-amber-800 transition-colors">
@@ -3087,29 +3453,37 @@ function ServicesListBlock({ content }: { content: Record<string, unknown> }) {
 function CtaCardBlock({ content }: { content: Record<string, unknown> }) {
   const title = content.title as string;
   const description = content.description as string;
-  const primaryButton = content.primaryButton as { label: string; url: string; icon?: string; newTab?: boolean } | undefined;
-  const secondaryButton = content.secondaryButton as { label: string; url: string; icon?: string; newTab?: boolean } | undefined;
-  const variant = (content.variant as string) || 'default';
+  const primaryButton = content.primaryButton as
+    | { label: string; url: string; icon?: string; newTab?: boolean }
+    | undefined;
+  const secondaryButton = content.secondaryButton as
+    | { label: string; url: string; icon?: string; newTab?: boolean }
+    | undefined;
+  const variant = (content.variant as string) || "default";
 
   const variantClasses = {
-    default: 'bg-white rounded-2xl shadow-lg p-6 border border-neutral-100',
-    dark: 'bg-neutral-900 rounded-2xl p-6 text-white',
-    gradient: 'bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white',
-    outline: 'border-2 border-neutral-200 rounded-2xl p-6 hover:border-amber-300 transition-colors',
+    default: "bg-white rounded-2xl shadow-lg p-6 border border-neutral-100",
+    dark: "bg-neutral-900 rounded-2xl p-6 text-white",
+    gradient:
+      "bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white",
+    outline:
+      "border-2 border-neutral-200 rounded-2xl p-6 hover:border-amber-300 transition-colors",
   };
 
   const primaryBtnClasses = {
-    default: 'bg-neutral-900 hover:bg-amber-700 text-white',
-    dark: 'bg-amber-500 hover:bg-amber-400 text-black',
-    gradient: 'bg-white hover:bg-neutral-100 text-amber-700',
-    outline: 'bg-amber-500 hover:bg-amber-600 text-white',
+    default: "bg-neutral-900 hover:bg-amber-700 text-white",
+    dark: "bg-amber-500 hover:bg-amber-400 text-black",
+    gradient: "bg-white hover:bg-neutral-100 text-amber-700",
+    outline: "bg-amber-500 hover:bg-amber-600 text-white",
   };
 
   const secondaryBtnClasses = {
-    default: 'border-2 border-neutral-300 hover:border-neutral-400 text-neutral-800',
-    dark: 'border-2 border-white/30 hover:border-white/60 text-white',
-    gradient: 'border-2 border-white/50 hover:border-white text-white',
-    outline: 'border-2 border-neutral-300 hover:border-amber-400 text-neutral-800',
+    default:
+      "border-2 border-neutral-300 hover:border-neutral-400 text-neutral-800",
+    dark: "border-2 border-white/30 hover:border-white/60 text-white",
+    gradient: "border-2 border-white/50 hover:border-white text-white",
+    outline:
+      "border-2 border-neutral-300 hover:border-amber-400 text-neutral-800",
   };
 
   // Helper function to render icon (not a component to avoid React re-render issues)
@@ -3120,19 +3494,26 @@ function CtaCardBlock({ content }: { content: Record<string, unknown> }) {
   };
 
   return (
-    <motion.div 
-      className={variantClasses[variant as keyof typeof variantClasses] || variantClasses.default}
+    <motion.div
+      className={
+        variantClasses[variant as keyof typeof variantClasses] ||
+        variantClasses.default
+      }
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
       {title && (
-        <h3 className={`text-xl font-bold mb-3 flex items-center gap-2 ${variant === 'default' || variant === 'outline' ? 'text-neutral-900' : ''}`}>
+        <h3
+          className={`text-xl font-bold mb-3 flex items-center gap-2 ${variant === "default" || variant === "outline" ? "text-neutral-900" : ""}`}
+        >
           <Calendar className="w-5 h-5 text-amber-500" />
           {title}
         </h3>
       )}
       {description && (
-        <p className={`mb-4 ${variant === 'default' || variant === 'outline' ? 'text-neutral-600' : 'opacity-90'}`}>
+        <p
+          className={`mb-4 ${variant === "default" || variant === "outline" ? "text-neutral-600" : "opacity-90"}`}
+        >
           {description}
         </p>
       )}
@@ -3140,10 +3521,11 @@ function CtaCardBlock({ content }: { content: Record<string, unknown> }) {
         {primaryButton && (
           <motion.a
             href={primaryButton.url}
-            target={primaryButton.newTab ? '_blank' : undefined}
-            rel={primaryButton.newTab ? 'noopener noreferrer' : undefined}
+            target={primaryButton.newTab ? "_blank" : undefined}
+            rel={primaryButton.newTab ? "noopener noreferrer" : undefined}
             className={`w-full py-4 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-              primaryBtnClasses[variant as keyof typeof primaryBtnClasses] || primaryBtnClasses.default
+              primaryBtnClasses[variant as keyof typeof primaryBtnClasses] ||
+              primaryBtnClasses.default
             }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -3155,10 +3537,12 @@ function CtaCardBlock({ content }: { content: Record<string, unknown> }) {
         {secondaryButton && (
           <motion.a
             href={secondaryButton.url}
-            target={secondaryButton.newTab ? '_blank' : undefined}
-            rel={secondaryButton.newTab ? 'noopener noreferrer' : undefined}
+            target={secondaryButton.newTab ? "_blank" : undefined}
+            rel={secondaryButton.newTab ? "noopener noreferrer" : undefined}
             className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-              secondaryBtnClasses[variant as keyof typeof secondaryBtnClasses] || secondaryBtnClasses.default
+              secondaryBtnClasses[
+                variant as keyof typeof secondaryBtnClasses
+              ] || secondaryBtnClasses.default
             }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -3180,31 +3564,38 @@ function ReviewBadgeBlock({ content }: { content: Record<string, unknown> }) {
   const source = content.source as string;
   const sourceUrl = content.sourceUrl as string;
   const showStars = content.showStars !== false;
-  const variant = (content.variant as string) || 'default';
+  const variant = (content.variant as string) || "default";
 
   const variantClasses = {
-    default: 'bg-white rounded-2xl shadow-lg p-6 border border-neutral-100',
-    compact: 'bg-white rounded-xl p-4 border border-neutral-100 flex items-center gap-4',
-    detailed: 'bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100',
+    default: "bg-white rounded-2xl shadow-lg p-6 border border-neutral-100",
+    compact:
+      "bg-white rounded-xl p-4 border border-neutral-100 flex items-center gap-4",
+    detailed:
+      "bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-100",
   };
 
-  const SourceWrapper = sourceUrl ? 'a' : 'span';
-  const sourceProps = sourceUrl ? { href: sourceUrl, target: '_blank', rel: 'noopener noreferrer' } : {};
+  const SourceWrapper = sourceUrl ? "a" : "span";
+  const sourceProps = sourceUrl
+    ? { href: sourceUrl, target: "_blank", rel: "noopener noreferrer" }
+    : {};
 
   return (
-    <motion.div 
-      className={variantClasses[variant as keyof typeof variantClasses] || variantClasses.default}
+    <motion.div
+      className={
+        variantClasses[variant as keyof typeof variantClasses] ||
+        variantClasses.default
+      }
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      {variant === 'compact' ? (
+      {variant === "compact" ? (
         <>
           {showStars && (
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`w-5 h-5 ${i < Math.floor(rating) ? 'text-amber-500 fill-amber-500' : 'text-neutral-200'}`}
+                  className={`w-5 h-5 ${i < Math.floor(rating) ? "text-amber-500 fill-amber-500" : "text-neutral-200"}`}
                 />
               ))}
             </div>
@@ -3212,7 +3603,9 @@ function ReviewBadgeBlock({ content }: { content: Record<string, unknown> }) {
           <div>
             <span className="text-xl font-bold text-neutral-900">{rating}</span>
             <span className="text-neutral-400">/5</span>
-            <span className="text-sm text-neutral-500 ml-2">({reviewCount} avis)</span>
+            <span className="text-sm text-neutral-500 ml-2">
+              ({reviewCount} avis)
+            </span>
           </div>
         </>
       ) : (
@@ -3229,13 +3622,14 @@ function ReviewBadgeBlock({ content }: { content: Record<string, unknown> }) {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-6 h-6 ${i < Math.floor(rating) ? 'text-amber-500 fill-amber-500' : 'text-neutral-200'}`}
+                    className={`w-6 h-6 ${i < Math.floor(rating) ? "text-amber-500 fill-amber-500" : "text-neutral-200"}`}
                   />
                 ))}
               </div>
             )}
             <div className="text-3xl font-bold text-neutral-900 mb-1">
-              {rating}<span className="text-lg text-neutral-400">/5</span>
+              {rating}
+              <span className="text-lg text-neutral-400">/5</span>
             </div>
             <p className="text-sm text-neutral-600 mb-3">
               {reviewCount} avis vérifiés
@@ -3262,32 +3656,36 @@ function LocationCardBlock({ content }: { content: Record<string, unknown> }) {
   const mapUrl = content.mapUrl as string;
   const embedUrl = content.embedUrl as string;
   const showPreview = content.showPreview !== false;
-  const variant = (content.variant as string) || 'default';
+  const variant = (content.variant as string) || "default";
 
   const variantClasses = {
-    default: 'bg-white rounded-2xl shadow-lg overflow-hidden border border-neutral-100',
-    compact: 'bg-white rounded-xl p-4 border border-neutral-100',
-    'map-only': 'rounded-2xl overflow-hidden shadow-lg',
+    default:
+      "bg-white rounded-2xl shadow-lg overflow-hidden border border-neutral-100",
+    compact: "bg-white rounded-xl p-4 border border-neutral-100",
+    "map-only": "rounded-2xl overflow-hidden shadow-lg",
   };
 
   return (
-    <motion.div 
-      className={variantClasses[variant as keyof typeof variantClasses] || variantClasses.default}
+    <motion.div
+      className={
+        variantClasses[variant as keyof typeof variantClasses] ||
+        variantClasses.default
+      }
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      {variant !== 'map-only' && (
-        <div className={`${variant === 'compact' ? '' : 'p-6'}`}>
+      {variant !== "map-only" && (
+        <div className={`${variant === "compact" ? "" : "p-6"}`}>
           {title && (
             <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2 mb-3">
               <MapPin className="w-5 h-5 text-amber-500" />
               {title}
             </h3>
           )}
-          {variant === 'compact' && address && (
+          {variant === "compact" && address && (
             <p className="text-neutral-600 text-sm mb-2">{address}</p>
           )}
-          {variant === 'compact' && mapUrl && (
+          {variant === "compact" && mapUrl && (
             <a
               href={mapUrl}
               target="_blank"
@@ -3300,7 +3698,7 @@ function LocationCardBlock({ content }: { content: Record<string, unknown> }) {
           )}
         </div>
       )}
-      {showPreview && variant !== 'compact' && (
+      {showPreview && variant !== "compact" && (
         <div className="aspect-[16/10] bg-gradient-to-br from-neutral-100 to-neutral-200 relative">
           {embedUrl ? (
             <iframe
@@ -3341,42 +3739,51 @@ function LocationCardBlock({ content }: { content: Record<string, unknown> }) {
 
 // Icon Feature Block - Feature with icon, title and description
 function IconFeatureBlock({ content }: { content: Record<string, unknown> }) {
-  const icon = (content.icon as string) || 'star';
+  const icon = (content.icon as string) || "star";
   const title = content.title as string;
   const description = content.description as string;
   const link = content.link as string;
-  const variant = (content.variant as string) || 'default';
+  const variant = (content.variant as string) || "default";
   const iconBackground = content.iconBackground !== false;
-  const iconColor = (content.iconColor as string) || 'amber';
+  const iconColor = (content.iconColor as string) || "amber";
 
   const IconComponent = iconMap[icon] || Star;
 
   const variantClasses = {
-    default: 'flex items-start gap-4',
-    card: 'bg-white rounded-xl p-5 shadow-sm border border-neutral-100 hover:shadow-md transition-all',
-    centered: 'text-center flex flex-col items-center',
-    horizontal: 'flex items-center gap-4 p-4 bg-neutral-50 rounded-xl hover:bg-amber-50 transition-colors',
+    default: "flex items-start gap-4",
+    card: "bg-white rounded-xl p-5 shadow-sm border border-neutral-100 hover:shadow-md transition-all",
+    centered: "text-center flex flex-col items-center",
+    horizontal:
+      "flex items-center gap-4 p-4 bg-neutral-50 rounded-xl hover:bg-amber-50 transition-colors",
   };
 
   const Wrapper = link ? motion.a : motion.div;
-  const wrapperProps = link ? { href: link, target: link.startsWith('http') ? '_blank' : undefined, rel: link.startsWith('http') ? 'noopener noreferrer' : undefined } : {};
+  const wrapperProps = link
+    ? {
+        href: link,
+        target: link.startsWith("http") ? "_blank" : undefined,
+        rel: link.startsWith("http") ? "noopener noreferrer" : undefined,
+      }
+    : {};
 
   return (
     <Wrapper
       {...wrapperProps}
-      className={`group ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default} ${link ? 'cursor-pointer' : ''}`}
+      className={`group ${variantClasses[variant as keyof typeof variantClasses] || variantClasses.default} ${link ? "cursor-pointer" : ""}`}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={link || variant === 'card' ? { y: -2 } : undefined}
+      whileHover={link || variant === "card" ? { y: -2 } : undefined}
     >
-      <div className={`flex-shrink-0 ${
-        iconBackground 
-          ? `w-12 h-12 bg-${iconColor}-100 rounded-xl flex items-center justify-center group-hover:bg-${iconColor}-200 transition-colors`
-          : ''
-      } ${variant === 'centered' ? 'mb-3' : ''}`}>
+      <div
+        className={`flex-shrink-0 ${
+          iconBackground
+            ? `w-12 h-12 bg-${iconColor}-100 rounded-xl flex items-center justify-center group-hover:bg-${iconColor}-200 transition-colors`
+            : ""
+        } ${variant === "centered" ? "mb-3" : ""}`}
+      >
         <IconComponent className={`w-6 h-6 text-${iconColor}-600`} />
       </div>
-      <div className={variant === 'centered' ? '' : 'flex-1'}>
+      <div className={variant === "centered" ? "" : "flex-1"}>
         <h4 className="font-bold text-neutral-900 mb-1 group-hover:text-amber-800 transition-colors">
           {title}
         </h4>

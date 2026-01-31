@@ -6,7 +6,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Apparence | Admin ODB",
-  description: "Personnalisation de l'apparence globale, logos, couleurs et animations",
+  description:
+    "Personnalisation de l'apparence globale, logos, couleurs et animations",
 };
 
 export default async function ApparencePage() {

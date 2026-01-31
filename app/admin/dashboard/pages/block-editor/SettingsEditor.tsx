@@ -1,10 +1,13 @@
-'use client';
+"use client";
 
-import { PageBlock } from '@/types/page-builder';
-import { Field } from './Field';
-import { SettingsEditorProps } from './types';
+import { PageBlock } from "@/types/page-builder";
+import { Field } from "./Field";
+import { SettingsEditorProps } from "./types";
 
-export default function SettingsEditor({ block, onUpdate }: SettingsEditorProps) {
+export default function SettingsEditor({
+  block,
+  onUpdate,
+}: SettingsEditorProps) {
   const settings = block.settings as Record<string, unknown>;
 
   const updateSettings = (key: string, value: unknown) => {
@@ -18,8 +21,8 @@ export default function SettingsEditor({ block, onUpdate }: SettingsEditorProps)
       <Field label="ID d'ancrage">
         <input
           type="text"
-          value={(settings.anchorId as string) || ''}
-          onChange={(e) => updateSettings('anchorId', e.target.value)}
+          value={(settings.anchorId as string) || ""}
+          onChange={(e) => updateSettings("anchorId", e.target.value)}
           className="input"
           placeholder="mon-section"
         />
@@ -32,7 +35,7 @@ export default function SettingsEditor({ block, onUpdate }: SettingsEditorProps)
         <input
           type="checkbox"
           checked={(settings.hideOnMobile as boolean) || false}
-          onChange={(e) => updateSettings('hideOnMobile', e.target.checked)}
+          onChange={(e) => updateSettings("hideOnMobile", e.target.checked)}
           className="w-4 h-4 rounded border-gray-300"
         />
         <span className="text-sm">Masquer sur mobile</span>
@@ -42,7 +45,7 @@ export default function SettingsEditor({ block, onUpdate }: SettingsEditorProps)
         <input
           type="checkbox"
           checked={(settings.hideOnTablet as boolean) || false}
-          onChange={(e) => updateSettings('hideOnTablet', e.target.checked)}
+          onChange={(e) => updateSettings("hideOnTablet", e.target.checked)}
           className="w-4 h-4 rounded border-gray-300"
         />
         <span className="text-sm">Masquer sur tablette</span>
@@ -52,7 +55,7 @@ export default function SettingsEditor({ block, onUpdate }: SettingsEditorProps)
         <input
           type="checkbox"
           checked={(settings.hideOnDesktop as boolean) || false}
-          onChange={(e) => updateSettings('hideOnDesktop', e.target.checked)}
+          onChange={(e) => updateSettings("hideOnDesktop", e.target.checked)}
           className="w-4 h-4 rounded border-gray-300"
         />
         <span className="text-sm">Masquer sur bureau</span>

@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { FaFacebook, FaInstagram, FaTwitter, FaLinkedin, FaYoutube, FaTiktok } from 'react-icons/fa';
-import { useApparence } from '@/lib/apparence-context';
-import { FooterSettings, defaultApparenceSettings } from '@/types/apparence';
+import Link from "next/link";
+import Image from "next/image";
+import {
+  FaFacebook,
+  FaInstagram,
+  FaTwitter,
+  FaLinkedin,
+  FaYoutube,
+  FaTiktok,
+} from "react-icons/fa";
+import { useApparence } from "@/lib/apparence-context";
+import { FooterSettings, defaultApparenceSettings } from "@/types/apparence";
 
 const Footer = () => {
   const { settings: apparenceSettings } = useApparence();
@@ -43,7 +50,7 @@ const Footer = () => {
   // Calculate text opacity colors based on footer_text_color
   const textColorWithOpacity = (opacity: number) => {
     // Convert hex to rgba
-    const hex = settings.footer_text_color.replace('#', '');
+    const hex = settings.footer_text_color.replace("#", "");
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
@@ -51,14 +58,14 @@ const Footer = () => {
   };
 
   return (
-    <footer 
+    <footer
       className="border-t"
-      style={{ 
+      style={{
         backgroundColor: settings.footer_bg_color,
         color: settings.footer_text_color,
         borderColor: settings.footer_border_color || textColorWithOpacity(0.1),
         paddingTop: settings.footer_padding_y,
-        paddingBottom: settings.footer_padding_y
+        paddingBottom: settings.footer_padding_y,
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -76,7 +83,10 @@ const Footer = () => {
                 />
               )}
             </div>
-            <p className="text-sm mb-4" style={{ color: textColorWithOpacity(0.6) }}>
+            <p
+              className="text-sm mb-4"
+              style={{ color: textColorWithOpacity(0.6) }}
+            >
               {settings.footer_tagline}
             </p>
             <div className="flex gap-3 flex-wrap justify-center sm:justify-start">
@@ -86,7 +96,10 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:opacity-80"
-                  style={{ borderColor: textColorWithOpacity(0.2), color: settings.social_icon_color }}
+                  style={{
+                    borderColor: textColorWithOpacity(0.2),
+                    color: settings.social_icon_color,
+                  }}
                   aria-label="Facebook"
                 >
                   <FaFacebook />
@@ -98,7 +111,10 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:opacity-80"
-                  style={{ borderColor: textColorWithOpacity(0.2), color: settings.social_icon_color }}
+                  style={{
+                    borderColor: textColorWithOpacity(0.2),
+                    color: settings.social_icon_color,
+                  }}
                   aria-label="Instagram"
                 >
                   <FaInstagram />
@@ -110,7 +126,10 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:opacity-80"
-                  style={{ borderColor: textColorWithOpacity(0.2), color: settings.social_icon_color }}
+                  style={{
+                    borderColor: textColorWithOpacity(0.2),
+                    color: settings.social_icon_color,
+                  }}
                   aria-label="Twitter"
                 >
                   <FaTwitter />
@@ -122,7 +141,10 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:opacity-80"
-                  style={{ borderColor: textColorWithOpacity(0.2), color: settings.social_icon_color }}
+                  style={{
+                    borderColor: textColorWithOpacity(0.2),
+                    color: settings.social_icon_color,
+                  }}
                   aria-label="LinkedIn"
                 >
                   <FaLinkedin />
@@ -134,7 +156,10 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:opacity-80"
-                  style={{ borderColor: textColorWithOpacity(0.2), color: settings.social_icon_color }}
+                  style={{
+                    borderColor: textColorWithOpacity(0.2),
+                    color: settings.social_icon_color,
+                  }}
                   aria-label="YouTube"
                 >
                   <FaYoutube />
@@ -146,7 +171,10 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border flex items-center justify-center transition-colors hover:opacity-80"
-                  style={{ borderColor: textColorWithOpacity(0.2), color: settings.social_icon_color }}
+                  style={{
+                    borderColor: textColorWithOpacity(0.2),
+                    color: settings.social_icon_color,
+                  }}
                   aria-label="TikTok"
                 >
                   <FaTiktok />
@@ -157,7 +185,7 @@ const Footer = () => {
 
           {/* Navigation */}
           <div className="text-center sm:text-left">
-            <h3 
+            <h3
               className="text-sm font-bold tracking-wider uppercase mb-3 lg:mb-4"
               style={{ color: settings.footer_text_color }}
             >
@@ -166,13 +194,17 @@ const Footer = () => {
             <ul className="space-y-2 text-sm flex flex-col items-center sm:items-start">
               {settings.footer_nav_links.map((link) => (
                 <li key={link.id}>
-                  <Link 
+                  <Link
                     href={link.url}
                     className="footer-link transition-colors"
-                    style={{ 
-                      color: textColorWithOpacity(0.6),
-                      '--hover-color': settings.footer_link_hover_color || settings.footer_text_color 
-                    } as React.CSSProperties}
+                    style={
+                      {
+                        color: textColorWithOpacity(0.6),
+                        "--hover-color":
+                          settings.footer_link_hover_color ||
+                          settings.footer_text_color,
+                      } as React.CSSProperties
+                    }
                   >
                     {link.label}
                   </Link>
@@ -183,23 +215,32 @@ const Footer = () => {
 
           {/* Contact */}
           <div className="text-center sm:text-left">
-            <h3 
+            <h3
               className="text-sm font-bold tracking-wider uppercase mb-3 lg:mb-4"
               style={{ color: settings.footer_text_color }}
             >
               Contact
             </h3>
-            <ul className="space-y-2 text-sm flex flex-col items-center sm:items-start" style={{ color: textColorWithOpacity(0.6) }}>
+            <ul
+              className="space-y-2 text-sm flex flex-col items-center sm:items-start"
+              style={{ color: textColorWithOpacity(0.6) }}
+            >
               {settings.contact_phone && (
                 <li>
-                  <a href={`tel:${settings.contact_phone.replace(/\s/g, '')}`} className="transition-colors hover:opacity-100">
+                  <a
+                    href={`tel:${settings.contact_phone.replace(/\s/g, "")}`}
+                    className="transition-colors hover:opacity-100"
+                  >
                     {settings.contact_phone}
                   </a>
                 </li>
               )}
               {settings.contact_email && (
                 <li>
-                  <a href={`mailto:${settings.contact_email}`} className="transition-colors hover:opacity-100">
+                  <a
+                    href={`mailto:${settings.contact_email}`}
+                    className="transition-colors hover:opacity-100"
+                  >
                     {settings.contact_email}
                   </a>
                 </li>
@@ -215,32 +256,42 @@ const Footer = () => {
           {/* Newsletter */}
           {settings.newsletter_enabled && (
             <div className="text-center sm:text-left sm:col-span-2 lg:col-span-1">
-              <h3 
+              <h3
                 className="text-sm font-bold tracking-wider uppercase mb-3 lg:mb-4"
                 style={{ color: settings.footer_text_color }}
               >
                 {settings.newsletter_title}
               </h3>
-              <p className="text-sm mb-4" style={{ color: textColorWithOpacity(0.6) }}>
+              <p
+                className="text-sm mb-4"
+                style={{ color: textColorWithOpacity(0.6) }}
+              >
                 {settings.newsletter_description}
               </p>
-              <form className="flex flex-col sm:flex-row gap-2" onSubmit={(e) => e.preventDefault()}>
+              <form
+                className="flex flex-col sm:flex-row gap-2"
+                onSubmit={(e) => e.preventDefault()}
+              >
                 <input
                   type="email"
                   placeholder="Votre email"
                   className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none"
-                  style={{ 
-                    backgroundColor: settings.newsletter_input_bg_color || textColorWithOpacity(0.1),
+                  style={{
+                    backgroundColor:
+                      settings.newsletter_input_bg_color ||
+                      textColorWithOpacity(0.1),
                     borderColor: textColorWithOpacity(0.2),
-                    color: settings.footer_text_color
+                    color: settings.footer_text_color,
                   }}
                 />
                 <button
                   type="submit"
                   className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:opacity-90"
-                  style={{ 
-                    backgroundColor: settings.newsletter_button_color || settings.footer_text_color,
-                    color: settings.footer_bg_color
+                  style={{
+                    backgroundColor:
+                      settings.newsletter_button_color ||
+                      settings.footer_text_color,
+                    color: settings.footer_bg_color,
                   }}
                 >
                   {settings.newsletter_button_text}
@@ -251,20 +302,35 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div 
+        <div
           className="pt-6 lg:pt-8 border-t flex flex-col items-center gap-4 sm:flex-row sm:justify-between"
-          style={{ borderColor: settings.footer_border_color || textColorWithOpacity(0.1) }}
+          style={{
+            borderColor:
+              settings.footer_border_color || textColorWithOpacity(0.1),
+          }}
         >
-          <p className="text-sm text-center sm:text-left" style={{ color: textColorWithOpacity(0.5) }}>
+          <p
+            className="text-sm text-center sm:text-left"
+            style={{ color: textColorWithOpacity(0.5) }}
+          >
             {settings.footer_copyright}
           </p>
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm" style={{ color: textColorWithOpacity(0.5) }}>
+          <div
+            className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm"
+            style={{ color: textColorWithOpacity(0.5) }}
+          >
             {settings.footer_legal_links.map((link) => (
-              <Link 
+              <Link
                 key={link.id}
-                href={link.url} 
+                href={link.url}
                 className="footer-link transition-colors whitespace-nowrap"
-                style={{ '--hover-color': settings.footer_link_hover_color || settings.footer_text_color } as React.CSSProperties}
+                style={
+                  {
+                    "--hover-color":
+                      settings.footer_link_hover_color ||
+                      settings.footer_text_color,
+                  } as React.CSSProperties
+                }
               >
                 {link.label}
               </Link>

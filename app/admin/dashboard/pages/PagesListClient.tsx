@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import {
   Plus,
   Search,
@@ -18,30 +18,32 @@ import {
   Calendar,
   ChevronRight,
   Palette,
-} from 'lucide-react';
-import { Page } from '@/types/page-builder';
+} from "lucide-react";
+import { Page } from "@/types/page-builder";
 
 interface PagesListClientProps {
   initialPages?: Page[];
 }
 
-export default function PagesListClient({ initialPages = [] }: PagesListClientProps) {
+export default function PagesListClient({
+  initialPages = [],
+}: PagesListClientProps) {
   const [pages, setPages] = useState<Page[]>(initialPages);
   const [loading, setLoading] = useState(!initialPages.length);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
 
   const fetchPages = useCallback(async () => {
     try {
-      const response = await fetch('/api/pages');
+      const response = await fetch("/api/pages");
       if (response.ok) {
         const data = await response.json();
         setPages(data);
       }
     } catch (error) {
-      console.error('Error fetching pages:', error);
+      console.error("Error fetching pages:", error);
     } finally {
       setLoading(false);
     }
@@ -55,28 +57,33 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
 
   const handleTogglePublished = async (page: Page) => {
     try {
-      const response = await fetch(`/api/pages/${encodeURIComponent(page.slug)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ published: !page.published }),
-      });
-      
+      const response = await fetch(
+        `/api/pages/${encodeURIComponent(page.slug)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ published: !page.published }),
+        },
+      );
+
       if (response.ok) {
-        setPages(pages.map(p => 
-          p.id === page.id ? { ...p, published: !p.published } : p
-        ));
+        setPages(
+          pages.map((p) =>
+            p.id === page.id ? { ...p, published: !p.published } : p,
+          ),
+        );
       }
     } catch (error) {
-      console.error('Error toggling page status:', error);
+      console.error("Error toggling page status:", error);
     }
   };
 
   const handleDuplicate = async (page: Page) => {
     try {
       const newSlug = `${page.slug}-copy-${Date.now()}`;
-      const response = await fetch('/api/pages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/pages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: `${page.title} (copie)`,
           slug: newSlug,
@@ -87,12 +94,12 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
           blocks: page.blocks || [],
         }),
       });
-      
+
       if (response.ok) {
         fetchPages();
       }
     } catch (error) {
-      console.error('Error duplicating page:', error);
+      console.error("Error duplicating page:", error);
     }
     setActionMenuOpen(null);
   };
@@ -100,24 +107,26 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
   const handleDelete = async (slug: string) => {
     try {
       const response = await fetch(`/api/pages/${encodeURIComponent(slug)}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
-      
+
       if (response.ok) {
-        setPages(pages.filter(p => p.slug !== slug));
+        setPages(pages.filter((p) => p.slug !== slug));
         setShowDeleteModal(null);
       }
     } catch (error) {
-      console.error('Error deleting page:', error);
+      console.error("Error deleting page:", error);
     }
   };
 
-  const filteredPages = pages.filter(page => {
-    const matchesSearch = page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          page.slug.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === 'all' ||
-                          (filter === 'published' && page.published) ||
-                          (filter === 'draft' && !page.published);
+  const filteredPages = pages.filter((page) => {
+    const matchesSearch =
+      page.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      page.slug.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter =
+      filter === "all" ||
+      (filter === "published" && page.published) ||
+      (filter === "draft" && !page.published);
     return matchesSearch && matchesFilter;
   });
 
@@ -152,17 +161,21 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
             />
           </div>
           <div className="flex items-center gap-2">
-            {(['all', 'published', 'draft'] as const).map((f) => (
+            {(["all", "published", "draft"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filter === f
-                    ? 'bg-black text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                    ? "bg-black text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
                 }`}
               >
-                {f === 'all' ? 'Toutes' : f === 'published' ? 'Publiées' : 'Brouillons'}
+                {f === "all"
+                  ? "Toutes"
+                  : f === "published"
+                    ? "Publiées"
+                    : "Brouillons"}
               </button>
             ))}
           </div>
@@ -172,7 +185,10 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
         {loading ? (
           <div className="grid gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl p-6 border border-gray-200 animate-pulse">
+              <div
+                key={i}
+                className="bg-white rounded-xl p-6 border border-gray-200 animate-pulse"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gray-200 rounded-lg" />
                   <div className="flex-1">
@@ -187,14 +203,16 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
           <div className="bg-white rounded-xl p-12 border border-gray-200 text-center">
             <FileText className="w-12 h-12 text-gray-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {searchQuery || filter !== 'all' ? 'Aucune page trouvée' : 'Aucune page créée'}
+              {searchQuery || filter !== "all"
+                ? "Aucune page trouvée"
+                : "Aucune page créée"}
             </h3>
             <p className="text-gray-600 mb-6">
-              {searchQuery || filter !== 'all'
-                ? 'Essayez de modifier vos filtres'
-                : 'Commencez par créer votre première page'}
+              {searchQuery || filter !== "all"
+                ? "Essayez de modifier vos filtres"
+                : "Commencez par créer votre première page"}
             </p>
-            {!searchQuery && filter === 'all' && (
+            {!searchQuery && filter === "all" && (
               <Link
                 href="/admin/dashboard/pages/new"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
@@ -220,9 +238,12 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
                     {/* Icon */}
                     <div
                       className="w-12 h-12 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: page.backgroundColor + '20' }}
+                      style={{ backgroundColor: page.backgroundColor + "20" }}
                     >
-                      <FileText className="w-6 h-6" style={{ color: page.backgroundColor }} />
+                      <FileText
+                        className="w-6 h-6"
+                        style={{ color: page.backgroundColor }}
+                      />
                     </div>
 
                     {/* Content */}
@@ -234,11 +255,11 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
                         <span
                           className={`px-2 py-0.5 text-xs rounded-full ${
                             page.published
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-100 text-gray-600'
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
                           }`}
                         >
-                          {page.published ? 'Publié' : 'Brouillon'}
+                          {page.published ? "Publié" : "Brouillon"}
                         </span>
                       </div>
                       <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
@@ -249,7 +270,9 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
                         {page.publishedAt && (
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
-                            {new Date(page.publishedAt).toLocaleDateString('fr-FR')}
+                            {new Date(page.publishedAt).toLocaleDateString(
+                              "fr-FR",
+                            )}
                           </span>
                         )}
                       </div>
@@ -260,7 +283,7 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
                       <button
                         onClick={() => handleTogglePublished(page)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        title={page.published ? 'Dépublier' : 'Publier'}
+                        title={page.published ? "Dépublier" : "Publier"}
                       >
                         {page.published ? (
                           <EyeOff className="w-4 h-4 text-gray-600" />
@@ -269,14 +292,14 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
                         )}
                       </button>
                       <Link
-                        href={`/admin/dashboard/pages/edit/${page.slug.replace(/^\//, '')}`}
+                        href={`/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Modifier"
                       >
                         <Pencil className="w-4 h-4 text-gray-600" />
                       </Link>
                       <a
-                        href={`/${page.slug.replace(/^\//, '')}`}
+                        href={`/${page.slug.replace(/^\//, "")}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -286,7 +309,11 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
                       </a>
                       <div className="relative">
                         <button
-                          onClick={() => setActionMenuOpen(actionMenuOpen === page.id ? null : page.id)}
+                          onClick={() =>
+                            setActionMenuOpen(
+                              actionMenuOpen === page.id ? null : page.id,
+                            )
+                          }
                           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         >
                           <MoreHorizontal className="w-4 h-4 text-gray-600" />
@@ -325,7 +352,7 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
 
                     {/* Arrow */}
                     <Link
-                      href={`/admin/dashboard/pages/edit/${page.slug.replace(/^\//, '')}`}
+                      href={`/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`}
                       className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <ChevronRight className="w-5 h-5 text-gray-500" />
@@ -359,7 +386,8 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
                 Supprimer cette page ?
               </h3>
               <p className="text-gray-600 mb-6">
-                Cette action est irréversible. La page et tous ses blocs seront définitivement supprimés.
+                Cette action est irréversible. La page et tous ses blocs seront
+                définitivement supprimés.
               </p>
               <div className="flex justify-end gap-3">
                 <button
