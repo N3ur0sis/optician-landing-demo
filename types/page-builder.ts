@@ -519,15 +519,23 @@ export interface IconFeatureContent {
 // ============================================
 
 export interface BlockStyles {
-  // Background
+  // Section Background (full width, behind the content)
+  sectionBackgroundColor?: string;
+  sectionBackgroundImage?: string;
+  sectionOverlayColor?: string;
+  sectionOverlayOpacity?: number; // 0-100
+  
+  // Content Background (applies to the content container only)
   backgroundColor?: string;
   backgroundImage?: string;
   
   // Text
   textColor?: string;
+  textAlign?: 'left' | 'center' | 'right' | 'justify';
   
   // Block Alignment (centers the entire block, not just text)
   alignment?: 'left' | 'center' | 'right';
+  verticalAlign?: 'top' | 'center' | 'bottom';
   
   // Size - widthPercent for precise horizontal control (10-100%)
   widthPercent?: number; // 10, 20, 25, 33, 50, 66, 75, 100
@@ -536,11 +544,19 @@ export interface BlockStyles {
   // Layout - inline allows blocks side by side
   inline?: boolean;
   
-  // Spacing
-  paddingTop?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-  paddingBottom?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-  marginTop?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-  marginBottom?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  // Section Spacing (applies to full-width section) - up to 8xl (96px)
+  sectionPaddingTop?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | '8xl';
+  sectionPaddingBottom?: 'none' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | '8xl';
+  
+  // Content Spacing - full range up to 8xl (96px) + percentage options
+  paddingTop?: string; // Preset values (xs-8xl) or percentage
+  paddingBottom?: string;
+  paddingLeft?: string;
+  paddingRight?: string;
+  marginTop?: string;
+  marginBottom?: string;
+  marginLeft?: string; // Also supports 'auto' for centering
+  marginRight?: string;
   
   // Container
   containerWidth?: ContainerWidth;
@@ -563,10 +579,14 @@ export interface BlockStyles {
 export interface BlockSettings {
   // Visibility
   hideOnMobile?: boolean;
+  hideOnTablet?: boolean;
   hideOnDesktop?: boolean;
   
   // ID and anchor
   anchorId?: string;
+  
+  // Custom CSS (inline styles)
+  customCSS?: string;
   
   // Additional custom settings
   [key: string]: unknown;

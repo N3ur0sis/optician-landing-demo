@@ -24,6 +24,8 @@ type GridTile = {
   colStart: number;
   rowStart: number;
   overlayType: 'LIGHT' | 'DARK';
+  overlayColor: string | null;
+  overlayOpacity: number;
   order: number;
   published: boolean;
 };
@@ -36,7 +38,9 @@ type Tile = {
   rowSpan: number;
   colStart: number;
   rowStart: number;
-  overlay?: 'light' | 'dark';
+  overlay: 'light' | 'dark';
+  overlayColor?: string;
+  overlayOpacity: number;
   caption?: string;
 };
 
@@ -65,6 +69,8 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
               colStart: tile.colStart,
               rowStart: tile.rowStart,
               overlay: tile.overlayType.toLowerCase() as 'light' | 'dark',
+              overlayColor: tile.overlayColor || undefined,
+              overlayOpacity: tile.overlayOpacity ?? 60,
             }));
           
           setTiles(convertedTiles);
@@ -195,14 +201,29 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
                     }}
                   />
                   <div
-                    className="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-all duration-500"
+                    className="absolute inset-0 transition-all duration-500"
+                    style={{
+                      backgroundColor: tile.overlayColor 
+                        ? tile.overlayColor 
+                        : tile.overlay === 'dark' ? 'rgba(0,0,0,1)' : 'rgba(255,255,255,1)',
+                      opacity: tile.overlayOpacity / 100,
+                    }}
+                  />
+                  <div
+                    className="absolute inset-0 transition-all duration-500 opacity-0 group-hover:opacity-100"
+                    style={{
+                      backgroundColor: tile.overlayColor 
+                        ? tile.overlayColor 
+                        : tile.overlay === 'dark' ? 'rgba(0,0,0,1)' : 'rgba(255,255,255,1)',
+                      opacity: Math.max(0, (tile.overlayOpacity - 20)) / 100,
+                    }}
                   />
                   {/* Professional grid overlay */}
                   <div className="absolute inset-0 opacity-10 group-hover:opacity-5 transition-opacity duration-500" 
                     style={{
                       backgroundImage: `
-                        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+                        linear-gradient(${tile.overlay === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} 1px, transparent 1px),
+                        linear-gradient(90deg, ${tile.overlay === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} 1px, transparent 1px)
                       `,
                       backgroundSize: '20px 20px'
                     }}
@@ -210,20 +231,20 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
                   <div className="relative flex h-full flex-col justify-between p-6 lg:p-8">
                     {/* Top section - Category indicator */}
                     <div className="flex justify-between items-start">
-                      <div className="bg-white/10 backdrop-blur-sm px-3 py-1 text-xs font-medium tracking-[0.2em] text-white uppercase">
+                      <div className={`${tile.overlay === 'dark' ? 'bg-white/10 text-white' : 'bg-black/10 text-black'} backdrop-blur-sm px-3 py-1 text-xs font-medium tracking-[0.2em] uppercase`}>
                         {tile.caption}
                       </div>
-                      <div className="w-6 h-6 border border-white/30 flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white/80 transform rotate-45"></div>
+                      <div className={`w-6 h-6 border ${tile.overlay === 'dark' ? 'border-white/30' : 'border-black/30'} flex items-center justify-center`}>
+                        <div className={`w-2 h-2 ${tile.overlay === 'dark' ? 'bg-white/80' : 'bg-black/80'} transform rotate-45`}></div>
                       </div>
                     </div>
                     
                     {/* Bottom section - Title and CTA */}
                     <div>
-                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white mb-4 leading-tight">
+                      <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight ${tile.overlay === 'dark' ? 'text-white' : 'text-black'} mb-4 leading-tight`}>
                         {tile.title}
                       </h2>
-                      <div className="flex items-center text-white/80 group-hover:text-white transition-colors duration-300">
+                      <div className={`flex items-center ${tile.overlay === 'dark' ? 'text-white/80 group-hover:text-white' : 'text-black/80 group-hover:text-black'} transition-colors duration-300`}>
                         <div className="flex items-center space-x-1 transform group-hover:translate-x-2 transition-transform duration-300">
                           <div className="w-8 h-px bg-current"></div>
                           <div className="w-0 h-0 border-l-[6px] border-l-current border-y-[3px] border-y-transparent"></div>

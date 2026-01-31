@@ -17,6 +17,7 @@ import {
   Globe,
   Calendar,
   ChevronRight,
+  Palette,
 } from 'lucide-react';
 import { Page } from '@/types/page-builder';
 
@@ -292,6 +293,14 @@ export default function PagesListClient({ initialPages = [] }: PagesListClientPr
                         </button>
                         {actionMenuOpen === page.id && (
                           <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                            <Link
+                              href={`/admin/visual-builder?page=${encodeURIComponent(page.slug)}`}
+                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                              onClick={() => setActionMenuOpen(null)}
+                            >
+                              <Palette className="w-4 h-4" />
+                              Visual Builder
+                            </Link>
                             <button
                               onClick={() => handleDuplicate(page)}
                               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"

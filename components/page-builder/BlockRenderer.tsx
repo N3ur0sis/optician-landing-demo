@@ -6,9 +6,64 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronDown, Check, Star, Download, MapPin, Mail, Phone, User, Send, Clock, Calendar, ExternalLink } from 'lucide-react';
 import { PageBlock, BlockStyles } from '@/types/page-builder';
+import { spacingToCss } from '@/app/admin/dashboard/pages/block-editor/types';
 
 interface BlockRendererProps {
   block: PageBlock;
+}
+
+// Get section wrapper styles (full-width background container)
+function getSectionWrapperStyles(styles: BlockStyles): { className: string; style: React.CSSProperties } {
+  const classNames: string[] = ['w-full', 'relative'];
+  const inlineStyles: React.CSSProperties = {};
+
+  // Section background color (full-width)
+  if (styles.sectionBackgroundColor) {
+    inlineStyles.backgroundColor = styles.sectionBackgroundColor;
+  }
+
+  // Section background image (full-width)
+  if (styles.sectionBackgroundImage) {
+    inlineStyles.backgroundImage = `url(${styles.sectionBackgroundImage})`;
+    inlineStyles.backgroundSize = 'cover';
+    inlineStyles.backgroundPosition = 'center';
+  }
+
+  // Section vertical padding
+  if (styles.sectionPaddingTop && styles.sectionPaddingTop !== 'none') {
+    inlineStyles.paddingTop = spacingToCss(styles.sectionPaddingTop) || '0';
+  }
+  if (styles.sectionPaddingBottom && styles.sectionPaddingBottom !== 'none') {
+    inlineStyles.paddingBottom = spacingToCss(styles.sectionPaddingBottom) || '0';
+  }
+
+  return {
+    className: classNames.join(' '),
+    style: inlineStyles,
+  };
+}
+
+// Get overlay styles for section background
+function getSectionOverlayStyles(styles: BlockStyles): React.CSSProperties | null {
+  if (!styles.sectionOverlayColor || !styles.sectionOverlayOpacity) return null;
+  
+  return {
+    position: 'absolute' as const,
+    inset: 0,
+    backgroundColor: styles.sectionOverlayColor,
+    opacity: styles.sectionOverlayOpacity / 100,
+    pointerEvents: 'none' as const,
+  };
+}
+
+// Check if section wrapper is needed
+function needsSectionWrapper(styles: BlockStyles): boolean {
+  return !!(
+    styles.sectionBackgroundColor ||
+    styles.sectionBackgroundImage ||
+    styles.sectionPaddingTop ||
+    styles.sectionPaddingBottom
+  );
 }
 
 // Convert style settings to CSS classes/styles
@@ -27,29 +82,62 @@ function getBlockStyles(styles: BlockStyles): { className: string; style: React.
     inlineStyles.width = `${styles.widthPercent}%`;
   }
 
-  // Block Alignment (affects the entire block, not just text)
-  if (styles.alignment) {
-    if (styles.alignment === 'center') {
-      if (!styles.inline) {
-        classNames.push('mx-auto');
-      }
-      classNames.push('text-center');
-      classNames.push('flex flex-col items-center');
-    } else if (styles.alignment === 'right') {
-      if (!styles.inline) {
-        classNames.push('ml-auto');
-      }
-      classNames.push('text-right');
-      classNames.push('flex flex-col items-end');
-    } else {
-      if (!styles.inline) {
-        classNames.push('mr-auto');
-      }
-      classNames.push('text-left');
-      classNames.push('flex flex-col items-start');
+  // Always add flex column for consistent layout
+  classNames.push('flex flex-col');
+
+  // Handle horizontal margins and alignment
+  // Priority: Manual margins > Alignment auto margins
+  const hasManualMarginLeft = styles.marginLeft && styles.marginLeft !== 'none';
+  const hasManualMarginRight = styles.marginRight && styles.marginRight !== 'none';
+
+  if (hasManualMarginLeft) {
+    const resolved = spacingToCss(styles.marginLeft);
+    if (resolved) inlineStyles.marginLeft = resolved;
+  }
+  if (hasManualMarginRight) {
+    const resolved = spacingToCss(styles.marginRight);
+    if (resolved) inlineStyles.marginRight = resolved;
+  }
+
+  // Block Alignment (only apply auto margins if no manual margins set)
+  if (styles.alignment === 'left') {
+    if (!hasManualMarginRight && !styles.inline) {
+      inlineStyles.marginRight = 'auto';
     }
-  } else if (!styles.inline) {
-    classNames.push('mx-auto'); // Default centering for container
+    classNames.push('items-start');
+  } else if (styles.alignment === 'right') {
+    if (!hasManualMarginLeft && !styles.inline) {
+      inlineStyles.marginLeft = 'auto';
+    }
+    classNames.push('items-end');
+  } else {
+    // Default and 'center': centered with mx-auto (only if no manual margins)
+    if (!hasManualMarginLeft && !hasManualMarginRight && !styles.inline) {
+      inlineStyles.marginLeft = 'auto';
+      inlineStyles.marginRight = 'auto';
+    }
+    classNames.push('items-center');
+  }
+
+  // Text Alignment (separate from block alignment)
+  if (styles.textAlign) {
+    const textAlignMap: Record<string, string> = {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right',
+      justify: 'text-justify',
+    };
+    classNames.push(textAlignMap[styles.textAlign]);
+  }
+
+  // Vertical Alignment (when height is defined)
+  if (styles.verticalAlign && styles.height && styles.height !== 'auto') {
+    const verticalAlignMap: Record<string, string> = {
+      top: 'justify-start',
+      center: 'justify-center',
+      bottom: 'justify-end',
+    };
+    classNames.push(verticalAlignMap[styles.verticalAlign]);
   }
 
   // Height
@@ -76,29 +164,25 @@ function getBlockStyles(styles: BlockStyles): { className: string; style: React.
     classNames.push('px-6', widthMap[styles.containerWidth] || 'max-w-6xl');
   }
 
-  // Spacing
-  const spacingMap: Record<string, string> = {
-    none: '0',
-    xs: '0.5rem',
-    sm: '1rem',
-    md: '1.5rem',
-    lg: '2rem',
-    xl: '3rem',
-    '2xl': '4rem',
-  };
+  // Vertical margins (top/bottom)
+  const marginTopResolved = spacingToCss(styles.marginTop);
+  if (marginTopResolved) inlineStyles.marginTop = marginTopResolved;
+  
+  const marginBottomResolved = spacingToCss(styles.marginBottom);
+  if (marginBottomResolved) inlineStyles.marginBottom = marginBottomResolved;
 
-  if (styles.paddingTop && styles.paddingTop !== 'none') {
-    inlineStyles.paddingTop = spacingMap[styles.paddingTop];
-  }
-  if (styles.paddingBottom && styles.paddingBottom !== 'none') {
-    inlineStyles.paddingBottom = spacingMap[styles.paddingBottom];
-  }
-  if (styles.marginTop && styles.marginTop !== 'none') {
-    inlineStyles.marginTop = spacingMap[styles.marginTop];
-  }
-  if (styles.marginBottom && styles.marginBottom !== 'none') {
-    inlineStyles.marginBottom = spacingMap[styles.marginBottom];
-  }
+  // Paddings
+  const paddingTopResolved = spacingToCss(styles.paddingTop);
+  if (paddingTopResolved) inlineStyles.paddingTop = paddingTopResolved;
+  
+  const paddingBottomResolved = spacingToCss(styles.paddingBottom);
+  if (paddingBottomResolved) inlineStyles.paddingBottom = paddingBottomResolved;
+  
+  const paddingLeftResolved = spacingToCss(styles.paddingLeft);
+  if (paddingLeftResolved) inlineStyles.paddingLeft = paddingLeftResolved;
+  
+  const paddingRightResolved = spacingToCss(styles.paddingRight);
+  if (paddingRightResolved) inlineStyles.paddingRight = paddingRightResolved;
 
   // Colors
   if (styles.backgroundColor) {
@@ -172,35 +256,96 @@ const animationVariants: Record<string, { initial: TargetAndTransition; animate:
   },
 };
 
+// Get responsive visibility classes
+function getResponsiveClasses(settings: Record<string, unknown>): string {
+  const classes: string[] = [];
+  
+  if (settings.hideOnMobile) {
+    classes.push('hidden md:block'); // Hidden on mobile, visible from md up
+  }
+  if (settings.hideOnTablet) {
+    classes.push('md:hidden lg:block'); // Hidden on tablet (md-lg), visible on mobile and desktop
+  }
+  if (settings.hideOnDesktop) {
+    classes.push('lg:hidden'); // Hidden on large screens
+  }
+  
+  return classes.join(' ');
+}
+
+// Parse custom CSS string to CSSProperties
+function parseCustomCSS(cssString: string): React.CSSProperties {
+  if (!cssString) return {};
+  
+  const styles: Record<string, string> = {};
+  const lines = cssString.split(';').filter(line => line.trim());
+  
+  for (const line of lines) {
+    const [property, value] = line.split(':').map(s => s.trim());
+    if (property && value) {
+      // Convert kebab-case to camelCase
+      const camelProperty = property.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      styles[camelProperty] = value;
+    }
+  }
+  
+  return styles as React.CSSProperties;
+}
+
 export default function BlockRenderer({ block }: BlockRendererProps) {
   if (!block.visible) return null;
 
   const styles = block.styles as BlockStyles;
+  const settings = block.settings as Record<string, unknown>;
   const { className, style } = getBlockStyles(styles);
   const animation = styles.animation && styles.animation !== 'none' ? animationVariants[styles.animation] : null;
+  const hasSectionWrapper = needsSectionWrapper(styles);
+  const responsiveClasses = getResponsiveClasses(settings);
+  const customCSSStyles = settings.customCSS ? parseCustomCSS(settings.customCSS as string) : {};
 
   const content = renderBlockContent(block);
+  
+  // Combine className with responsive classes
+  const combinedClassName = [className, responsiveClasses].filter(Boolean).join(' ');
+  
+  // Combine styles with custom CSS
+  const combinedStyle = { ...style, ...customCSSStyles };
 
-  if (animation) {
+  // Content block element (the inner container with content width)
+  // Inner content wrapper ensures children don't inherit parent width constraints
+  const contentElement = animation ? (
+    <motion.div
+      initial={animation.initial}
+      whileInView={animation.animate}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: (styles.animationDelay || 0) / 1000 }}
+      className={combinedClassName}
+      style={combinedStyle}
+    >
+      <div className="w-full">{content}</div>
+    </motion.div>
+  ) : (
+    <div className={combinedClassName} style={combinedStyle}>
+      <div className="w-full">{content}</div>
+    </div>
+  );
+
+  // If we have section-level styles, wrap in a full-width section
+  if (hasSectionWrapper) {
+    const sectionStyles = getSectionWrapperStyles(styles);
+    const overlayStyles = getSectionOverlayStyles(styles);
+    
     return (
-      <motion.div
-        initial={animation.initial}
-        whileInView={animation.animate}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: (styles.animationDelay || 0) / 1000 }}
-        className={className}
-        style={style}
-      >
-        {content}
-      </motion.div>
+      <div className={sectionStyles.className} style={sectionStyles.style}>
+        {overlayStyles && <div style={overlayStyles} />}
+        <div className="relative z-10">
+          {contentElement}
+        </div>
+      </div>
     );
   }
 
-  return (
-    <div className={className} style={style}>
-      {content}
-    </div>
-  );
+  return contentElement;
 }
 
 function renderBlockContent(block: PageBlock) {
@@ -416,15 +561,15 @@ function HeadingBlock({ content }: { content: Record<string, unknown> }) {
 
   return (
     <div>
-      <Tag className={`font-bold tracking-tight ${sizeMap[level]}`}>{text as string}</Tag>
-      {subtitle && <p className="mt-2 text-lg opacity-70">{subtitle}</p>}
+      <Tag className={`font-bold tracking-tight whitespace-pre-line ${sizeMap[level]}`}>{text as string}</Tag>
+      {subtitle && <p className="mt-2 text-lg opacity-70 whitespace-pre-line">{subtitle}</p>}
     </div>
   );
 }
 
 // Paragraph Block
 function ParagraphBlock({ content }: { content: Record<string, unknown> }) {
-  return <p className="text-lg leading-relaxed">{(content.text as string) || ''}</p>;
+  return <p className="text-lg leading-relaxed whitespace-pre-line">{(content.text as string) || ''}</p>;
 }
 
 // Image Block
@@ -2328,20 +2473,86 @@ function StoreMapBlock({ content }: { content: Record<string, unknown> }) {
   );
 }
 
+// Types for StoreLayoutBlock
+interface StoreContactInfo {
+  title?: string;
+  address?: string;
+  phone?: string;
+  phone2?: string;
+  email?: string;
+  hours?: Record<string, string>;
+}
+
+interface StoreServices {
+  title?: string;
+  subtitle?: string;
+  items?: string[];
+}
+
+interface StoreSpecialty {
+  title: string;
+  icon?: string;
+  description?: string;
+}
+
+interface StoreSpecialties {
+  title?: string;
+  items?: StoreSpecialty[];
+}
+
+interface StoreCta {
+  title?: string;
+  rdvUrl?: string;
+  rdvLabel?: string;
+  phone?: string;
+  phoneLabel?: string;
+}
+
+interface StoreReviews {
+  title?: string;
+  rating?: number;
+  reviewCount?: number;
+  source?: string;
+}
+
+interface StoreMap {
+  title?: string;
+  address?: string;
+  mapUrl?: string;
+}
+
+interface StoreGallery {
+  title?: string;
+  images?: string[];
+}
+
+interface StoreLayoutContent {
+  contact?: StoreContactInfo;
+  services?: StoreServices;
+  specialties?: StoreSpecialties;
+  cta?: StoreCta;
+  reviews?: StoreReviews;
+  map?: StoreMap;
+  gallery?: StoreGallery;
+}
+
 // Store Layout Block - Complete store page layout with 2 columns
 function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
+  // Cast content to proper type
+  const typedContent = content as StoreLayoutContent;
+  
   // Main content (left column - 2/3)
-  const contact = content.contact as Record<string, unknown>;
-  const services = content.services as Record<string, unknown>;
-  const specialties = content.specialties as Record<string, unknown>;
+  const contact = typedContent.contact;
+  const services = typedContent.services;
+  const specialties = typedContent.specialties;
   
   // Sidebar content (right column - 1/3)
-  const cta = content.cta as Record<string, unknown>;
-  const reviews = content.reviews as Record<string, unknown>;
-  const map = content.map as Record<string, unknown>;
+  const cta = typedContent.cta;
+  const reviews = typedContent.reviews;
+  const map = typedContent.map;
   
   // Gallery (full width below)
-  const gallery = content.gallery as Record<string, unknown>;
+  const gallery = typedContent.gallery;
 
   return (
     <div className="bg-gradient-to-b from-neutral-50 to-white py-12 lg:py-16">
@@ -2360,35 +2571,35 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
               >
                 <h2 className="text-2xl font-bold mb-6 text-neutral-900 flex items-center">
                   <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
-                  {(contact.title as string) || 'Informations de contact'}
+                  {String(contact.title || 'Informations de contact')}
                 </h2>
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* Address & Contact */}
                   <div className="space-y-6">
                     {Boolean(contact.address) && (
                       <div className="flex items-start gap-4 group">
-                        <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
+                        <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-amber-100 transition-colors">
                           <MapPin className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-neutral-900 mb-1">Adresse</h3>
-                          <p className="text-neutral-600 whitespace-pre-line">{contact.address as string}</p>
+                          <p className="text-neutral-600 whitespace-pre-line">{String(contact.address)}</p>
                         </div>
                       </div>
                     )}
                     {Boolean(contact.phone) && (
                       <div className="flex items-start gap-4 group">
-                        <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
+                        <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-amber-100 transition-colors">
                           <Phone className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-neutral-900 mb-1">Téléphone</h3>
-                          <a href={`tel:${(contact.phone as string).replace(/\s/g, '')}`} className="text-amber-700 hover:text-amber-900 transition-colors block font-medium">
-                            {contact.phone as string}
+                          <a href={`tel:${String(contact.phone).replace(/\s/g, '')}`} className="text-amber-700 hover:text-amber-900 transition-colors block font-medium">
+                            {String(contact.phone)}
                           </a>
                           {Boolean(contact.phone2) && (
-                            <a href={`tel:${(contact.phone2 as string).replace(/\s/g, '')}`} className="text-amber-700 hover:text-amber-900 transition-colors block">
-                              {contact.phone2 as string}
+                            <a href={`tel:${String(contact.phone2).replace(/\s/g, '')}`} className="text-amber-700 hover:text-amber-900 transition-colors block">
+                              {String(contact.phone2)}
                             </a>
                           )}
                         </div>
@@ -2396,13 +2607,13 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                     )}
                     {Boolean(contact.email) && (
                       <div className="flex items-start gap-4 group">
-                        <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-amber-100 transition-colors">
+                        <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-amber-100 transition-colors">
                           <Mail className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-neutral-900 mb-1">Email</h3>
-                          <a href={`mailto:${contact.email}`} className="text-amber-700 hover:text-amber-900 transition-colors font-medium">
-                            {contact.email as string}
+                          <a href={`mailto:${String(contact.email)}`} className="text-amber-700 hover:text-amber-900 transition-colors font-medium">
+                            {String(contact.email)}
                           </a>
                         </div>
                       </div>
@@ -2411,16 +2622,16 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                   {/* Hours */}
                   {contact.hours && Object.keys(contact.hours as Record<string, string>).length > 0 && (
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
                         <Clock className="w-5 h-5 text-amber-600" />
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-neutral-900 mb-3">Horaires d'ouverture</h3>
                         <div className="space-y-2">
-                          {Object.entries(contact.hours as Record<string, string>).map(([day, hours]) => (
+                          {Object.entries(contact.hours as Record<string, string>).map(([day, hoursValue]) => (
                             <div key={day} className="flex justify-between py-1.5 border-b border-neutral-100 last:border-0">
                               <span className="text-neutral-600">{day}</span>
-                              <span className="font-medium text-neutral-900">{hours}</span>
+                              <span className="font-medium text-neutral-900">{String(hoursValue)}</span>
                             </div>
                           ))}
                         </div>
@@ -2441,10 +2652,10 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
               >
                 <h2 className="text-2xl font-bold mb-2 text-neutral-900 flex items-center">
                   <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
-                  {(services.title as string) || 'Nos services'}
+                  {String(services.title || 'Nos services')}
                 </h2>
                 {Boolean(services.subtitle) && (
-                  <p className="text-neutral-600 mb-6 ml-6">{services.subtitle as string}</p>
+                  <p className="text-neutral-600 mb-6 ml-6">{String(services.subtitle)}</p>
                 )}
                 <div className="grid sm:grid-cols-2 gap-3">
                   {(services.items as string[]).map((service, idx) => (
@@ -2474,7 +2685,7 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
               >
                 <h2 className="text-2xl font-bold mb-6 text-neutral-900 flex items-center">
                   <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
-                  {(specialties.title as string) || 'Nos spécialités'}
+                  {String(specialties.title || 'Nos spécialités')}
                 </h2>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {(specialties.items as Array<{ title: string; icon?: string; description?: string }>).map((spec, idx) => (
@@ -2512,12 +2723,12 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
               >
                 <h3 className="text-xl font-bold mb-6 flex items-center">
                   <Calendar className="w-5 h-5 text-amber-400 mr-2" />
-                  {(cta.title as string) || 'Prendre rendez-vous'}
+                  {String(cta.title || 'Prendre rendez-vous')}
                 </h3>
                 <div className="space-y-4">
                   {Boolean(cta.rdvUrl) && (
                     <motion.a
-                      href={cta.rdvUrl as string}
+                      href={String(cta.rdvUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full bg-amber-500 hover:bg-amber-400 text-black py-4 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
@@ -2525,18 +2736,18 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                       whileTap={{ scale: 0.98 }}
                     >
                       <Calendar className="w-5 h-5" />
-                      <span>{(cta.rdvLabel as string) || 'Réserver en ligne'}</span>
+                      <span>{String(cta.rdvLabel || 'Réserver en ligne')}</span>
                     </motion.a>
                   )}
                   {Boolean(cta.phone) && (
                     <motion.a
-                      href={`tel:${(cta.phone as string).replace(/\s/g, '')}`}
+                      href={`tel:${String(cta.phone).replace(/\s/g, '')}`}
                       className="w-full border-2 border-white/30 hover:border-white/60 text-white py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <Phone className="w-5 h-5" />
-                      <span>{(cta.phoneLabel as string) || 'Appeler'}</span>
+                      <span>{String(cta.phoneLabel || 'Appeler')}</span>
                     </motion.a>
                   )}
                 </div>
@@ -2553,26 +2764,26 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
               >
                 <h3 className="text-lg font-bold mb-4 text-neutral-900 flex items-center">
                   <Star className="w-5 h-5 text-amber-500 mr-2" />
-                  {(reviews.title as string) || 'Avis clients'}
+                  {String(reviews.title || 'Avis clients')}
                 </h3>
                 <div className="text-center py-4">
                   <div className="flex items-center justify-center gap-1 mb-2">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-6 h-6 ${i < Math.floor(reviews.rating as number) ? 'text-amber-500 fill-amber-500' : 'text-neutral-200'}`}
+                        className={`w-6 h-6 ${i < Math.floor(Number(reviews.rating) || 0) ? 'text-amber-500 fill-amber-500' : 'text-neutral-200'}`}
                       />
                     ))}
                   </div>
                   <div className="text-3xl font-bold text-neutral-900 mb-1">
-                    {reviews.rating as number}<span className="text-lg text-neutral-400">/5</span>
+                    {Number(reviews.rating) || 0}<span className="text-lg text-neutral-400">/5</span>
                   </div>
                   <p className="text-sm text-neutral-600">
-                    {reviews.reviewCount as number} avis vérifiés
+                    {Number(reviews.reviewCount) || 0} avis vérifiés
                   </p>
                   {Boolean(reviews.source) && (
                     <button className="mt-4 text-amber-700 hover:text-amber-900 font-medium text-sm underline-offset-4 hover:underline transition-all">
-                      {reviews.source as string}
+                      {String(reviews.source)}
                     </button>
                   )}
                 </div>
@@ -2590,18 +2801,18 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
                 <div className="p-6 pb-4">
                   <h3 className="text-lg font-bold text-neutral-900 flex items-center">
                     <MapPin className="w-5 h-5 text-amber-500 mr-2" />
-                    {(map.title as string) || 'Localisation'}
+                    {String(map.title || 'Localisation')}
                   </h3>
                 </div>
                 <div className="aspect-[4/3] bg-gradient-to-br from-neutral-100 to-neutral-200 relative">
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
                     <MapPin className="w-12 h-12 text-amber-500/60 mb-3" />
                     <p className="text-neutral-600 text-center text-sm mb-4 whitespace-pre-line">
-                      {map.address as string}
+                      {String(map.address || '')}
                     </p>
                     {Boolean(map.mapUrl) && (
                       <a
-                        href={map.mapUrl as string}
+                        href={String(map.mapUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors flex items-center gap-2"
@@ -2627,7 +2838,7 @@ function StoreLayoutBlock({ content }: { content: Record<string, unknown> }) {
           >
             <h2 className="text-2xl font-bold mb-6 text-neutral-900 flex items-center">
               <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
-              {(gallery.title as string) || 'Découvrez notre magasin'}
+              {String(gallery.title || 'Découvrez notre magasin')}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {(gallery.images as string[]).map((img, idx) => (
@@ -2901,7 +3112,8 @@ function CtaCardBlock({ content }: { content: Record<string, unknown> }) {
     outline: 'border-2 border-neutral-300 hover:border-amber-400 text-neutral-800',
   };
 
-  const IconButton = ({ icon }: { icon?: string }) => {
+  // Helper function to render icon (not a component to avoid React re-render issues)
+  const renderIcon = (icon?: string) => {
     if (!icon) return null;
     const IconComp = iconMap[icon];
     return IconComp ? <IconComp className="w-5 h-5" /> : null;
@@ -2936,7 +3148,7 @@ function CtaCardBlock({ content }: { content: Record<string, unknown> }) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <IconButton icon={primaryButton.icon} />
+            {renderIcon(primaryButton.icon)}
             <span>{primaryButton.label}</span>
           </motion.a>
         )}
@@ -2951,7 +3163,7 @@ function CtaCardBlock({ content }: { content: Record<string, unknown> }) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <IconButton icon={secondaryButton.icon} />
+            {renderIcon(secondaryButton.icon)}
             <span>{secondaryButton.label}</span>
           </motion.a>
         )}

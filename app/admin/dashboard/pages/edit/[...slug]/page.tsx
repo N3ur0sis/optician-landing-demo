@@ -1,8 +1,8 @@
-import { auth } from '@/lib/auth';
-import { redirect, notFound } from 'next/navigation';
-import prisma from '@/lib/prisma';
-import PageBuilderEditor from '../../PageBuilderEditor';
-import { Page, PageBlock } from '@/types/page-builder';
+import { auth } from "@/lib/auth";
+import { redirect, notFound } from "next/navigation";
+import prisma from "@/lib/prisma";
+import PageBuilderEditor from "../../PageBuilderEditor";
+import { Page, PageBlock } from "@/types/page-builder";
 
 interface EditPageProps {
   params: Promise<{ slug: string[] }>;
@@ -12,29 +12,29 @@ export default async function EditPagePage({ params }: EditPageProps) {
   const session = await auth();
 
   if (!session) {
-    redirect('/admin/login');
+    redirect("/admin/login");
   }
 
   const { slug: slugParts } = await params;
-  const slug = slugParts.join('/');
-  
+  const slug = slugParts.join("/");
+
   // Try to find the page by slug (without leading slash)
   let page = await prisma.page.findUnique({
     where: { slug },
     include: {
       blocks: {
-        orderBy: { order: 'asc' },
+        orderBy: { order: "asc" },
       },
     },
   });
-  
+
   // If not found, try with leading slash for backward compatibility
   if (!page) {
     page = await prisma.page.findUnique({
       where: { slug: `/${slug}` },
       include: {
         blocks: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
       },
     });
@@ -63,21 +63,21 @@ export default async function EditPagePage({ params }: EditPageProps) {
     parentSlug: page.parentSlug ?? undefined,
     createdAt: page.createdAt,
     updatedAt: page.updatedAt,
-    blocks: page.blocks.map((block): PageBlock => ({
-      id: block.id,
-      pageId: block.pageId,
-      type: block.type as PageBlock['type'],
-      order: block.order,
-      content: block.content as Record<string, unknown>,
-      settings: block.settings as PageBlock['settings'],
-      styles: block.styles as PageBlock['styles'],
-      visible: block.visible,
-      createdAt: block.createdAt,
-      updatedAt: block.updatedAt,
-    })),
+    blocks: page.blocks.map(
+      (block): PageBlock => ({
+        id: block.id,
+        pageId: block.pageId,
+        type: block.type as PageBlock["type"],
+        order: block.order,
+        content: block.content as Record<string, unknown>,
+        settings: block.settings as PageBlock["settings"],
+        styles: block.styles as PageBlock["styles"],
+        visible: block.visible,
+        createdAt: block.createdAt,
+        updatedAt: block.updatedAt,
+      }),
+    ),
   };
 
-  return (
-    <PageBuilderEditor page={pageData} />
-  );
+  return <PageBuilderEditor page={pageData} />;
 }

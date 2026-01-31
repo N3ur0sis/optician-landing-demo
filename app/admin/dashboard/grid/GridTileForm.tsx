@@ -29,6 +29,8 @@ export default function GridTileForm({ tile, onSave, onClose }: GridTileFormProp
     colStart: tile?.colStart || 1,
     rowStart: tile?.rowStart || 1,
     overlayType: tile?.overlayType || 'DARK' as 'LIGHT' | 'DARK',
+    overlayColor: tile?.overlayColor || '',
+    overlayOpacity: tile?.overlayOpacity ?? 60,
     published: tile?.published ?? true,
   });
 
@@ -398,6 +400,57 @@ export default function GridTileForm({ tile, onSave, onClose }: GridTileFormProp
                 />
                 <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">Clair (texte sombre)</span>
               </label>
+            </div>
+          </div>
+
+          {/* Overlay Color & Opacity */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Couleur du filtre (optionnel)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={formData.overlayColor || (formData.overlayType === 'DARK' ? '#000000' : '#ffffff')}
+                  onChange={(e) => setFormData({ ...formData, overlayColor: e.target.value })}
+                  className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={formData.overlayColor}
+                  onChange={(e) => setFormData({ ...formData, overlayColor: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  placeholder="Défaut (noir/blanc)"
+                />
+                {formData.overlayColor && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, overlayColor: '' })}
+                    className="px-2 text-gray-400 hover:text-red-500"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Laissez vide pour utiliser la couleur par défaut</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Opacité du filtre ({formData.overlayOpacity}%)
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={formData.overlayOpacity}
+                onChange={(e) => setFormData({ ...formData, overlayOpacity: parseInt(e.target.value) })}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>0% (transparent)</span>
+                <span>100% (opaque)</span>
+              </div>
             </div>
           </div>
 

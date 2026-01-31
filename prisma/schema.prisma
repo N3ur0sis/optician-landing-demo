@@ -151,20 +151,22 @@ enum ContainerWidth {
 
 // Grid tiles for the main landing page ContentReveal component
 model GridTile {
-  id          String      @id @default(cuid())
-  title       String
-  caption     String?
-  href        String
-  backgroundUrl String    // Image URL or CSS gradient
-  colSpan     Int         @default(2)  // 1-4 columns
-  rowSpan     Int         @default(1)  // 1-2 rows
-  colStart    Int         @default(1)  // Starting column 1-4
-  rowStart    Int         @default(1)  // Starting row
-  overlayType OverlayType @default(DARK)
-  order       Int         @default(0)  // Display order
-  published   Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id           String      @id @default(cuid())
+  title        String
+  caption      String?
+  href         String
+  backgroundUrl String     // Image URL or CSS gradient
+  colSpan      Int         @default(2)  // 1-4 columns
+  rowSpan      Int         @default(1)  // 1-2 rows
+  colStart     Int         @default(1)  // Starting column 1-4
+  rowStart     Int         @default(1)  // Starting row
+  overlayType  OverlayType @default(DARK)
+  overlayColor String?     // Custom overlay color (hex), e.g., "#0066cc"
+  overlayOpacity Int       @default(60)  // Opacity 0-100
+  order        Int         @default(0)  // Display order
+  published    Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   @@index([published, order])
 }
@@ -183,8 +185,8 @@ model Page {
   template        String    @default("default") // default, landing, minimal, full-width
   
   // Page Styling
-  backgroundColor String    @default("#000000")
-  textColor       String    @default("#ffffff")
+  backgroundColor String    @default("#ffffff")
+  textColor       String    @default("#171717")
   customCSS       String?   // Custom CSS for page
   
   // Navigation

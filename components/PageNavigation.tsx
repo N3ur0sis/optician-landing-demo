@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useApparence } from '@/lib/apparence-context';
 
 interface NavigationItem {
   id: string;
@@ -35,6 +36,8 @@ const PageNavigation = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cameFromContentReveal, setCameFromContentReveal] = useState(false);
   const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([]);
+  const { settings: apparenceSettings } = useApparence();
+  const navbarLogoUrl = apparenceSettings.navbar_logo_url;
   const isHome = variant === 'home';
 
   // Fetch navigation items from database
@@ -139,7 +142,7 @@ const PageNavigation = ({
                     >
                         <div className="h-8 flex items-center">
                         <Image
-                          src="/logo-ODB-bleu-grand.png"
+                          src={navbarLogoUrl}
                           alt="Optique de Bourbon"
                           width={200}
                           height={100}

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
-import { LayoutDashboard, Grid3x3, Settings, LogOut, User, FileText, Navigation, Image as ImageIcon, BarChart3, Users } from "lucide-react";
+import { LayoutDashboard, Grid3x3, Settings, LogOut, User, FileText, Navigation, Image as ImageIcon, BarChart3, Users, Palette } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -22,56 +22,63 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
       label: "Tableau de Bord",
       href: "/admin/dashboard",
       icon: (
-        <LayoutDashboard className="text-black h-5 w-5 flex-shrink-0" />
+        <LayoutDashboard className="text-black h-5 w-5 shrink-0" />
       ),
     },
     {
       label: "Pages",
       href: "/admin/dashboard/pages",
       icon: (
-        <FileText className="text-black h-5 w-5 flex-shrink-0" />
+        <FileText className="text-black h-5 w-5 shrink-0" />
       ),
     },
     {
       label: "Gestionnaire de Grille",
       href: "/admin/dashboard/grid",
       icon: (
-        <Grid3x3 className="text-black h-5 w-5 flex-shrink-0" />
+        <Grid3x3 className="text-black h-5 w-5 shrink-0" />
       ),
     },
     {
       label: "Navigation",
       href: "/admin/dashboard/navigation",
       icon: (
-        <Navigation className="text-black h-5 w-5 flex-shrink-0" />
+        <Navigation className="text-black h-5 w-5 shrink-0" />
       ),
     },
     {
       label: "Médiathèque",
       href: "/admin/dashboard/media",
       icon: (
-        <ImageIcon className="text-black h-5 w-5 flex-shrink-0" />
+        <ImageIcon className="text-black h-5 w-5 shrink-0" />
       ),
     },
     {
       label: "Analytics",
       href: "/admin/dashboard/analytics",
       icon: (
-        <BarChart3 className="text-black h-5 w-5 flex-shrink-0" />
+        <BarChart3 className="text-black h-5 w-5 shrink-0" />
       ),
     },
     ...(isAdmin ? [{
       label: "Utilisateurs",
       href: "/admin/dashboard/users",
       icon: (
-        <Users className="text-black h-5 w-5 flex-shrink-0" />
+        <Users className="text-black h-5 w-5 shrink-0" />
       ),
     }] : []),
     {
-      label: "Paramètres",
-      href: "/admin/settings",
+      label: "Apparence",
+      href: "/admin/dashboard/apparence",
       icon: (
-        <Settings className="text-black h-5 w-5 flex-shrink-0" />
+        <Palette className="text-black h-5 w-5 shrink-0" />
+      ),
+    },
+    {
+      label: "Paramètres",
+      href: "/admin/dashboard/settings",
+      icon: (
+        <Settings className="text-black h-5 w-5 shrink-0" />
       ),
     },
   ];
@@ -88,6 +95,7 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
         "flex flex-col md:flex-row bg-gray-50 w-full flex-1 overflow-hidden",
         "h-screen"
       )}
+      style={{ colorScheme: 'light' }}
     >
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10">
@@ -105,7 +113,7 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
                 label: session.user?.name || "Admin",
                 href: "#",
                 icon: (
-                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gray-300 flex items-center justify-center">
+                  <div className="h-7 w-7 shrink-0 rounded-full bg-gray-300 flex items-center justify-center">
                     <User className="h-4 w-4 text-black" />
                   </div>
                 ),
@@ -115,7 +123,7 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
               onClick={handleSignOut}
               className="flex items-center justify-start gap-2 group/sidebar py-2 w-full text-left hover:bg-gray-100 rounded-md px-2 transition-colors"
             >
-              <LogOut className="text-black h-5 w-5 flex-shrink-0" />
+              <LogOut className="text-black h-5 w-5 shrink-0" />
               <motion.span
                 animate={{
                   opacity: open ? 1 : 0,
@@ -144,7 +152,7 @@ const Logo = () => {
       href="/admin/dashboard"
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
-      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm shrink-0" />
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -162,7 +170,8 @@ const LogoIcon = () => {
       href="/admin/dashboard"
       className="font-normal flex space-x-2 items-center text-sm text-gray-900 py-1 relative z-20"
     >
-      <div className="h-5 w-6 bg-gray-900 rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <div className="h-5 w-6 bg-gray-900 rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm shrink-0" />
     </Link>
   );
 };
+

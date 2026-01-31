@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Plus,
@@ -90,6 +90,15 @@ export default function NavigationManagerClient() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
+  // Ref to track if initial load is done (prevents infinite loop)
+  const initialLoadDone = useRef(false);
+  const selectedMenuRef = useRef<NavigationMenu | null>(null);
+  
+  // Keep ref in sync with state
+  useEffect(() => {
+    selectedMenuRef.current = selectedMenu;
+  }, [selectedMenu]);
+  
   // Modal states
   const [showMenuModal, setShowMenuModal] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
@@ -101,18 +110,21 @@ export default function NavigationManagerClient() {
   // Expanded items for tree view
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  // Fetch menus
+  // Fetch menus (stable callback - no dependencies that cause re-creation)
   const fetchMenus = useCallback(async () => {
     try {
       const response = await fetch('/api/navigation/menus?includeItems=true');
       if (response.ok) {
         const data = await response.json();
         setMenus(data);
-        if (data.length > 0 && !selectedMenu) {
+        
+        // Use ref to avoid dependency on selectedMenu state
+        const currentSelected = selectedMenuRef.current;
+        if (data.length > 0 && !currentSelected) {
           setSelectedMenu(data[0]);
-        } else if (selectedMenu) {
+        } else if (currentSelected) {
           // Refresh selected menu
-          const updated = data.find((m: NavigationMenu) => m.id === selectedMenu.id);
+          const updated = data.find((m: NavigationMenu) => m.id === currentSelected.id);
           if (updated) setSelectedMenu(updated);
         }
       }
@@ -121,7 +133,7 @@ export default function NavigationManagerClient() {
     } finally {
       setLoading(false);
     }
-  }, [selectedMenu]);
+  }, []); // No dependencies - uses ref instead
 
   // Fetch pages for linking
   const fetchPages = useCallback(async () => {
@@ -136,9 +148,13 @@ export default function NavigationManagerClient() {
     }
   }, []);
 
+  // Initial load only - run once
   useEffect(() => {
-    fetchMenus();
-    fetchPages();
+    if (!initialLoadDone.current) {
+      initialLoadDone.current = true;
+      fetchMenus();
+      fetchPages();
+    }
   }, [fetchMenus, fetchPages]);
 
   // Create/Update Menu
@@ -162,6 +178,29 @@ export default function NavigationManagerClient() {
       }
     } catch (error) {
       console.error('Error saving menu:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Update Menu Style (for StyleModal - uses selectedMenu)
+  const handleSaveMenuStyle = async (styleData: Partial<NavigationMenu>) => {
+    if (!selectedMenu) return;
+    
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/navigation/menus/${selectedMenu.slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(styleData),
+      });
+
+      if (response.ok) {
+        await fetchMenus();
+        setShowStyleModal(false);
+      }
+    } catch (error) {
+      console.error('Error saving menu style:', error);
     } finally {
       setSaving(false);
     }
@@ -519,7 +558,7 @@ export default function NavigationManagerClient() {
           isOpen={showStyleModal}
           onClose={() => setShowStyleModal(false)}
           menu={selectedMenu}
-          onSave={handleSaveMenu}
+          onSave={handleSaveMenuStyle}
           saving={saving}
         />
       )}

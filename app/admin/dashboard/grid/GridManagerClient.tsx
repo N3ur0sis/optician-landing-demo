@@ -27,6 +27,8 @@ export type GridTile = {
   colStart: number;
   rowStart: number;
   overlayType: 'LIGHT' | 'DARK';
+  overlayColor: string | null;
+  overlayOpacity: number;
   order: number;
   published: boolean;
 };
@@ -104,6 +106,8 @@ export default function GridManagerClient() {
         colStart: tile.colStart || 1,
         rowStart: tile.rowStart || 1,
         overlayType: tile.overlayType || 'DARK',
+        overlayColor: tile.overlayColor || null,
+        overlayOpacity: tile.overlayOpacity ?? 60,
         order: tiles.length + 1,
         published: tile.published ?? true,
       };
