@@ -4,7 +4,7 @@ import Image from "next/image";
 import GlassesModel from "../components/GlassesModel";
 import ContentReveal from "../components/ContentReveal";
 
-import PageNavigation from "../components/PageNavigation";
+import DynamicNavbar from "../components/DynamicNavbar";
 import {
   motion,
   useTransform,
@@ -200,11 +200,12 @@ export default function Page() {
       className="relative min-h-[300vh] w-full overflow-x-hidden cursor-custom"
       ref={heroRef}
     >
-      <PageNavigation
-        showBackButton={false}
-        variant="home"
-        visible={isNavVisible}
-      />
+      {isNavVisible && (
+        <DynamicNavbar
+          showBackButton={false}
+          variant="home"
+        />
+      )}
 
       {/* Loading Screen - Simple background color - shows immediately with default/loaded values */}
       <AnimatePresence>

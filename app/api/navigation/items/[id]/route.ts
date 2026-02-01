@@ -90,6 +90,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         dropdownStyle: body.dropdownStyle ?? existingItem.dropdownStyle,
         published: body.published ?? existingItem.published,
         highlighted: body.highlighted ?? existingItem.highlighted,
+        parentClickable: body.parentClickable ?? existingItem.parentClickable,
       },
       include: {
         menu: {

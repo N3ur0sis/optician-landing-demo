@@ -87,6 +87,7 @@ export async function POST(request: Request) {
       dropdownStyle = 'dropdown',
       published = true,
       highlighted = false,
+      parentClickable = true,
     } = body;
 
     // Validate menu exists
@@ -138,6 +139,7 @@ export async function POST(request: Request) {
         dropdownStyle,
         published,
         highlighted,
+        parentClickable,
       },
       include: {
         menu: {

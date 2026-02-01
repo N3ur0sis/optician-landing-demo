@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import PageNavigation from '@/components/PageNavigation';
+import DynamicNavbar from '@/components/DynamicNavbar';
 import Footer from '@/components/Footer';
 import BlockRenderer from '@/components/page-builder/BlockRenderer';
 import { Page, PageBlock } from '@/types/page-builder';
@@ -28,16 +28,17 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
         color: page.textColor,
       }}
     >
-      {/* Page Navigation */}
+      {/* Page Navigation - includes spacer for fixed navbar */}
       {showNavHeader && (
-        <PageNavigation
+        <DynamicNavbar
           title={pageTitle}
           subtitle={pageSubtitle}
+          showBackButton
         />
       )}
 
-      {/* Page Content */}
-      <div className={showNavHeader ? 'pt-20' : ''}>
+      {/* Page Content - no padding needed, navbar has spacer */}
+      <div>
         <div className="page-blocks-container">
           {page.blocks
             .filter(block => block.visible)

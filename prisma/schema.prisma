@@ -316,6 +316,7 @@ model NavigationItem {
   
   // Dropdown/submenu settings
   dropdownStyle String         @default("dropdown") // dropdown, mega, flyout
+  parentClickable Boolean      @default(true) // Can click on parent to navigate (vs just open dropdown)
   
   // State
   published   Boolean          @default(true)
@@ -350,20 +351,36 @@ model NavigationMenu {
   layout      String           @default("horizontal") // horizontal, vertical, grid
   alignment   String           @default("center")     // left, center, right, space-between
   
+  // Display mode - how menu appears on desktop
+  displayMode String           @default("hamburger-only") // hamburger-only, traditional, hybrid
+  
   // Animation settings
   animation   String           @default("none")   // none, fade, slide, scale
   animationDuration Int        @default(200)      // milliseconds
   
-  // Styling
+  // Navbar styling
+  navbarHeight    Int          @default(64)   // Navbar height in pixels
+  fontSize        Int          @default(14)   // Font size in pixels for navbar items
   backgroundColor String?      // Menu background color
   textColor       String?      // Menu text color
   hoverColor      String?      // Hover state color
   activeColor     String?      // Active item color
   borderColor     String?      // Border color
   
+  // Mobile menu styling
+  mobileMenuBg    String?      @default("rgba(0,0,0,0.95)") // Mobile menu background
+  mobileMenuText  String?      @default("#ffffff")         // Mobile menu text color
+  mobileMenuHover String?      @default("#999999")         // Mobile menu hover color
+  mobileMenuAccent String?     @default("#f59e0b")         // Mobile menu accent/highlight color
+  mobileFontSize  Int          @default(18)                // Font size for mobile menu items
+  
   // Spacing
   itemSpacing     Int          @default(24)  // Space between items (px)
   padding         String?      // CSS padding value
+  
+  // Scroll behavior
+  blurOnScroll    Boolean      @default(true)  // Apply blur effect when scrolled
+  hideOnScrollDown Boolean     @default(false) // Hide navbar on scroll down
   
   // Dropdown global settings
   dropdownAnimation String     @default("fadeDown") // fadeDown, slideDown, scale, none

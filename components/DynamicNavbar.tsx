@@ -2,87 +2,26 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ExternalLink, Menu, X } from 'lucide-react';
+import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useApparence } from '@/lib/apparence-context';
 
-// Types
-interface NavigationItem {
-  id: string;
-  label: string;
-  href?: string;
-  parentId?: string;
-  order: number;
-  depth: number;
-  pageSlug?: string;
-  openInNewTab: boolean;
-  icon?: string;
-  iconPosition: string;
-  cssClass?: string;
-  style: Record<string, unknown>;
-  dropdownStyle: string;
-  published: boolean;
-  highlighted: boolean;
-  children?: NavigationItem[];
-}
+import {
+  NavigationMenu,
+  NavigationItem,
+  buildNestedItems,
+  getItemHref,
+  isItemActive,
+  DropdownAnimation,
+  DisplayMode,
+} from '@/types/navigation';
 
-interface NavigationMenu {
-  id: string;
-  name: string;
-  slug: string;
-  type: string;
-  position: string;
-  layout: string;
-  alignment: string;
-  animation: string;
-  animationDuration: number;
-  backgroundColor?: string;
-  textColor?: string;
-  hoverColor?: string;
-  activeColor?: string;
-  borderColor?: string;
-  itemSpacing: number;
-  padding?: string;
-  dropdownAnimation: string;
-  dropdownDelay: number;
-  customCSS?: string;
-  cssClasses?: string;
-  mobileBreakpoint: number;
-  mobileStyle: string;
-  published: boolean;
-  items: NavigationItem[];
-}
-
-interface DynamicNavbarProps {
-  menuSlug?: string;
-  className?: string;
-  logo?: React.ReactNode;
-}
-
-// Animation variants
-const menuAnimations = {
-  none: {
-    initial: { opacity: 1 },
-    animate: { opacity: 1 },
-    exit: { opacity: 1 },
-  },
-  fade: {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-  },
-  slide: {
-    initial: { opacity: 0, y: -10 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 },
-  },
-  scale: {
-    initial: { opacity: 0, scale: 0.95 },
-    animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.95 },
-  },
-};
+// ============================================
+// ANIMATION VARIANTS
+// ============================================
 
 const dropdownAnimations = {
   none: {
@@ -91,45 +30,61 @@ const dropdownAnimations = {
     exit: { opacity: 1 },
   },
   fadeDown: {
-    initial: { opacity: 0, y: -10 },
+    initial: { opacity: 0, y: -8 },
     animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 },
-  },
-  slideDown: {
-    initial: { opacity: 0, height: 0 },
-    animate: { opacity: 1, height: 'auto' },
-    exit: { opacity: 0, height: 0 },
+    exit: { opacity: 0, y: -8 },
   },
   scale: {
-    initial: { opacity: 0, scale: 0.95, y: -5 },
-    animate: { opacity: 1, scale: 1, y: 0 },
-    exit: { opacity: 0, scale: 0.95, y: -5 },
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0.95 },
   },
 };
 
-// Build nested items structure
-function buildNestedItems(items: NavigationItem[], parentId: string | null = null): NavigationItem[] {
-  return items
-    .filter(item => item.parentId === parentId && item.published)
-    .sort((a, b) => a.order - b.order)
-    .map(item => ({
-      ...item,
-      children: buildNestedItems(items, item.id),
-    }));
+// ============================================
+// PROPS
+// ============================================
+
+interface DynamicNavbarProps {
+  className?: string;
+  variant?: 'default' | 'home';
+  title?: string;
+  subtitle?: string;
+  showBackButton?: boolean;
 }
 
-export default function DynamicNavbar({ menuSlug = 'header', className, logo }: DynamicNavbarProps) {
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
+export default function DynamicNavbar({
+  className,
+  variant = 'default',
+  title,
+  subtitle,
+  showBackButton = false,
+}: DynamicNavbarProps) {
   const [menu, setMenu] = useState<NavigationMenu | null>(null);
   const [loading, setLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
+  
   const pathname = usePathname();
+  const router = useRouter();
+  const { settings: apparenceSettings } = useApparence();
+  const { scrollY } = useScroll();
 
-  // Fetch menu data
+  const isHome = variant === 'home';
+  const navbarLogoUrl = apparenceSettings.navbar_logo_url;
+
+  // Fetch menu data (singleton menu "header")
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await fetch(`/api/navigation/menus/${menuSlug}?nested=true`);
+        const response = await fetch('/api/navigation/menus/header?includeItems=true');
         if (response.ok) {
           const data = await response.json();
           setMenu(data);
@@ -142,7 +97,30 @@ export default function DynamicNavbar({ menuSlug = 'header', className, logo }: 
     };
 
     fetchMenu();
-  }, [menuSlug]);
+  }, []);
+
+  // Handle scroll behavior
+  useMotionValueEvent(scrollY, 'change', (latest) => {
+    const currentScrollY = latest;
+    
+    // Blur effect on scroll
+    const blurOnScroll = (menu as NavigationMenu & { blurOnScroll?: boolean })?.blurOnScroll ?? true;
+    if (blurOnScroll) {
+      setScrolled(currentScrollY > 50);
+    }
+    
+    // Hide on scroll down
+    const hideOnScrollDown = (menu as NavigationMenu & { hideOnScrollDown?: boolean })?.hideOnScrollDown ?? false;
+    if (hideOnScrollDown) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setHidden(true);
+      } else {
+        setHidden(false);
+      }
+    }
+    
+    lastScrollY.current = currentScrollY;
+  });
 
   // Handle responsive behavior
   useEffect(() => {
@@ -160,231 +138,320 @@ export default function DynamicNavbar({ menuSlug = 'header', className, logo }: 
     setMobileOpen(false);
   }, [pathname]);
 
+  // Back button handler
+  const handleBackClick = useCallback(() => {
+    const fromContentReveal = sessionStorage.getItem('fromContentReveal');
+    if (fromContentReveal === 'true') {
+      sessionStorage.removeItem('fromContentReveal');
+      sessionStorage.setItem('scrollToContentReveal', 'true');
+      router.push('/');
+      return;
+    }
+    router.back();
+  }, [router]);
+
+  // Get navbar height from menu (with fallback for SSR/loading state)
+  const navbarHeight = (menu as NavigationMenu & { navbarHeight?: number } | null)?.navbarHeight || 64;
+
+  // Set CSS custom property for navbar height
+  useEffect(() => {
+    document.documentElement.style.setProperty('--navbar-height', `${navbarHeight}px`);
+    return () => {
+      document.documentElement.style.removeProperty('--navbar-height');
+    };
+  }, [navbarHeight]);
+
+  // Don't render if loading or no menu
   if (loading || !menu || !menu.published) {
     return null;
   }
 
   const nestedItems = buildNestedItems(menu.items);
-  const animation = menuAnimations[menu.animation as keyof typeof menuAnimations] || menuAnimations.none;
+  const displayMode = ((menu as NavigationMenu & { displayMode?: DisplayMode }).displayMode || 'hamburger-only') as DisplayMode;
+  
+  // Determine what to show
+  const showTraditionalMenu = !isMobile && (displayMode === 'traditional' || displayMode === 'hybrid');
+  const showHamburger = isMobile || displayMode === 'hamburger-only' || displayMode === 'hybrid';
 
-  // Custom styles
-  const navStyle: React.CSSProperties = {
-    backgroundColor: menu.backgroundColor || undefined,
-    color: menu.textColor || undefined,
-    borderColor: menu.borderColor || undefined,
-    padding: menu.padding || undefined,
+  // Get settings from menu
+  const blurOnScroll = (menu as NavigationMenu & { blurOnScroll?: boolean }).blurOnScroll ?? true;
+  const alignment = menu.alignment || 'center';
+  
+  // Get colors from menu or use defaults based on variant
+  const bgColor = menu.backgroundColor || (isHome ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.8)');
+  const textColor = menu.textColor || (isHome ? '#000000' : '#ffffff');
+  const hoverColor = menu.hoverColor || (isHome ? '#666666' : '#cccccc');
+  const activeColor = menu.activeColor || textColor;
+
+  // Dynamic background with scroll effect
+  const getNavBackgroundClass = () => {
+    const baseBlur = blurOnScroll && scrolled ? 'backdrop-blur-lg' : 'backdrop-blur-md';
+    return cn(
+      baseBlur,
+      scrolled && 'shadow-lg',
+      !isHome && 'border-b border-white/10'
+    );
   };
+
+  // Alignment classes for center section
+  const alignmentClass = {
+    left: 'justify-start',
+    center: 'justify-center',
+    right: 'justify-end',
+    'space-between': 'justify-between',
+  }[alignment] || 'justify-center';
 
   return (
     <>
-      {/* Inject custom CSS */}
-      {menu.customCSS && (
-        <style dangerouslySetInnerHTML={{ __html: menu.customCSS }} />
-      )}
-
+      {/* Spacer to push content below fixed navbar */}
+      <div style={{ height: navbarHeight }} aria-hidden="true" />
+      
       <motion.nav
-        initial={animation.initial}
-        animate={animation.animate}
-        transition={{ duration: menu.animationDuration / 1000 }}
-        style={navStyle}
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ 
+          opacity: 1, 
+          y: hidden ? -100 : 0 
+        }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         className={cn(
-          'relative z-50',
-          menu.cssClasses,
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          getNavBackgroundClass(),
           className
         )}
+        style={{
+          backgroundColor: bgColor,
+          color: textColor,
+          height: navbarHeight,
+        }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={cn(
-            'flex items-center h-16',
-            menu.alignment === 'left' && 'justify-start',
-            menu.alignment === 'center' && 'justify-center',
-            menu.alignment === 'right' && 'justify-end',
-            menu.alignment === 'space-between' && 'justify-between',
-          )}>
-            {/* Logo */}
-            {logo && (
-              <div className="flex-shrink-0">
-                {logo}
-              </div>
-            )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+          <div className="flex items-center h-full">
+            {/* Left side - Logo or Back button */}
+            <div className="flex items-center gap-6 min-w-40">
+              {showBackButton ? (
+                <button
+                  onClick={handleBackClick}
+                  className="flex items-center space-x-2 transition-colors duration-200 group"
+                  style={{ color: textColor }}
+                >
+                  <div
+                    className="w-8 h-8 border flex items-center justify-center transition-colors duration-200"
+                    style={{ borderColor: `${textColor}33` }}
+                  >
+                    <div className="w-0 h-0 border-r-[6px] border-r-current border-y-[3px] border-y-transparent" />
+                  </div>
+                  <span className="text-sm font-medium tracking-widest uppercase">Retour</span>
+                </button>
+              ) : (
+                <Link
+                  href="/"
+                  aria-label="Accueil"
+                  className="flex items-center px-3 py-2 transition-colors duration-200 hover:opacity-80"
+                >
+                  <div className="h-8 flex items-center">
+                    <Image
+                      src={navbarLogoUrl}
+                      alt="Logo"
+                      width={200}
+                      height={100}
+                      priority
+                      className="h-full w-auto object-contain"
+                    />
+                  </div>
+                </Link>
+              )}
+            </div>
 
-            {/* Desktop Navigation */}
-            {!isMobile && (
-              <div
-                className={cn(
-                  'hidden md:flex items-center',
-                  menu.layout === 'horizontal' && 'flex-row',
-                  menu.layout === 'vertical' && 'flex-col',
-                )}
-                style={{ gap: menu.itemSpacing }}
-              >
-                {nestedItems.map((item) => (
-                  <NavItem
-                    key={item.id}
-                    item={item}
-                    menu={menu}
-                    pathname={pathname}
+            {/* Center - Title (when showBackButton) or Desktop Navigation (when traditional/hybrid) */}
+            <div className={cn('flex-1 flex', alignmentClass)}>
+              {showBackButton && title ? (
+                <div className="text-center">
+                  <h1 className="text-lg font-bold tracking-wide" style={{ color: textColor }}>{title}</h1>
+                  {subtitle && (
+                    <p className="text-xs tracking-[0.2em] uppercase opacity-60" style={{ color: textColor }}>
+                      {subtitle}
+                    </p>
+                  )}
+                </div>
+              ) : showTraditionalMenu ? (
+                <div
+                  className="hidden md:flex items-center"
+                  style={{ gap: menu.itemSpacing || 32 }}
+                >
+                  {nestedItems.map((item) => (
+                    <NavItem
+                      key={item.id}
+                      item={item}
+                      menu={menu}
+                      pathname={pathname}
+                      isHome={isHome}
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            {/* Right side - Hamburger menu button (only when needed) */}
+            <div className="flex items-center justify-end min-w-40">
+              {showHamburger && (
+                <button
+                  onClick={() => setMobileOpen(!mobileOpen)}
+                  className="w-8 h-8 border flex flex-col items-center justify-center space-y-1 transition-colors duration-200"
+                  style={{ borderColor: `${textColor}33` }}
+                  aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+                >
+                  <div
+                    className={cn(
+                      'w-4 h-px transition-all duration-300',
+                      mobileOpen && 'rotate-45 translate-y-1.5'
+                    )}
+                    style={{ backgroundColor: textColor }}
                   />
-                ))}
-              </div>
-            )}
-
-            {/* Mobile Menu Button */}
-            {isMobile && (
-              <button
-                onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden p-2 rounded-md hover:bg-black/5 transition-colors"
-                aria-label="Toggle menu"
-              >
-                {mobileOpen ? (
-                  <X className="w-6 h-6" style={{ color: menu.textColor || 'currentColor' }} />
-                ) : (
-                  <Menu className="w-6 h-6" style={{ color: menu.textColor || 'currentColor' }} />
-                )}
-              </button>
-            )}
+                  <div
+                    className={cn(
+                      'w-4 h-px transition-all duration-300',
+                      mobileOpen && 'opacity-0'
+                    )}
+                    style={{ backgroundColor: textColor }}
+                  />
+                  <div
+                    className={cn(
+                      'w-4 h-px transition-all duration-300',
+                      mobileOpen && '-rotate-45 -translate-y-1.5'
+                    )}
+                    style={{ backgroundColor: textColor }}
+                  />
+                </button>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        <AnimatePresence>
-          {isMobile && mobileOpen && (
-            <MobileMenu
-              items={nestedItems}
-              menu={menu}
-              pathname={pathname}
-              onClose={() => setMobileOpen(false)}
-            />
-          )}
-        </AnimatePresence>
       </motion.nav>
+
+      {/* Mobile Navigation Overlay */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <MobileMenu
+            items={nestedItems}
+            menu={menu}
+            pathname={pathname}
+            onClose={() => setMobileOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }
 
-// NavItem Component
+// ============================================
+// NAV ITEM (Desktop)
+// ============================================
+
 interface NavItemProps {
   item: NavigationItem;
   menu: NavigationMenu;
   pathname: string;
-  depth?: number;
+  isHome: boolean;
 }
 
-function NavItem({ item, menu, pathname, depth = 0 }: NavItemProps) {
+function NavItem({ item, menu, pathname, isHome }: NavItemProps) {
   const [isOpen, setIsOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasChildren = item.children && item.children.length > 0;
-  
-  const isActive = item.href === pathname || 
-    (item.pageSlug && pathname === `/${item.pageSlug}`);
+
+  const active = isItemActive(item, pathname);
+  const href = getItemHref(item);
 
   const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      setIsOpen(true);
-    }, menu.dropdownDelay);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setIsOpen(true), menu.dropdownDelay);
   };
 
   const handleMouseLeave = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      setIsOpen(false);
-    }, 150);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setIsOpen(false), 150);
   };
 
-  const dropdownAnim = dropdownAnimations[menu.dropdownAnimation as keyof typeof dropdownAnimations] || dropdownAnimations.fadeDown;
+  const anim = dropdownAnimations[menu.dropdownAnimation as DropdownAnimation] || dropdownAnimations.fadeDown;
 
-  const linkStyle: React.CSSProperties = {
-    color: isActive ? menu.activeColor || menu.textColor : menu.textColor,
-  };
+  // Get colors from menu or use defaults
+  const textColor = menu.textColor || (isHome ? '#000000' : '#ffffff');
+  const activeColor = menu.activeColor || textColor;
+  const hoverColor = menu.hoverColor || (isHome ? '#666666' : '#cccccc');
+  const fontSize = (menu as NavigationMenu & { fontSize?: number }).fontSize || 14;
 
-  const content = (
-    <>
-      {item.icon && item.iconPosition === 'left' && (
-        <span className="mr-1">{item.icon}</span>
+  // For parent items with no href/pageSlug, they should not be clickable
+  const isClickable = !!(item.href || item.pageSlug);
+
+  const itemContent = (
+    <span
+      className={cn(
+        'flex items-center gap-1 font-medium tracking-wide transition-colors duration-200',
+        item.highlighted && 'px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800'
       )}
-      <span>{item.label}</span>
-      {item.icon && item.iconPosition === 'right' && (
-        <span className="ml-1">{item.icon}</span>
-      )}
-      {hasChildren && (
-        <ChevronDown className={cn(
-          'w-4 h-4 ml-1 transition-transform',
-          isOpen && 'rotate-180'
-        )} />
-      )}
-      {item.openInNewTab && !hasChildren && (
-        <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
-      )}
-    </>
+      style={{
+        color: item.highlighted ? undefined : (active ? activeColor : textColor),
+        fontSize,
+      }}
+      onMouseEnter={(e) => !item.highlighted && (e.currentTarget.style.color = hoverColor)}
+      onMouseLeave={(e) => !item.highlighted && (e.currentTarget.style.color = active ? activeColor : textColor)}
+    >
+      {item.label}
+      {hasChildren && <ChevronDown className={cn('w-4 h-4 transition-transform', isOpen && 'rotate-180')} />}
+      {item.openInNewTab && !hasChildren && <ExternalLink className="w-3 h-3 opacity-50" />}
+    </span>
   );
 
   return (
     <div
       className="relative"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={hasChildren ? handleMouseEnter : undefined}
+      onMouseLeave={hasChildren ? handleMouseLeave : undefined}
     >
-      {item.href ? (
+      {hasChildren && !isClickable ? (
+        <button className="cursor-pointer">{itemContent}</button>
+      ) : (
         <Link
-          href={item.href}
+          href={href}
           target={item.openInNewTab ? '_blank' : undefined}
           rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
-          style={linkStyle}
-          className={cn(
-            'flex items-center px-3 py-2 text-sm font-medium transition-colors rounded-md',
-            'hover:bg-black/5',
-            isActive && 'font-semibold',
-            item.highlighted && 'bg-black text-white hover:bg-gray-800 rounded-full px-4',
-            item.cssClass
-          )}
         >
-          {content}
+          {itemContent}
         </Link>
-      ) : (
-        <button
-          style={linkStyle}
-          className={cn(
-            'flex items-center px-3 py-2 text-sm font-medium transition-colors rounded-md',
-            'hover:bg-black/5',
-            item.cssClass
-          )}
-        >
-          {content}
-        </button>
       )}
 
       {/* Dropdown */}
       <AnimatePresence>
         {hasChildren && isOpen && (
           <motion.div
-            initial={dropdownAnim.initial}
-            animate={dropdownAnim.animate}
-            exit={dropdownAnim.exit}
-            transition={{ duration: menu.animationDuration / 1000 }}
-            className={cn(
-              'absolute top-full left-0 mt-1 min-w-[200px]',
-              'bg-white rounded-lg shadow-lg border border-gray-200 py-2 overflow-hidden',
-              item.dropdownStyle === 'mega' && 'min-w-[400px]',
-              item.dropdownStyle === 'flyout' && 'left-full top-0 ml-1 mt-0'
-            )}
-            style={{
-              backgroundColor: menu.backgroundColor || '#ffffff',
-            }}
+            initial={anim.initial}
+            animate={anim.animate}
+            exit={anim.exit}
+            transition={{ duration: 0.2 }}
+            className="absolute top-full left-0 mt-2 min-w-[200px] bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden z-50"
           >
-            {item.children!.map((child) => (
-              <NavItem
-                key={child.id}
-                item={child}
-                menu={menu}
-                pathname={pathname}
-                depth={depth + 1}
-              />
-            ))}
+            {item.children!.map((child) => {
+              const childHref = getItemHref(child);
+              const childActive = isItemActive(child, pathname);
+
+              return (
+                <Link
+                  key={child.id}
+                  href={childHref}
+                  target={child.openInNewTab ? '_blank' : undefined}
+                  rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
+                  className={cn(
+                    'block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors',
+                    childActive && 'bg-gray-50 font-medium'
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <span>{child.label}</span>
+                    {child.openInNewTab && <ExternalLink className="w-3 h-3 opacity-50" />}
+                  </div>
+                </Link>
+              );
+            })}
           </motion.div>
         )}
       </AnimatePresence>
@@ -392,7 +459,10 @@ function NavItem({ item, menu, pathname, depth = 0 }: NavItemProps) {
   );
 }
 
-// Mobile Menu Component
+// ============================================
+// MOBILE MENU
+// ============================================
+
 interface MobileMenuProps {
   items: NavigationItem[];
   menu: NavigationMenu;
@@ -401,338 +471,209 @@ interface MobileMenuProps {
 }
 
 function MobileMenu({ items, menu, pathname, onClose }: MobileMenuProps) {
-  const mobileAnimations = {
-    hamburger: {
-      initial: { opacity: 0, y: -10 },
-      animate: { opacity: 1, y: 0 },
-      exit: { opacity: 0, y: -10 },
-    },
-    slide: {
-      initial: { x: '100%' },
-      animate: { x: 0 },
-      exit: { x: '100%' },
-    },
-    accordion: {
-      initial: { opacity: 0, height: 0 },
-      animate: { opacity: 1, height: 'auto' },
-      exit: { opacity: 0, height: 0 },
-    },
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  // Block body scroll when menu is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  const toggleExpand = (id: string) => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  const animation = mobileAnimations[menu.mobileStyle as keyof typeof mobileAnimations] || mobileAnimations.hamburger;
+  // Get mobile menu colors from settings
+  const mobileMenuBg = (menu as NavigationMenu & { mobileMenuBg?: string }).mobileMenuBg || 'rgba(0,0,0,0.95)';
+  const mobileMenuText = (menu as NavigationMenu & { mobileMenuText?: string }).mobileMenuText || '#ffffff';
+  const mobileMenuAccent = (menu as NavigationMenu & { mobileMenuAccent?: string }).mobileMenuAccent || '#f59e0b';
+  const mobileMenuHover = (menu as NavigationMenu & { mobileMenuHover?: string }).mobileMenuHover || '#999999';
+  const mobileFontSize = (menu as NavigationMenu & { mobileFontSize?: number }).mobileFontSize || 18;
 
-  if (menu.mobileStyle === 'slide') {
-    return (
-      <>
-        {/* Backdrop */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-black/50 z-40"
-        />
-        
-        {/* Slide Panel */}
-        <motion.div
-          initial={animation.initial}
-          animate={animation.animate}
-          exit={animation.exit}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed top-0 right-0 bottom-0 w-80 bg-white z-50 shadow-xl overflow-y-auto"
-          style={{ backgroundColor: menu.backgroundColor || '#ffffff' }}
-        >
-          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-            <span className="font-semibold" style={{ color: menu.textColor }}>Menu</span>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full"
-            >
-              <X className="w-5 h-5" style={{ color: menu.textColor || 'currentColor' }} />
-            </button>
-          </div>
-          <div className="p-4">
-            {items.map((item) => (
-              <MobileNavItem
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-40 backdrop-blur-lg"
+      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'tween', duration: 0.3 }}
+        className="absolute right-0 top-0 h-full w-80 border-l border-white/10"
+        style={{ backgroundColor: mobileMenuBg }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-8 pt-24">
+          <div className="space-y-4">
+            {items.map((item, index) => (
+              <MobileMenuItem
                 key={item.id}
                 item={item}
-                menu={menu}
+                index={index}
                 pathname={pathname}
-                style={menu.mobileStyle}
+                expanded={expandedItems.has(item.id)}
+                onToggleExpand={() => toggleExpand(item.id)}
+                onClose={onClose}
+                textColor={mobileMenuText}
+                accentColor={mobileMenuAccent}
+                hoverColor={mobileMenuHover}
+                fontSize={mobileFontSize}
               />
             ))}
           </div>
-        </motion.div>
-      </>
-    );
-  }
 
-  // Hamburger or Accordion style
-  return (
-    <motion.div
-      initial={animation.initial}
-      animate={animation.animate}
-      exit={animation.exit}
-      transition={{ duration: menu.animationDuration / 1000 }}
-      className="md:hidden border-t border-gray-200"
-      style={{ backgroundColor: menu.backgroundColor || '#ffffff' }}
-    >
-      <div className="px-4 py-2 space-y-1">
-        {items.map((item) => (
-          <MobileNavItem
-            key={item.id}
-            item={item}
-            menu={menu}
-            pathname={pathname}
-            style={menu.mobileStyle}
-          />
-        ))}
-      </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mt-8"
+          >
+            <div className="flex items-center space-x-3">
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center font-bold"
+                style={{ backgroundColor: mobileMenuText, color: mobileMenuBg }}
+              >
+                O
+              </div>
+              <span 
+                className="text-sm tracking-[0.2em] uppercase"
+                style={{ color: mobileMenuText }}
+              >
+                Optique de Bourbon
+              </span>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
 
-// Mobile Nav Item
-interface MobileNavItemProps {
+// ============================================
+// MOBILE MENU ITEM
+// ============================================
+
+interface MobileMenuItemProps {
   item: NavigationItem;
-  menu: NavigationMenu;
+  index: number;
   pathname: string;
-  style: string;
-  depth?: number;
+  expanded: boolean;
+  onToggleExpand: () => void;
+  onClose: () => void;
+  textColor: string;
+  accentColor: string;
+  hoverColor: string;
+  fontSize: number;
 }
 
-function MobileNavItem({ item, menu, pathname, style, depth = 0 }: MobileNavItemProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+function MobileMenuItem({ item, index, pathname, expanded, onToggleExpand, onClose, textColor, accentColor, hoverColor, fontSize }: MobileMenuItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const hasChildren = item.children && item.children.length > 0;
-  
-  const isActive = item.href === pathname || 
-    (item.pageSlug && pathname === `/${item.pageSlug}`);
+  const href = getItemHref(item);
+  const active = isItemActive(item, pathname);
+  const isClickable = !!(item.href || item.pageSlug);
 
-  const linkStyle: React.CSSProperties = {
-    color: isActive ? menu.activeColor || menu.textColor : menu.textColor,
-    paddingLeft: depth * 16,
+  const handleClick = () => {
+    sessionStorage.setItem('fromContentReveal', 'true');
+    onClose();
   };
 
+  // Determine current color based on state
+  const currentColor = item.highlighted ? accentColor : active ? accentColor : isHovered ? hoverColor : textColor;
+
   return (
-    <div>
-      <div className="flex items-center">
-        {item.href ? (
-          <Link
-            href={item.href}
-            target={item.openInNewTab ? '_blank' : undefined}
-            rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
-            style={linkStyle}
-            className={cn(
-              'flex-1 flex items-center px-3 py-3 text-sm font-medium transition-colors rounded-md',
-              'hover:bg-black/5',
-              isActive && 'font-semibold bg-black/5',
-              item.highlighted && 'bg-black text-white hover:bg-gray-800',
-              item.cssClass
-            )}
+    <motion.div
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.1 }}
+    >
+      <div 
+        className="flex items-center justify-between border-b pb-3"
+        style={{ borderColor: `${textColor}20` }}
+      >
+        {hasChildren && !isClickable ? (
+          <button
+            onClick={onToggleExpand}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className="flex-1 text-left font-medium tracking-wide transition-colors duration-200"
+            style={{ color: currentColor, fontSize }}
           >
             {item.label}
-            {item.openInNewTab && (
-              <ExternalLink className="w-3 h-3 ml-2 opacity-50" />
-            )}
-          </Link>
-        ) : (
-          <button
-            onClick={() => hasChildren && setIsExpanded(!isExpanded)}
-            style={linkStyle}
-            className={cn(
-              'flex-1 flex items-center justify-between px-3 py-3 text-sm font-medium transition-colors rounded-md',
-              'hover:bg-black/5',
-              item.cssClass
-            )}
-          >
-            <span>{item.label}</span>
           </button>
-        )}
-        
-        {hasChildren && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-3 hover:bg-black/5 rounded-md"
+        ) : (
+          <Link
+            href={href}
+            target={item.openInNewTab ? '_blank' : undefined}
+            rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+            className="flex-1 font-medium tracking-wide transition-colors duration-200"
+            style={{ 
+              color: currentColor,
+              fontWeight: active ? 700 : 500,
+              fontSize,
+            }}
+            onClick={handleClick}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
-            <ChevronDown
-              className={cn('w-4 h-4 transition-transform', isExpanded && 'rotate-180')}
-              style={{ color: menu.textColor || 'currentColor' }}
-            />
+            {item.label}
+          </Link>
+        )}
+        {hasChildren && (
+          <button onClick={onToggleExpand} className="p-2" style={{ color: textColor }}>
+            <ChevronDown className={cn('w-4 h-4 transition-transform', expanded && 'rotate-180')} />
           </button>
         )}
       </div>
 
-      {/* Children */}
+      {/* Sub-items */}
       <AnimatePresence>
-        {hasChildren && isExpanded && (
+        {hasChildren && expanded && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            {item.children!.map((child) => (
-              <MobileNavItem
-                key={child.id}
-                item={child}
-                menu={menu}
-                pathname={pathname}
-                style={style}
-                depth={depth + 1}
-              />
-            ))}
+            <div className="pl-4 pt-2 space-y-2">
+              {item.children!.map((child) => {
+                const childHref = getItemHref(child);
+                const childActive = isItemActive(child, pathname);
+
+                return (
+                  <Link
+                    key={child.id}
+                    href={childHref}
+                    target={child.openInNewTab ? '_blank' : undefined}
+                    rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
+                    className="block text-sm py-1 transition-colors hover:opacity-70"
+                    style={{ 
+                      color: childActive ? accentColor : textColor,
+                      opacity: childActive ? 1 : 0.7,
+                      fontWeight: childActive ? 500 : 400,
+                    }}
+                    onClick={handleClick}
+                  >
+                    {child.label}
+                  </Link>
+                );
+              })}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-// Export a simple footer navigation component
-export function DynamicFooterNav({ menuSlug = 'footer', className }: { menuSlug?: string; className?: string }) {
-  const [menu, setMenu] = useState<NavigationMenu | null>(null);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    const fetchMenu = async () => {
-      try {
-        const response = await fetch(`/api/navigation/menus/${menuSlug}?nested=true`);
-        if (response.ok) {
-          const data = await response.json();
-          setMenu(data);
-        }
-      } catch (error) {
-        console.error('Error fetching footer menu:', error);
-      }
-    };
-
-    fetchMenu();
-  }, [menuSlug]);
-
-  if (!menu || !menu.published) {
-    return null;
-  }
-
-  const nestedItems = buildNestedItems(menu.items);
-
-  return (
-    <>
-      {menu.customCSS && (
-        <style dangerouslySetInnerHTML={{ __html: menu.customCSS }} />
-      )}
-      
-      <nav
-        className={cn(
-          menu.cssClasses,
-          className
-        )}
-        style={{
-          backgroundColor: menu.backgroundColor || undefined,
-          color: menu.textColor || undefined,
-          padding: menu.padding || undefined,
-        }}
-      >
-        <div
-          className={cn(
-            'flex',
-            menu.layout === 'horizontal' && 'flex-row flex-wrap',
-            menu.layout === 'vertical' && 'flex-col',
-            menu.layout === 'grid' && 'grid grid-cols-2 md:grid-cols-4',
-            menu.alignment === 'left' && 'justify-start',
-            menu.alignment === 'center' && 'justify-center',
-            menu.alignment === 'right' && 'justify-end',
-            menu.alignment === 'space-between' && 'justify-between',
-          )}
-          style={{ gap: menu.itemSpacing }}
-        >
-          {nestedItems.map((item) => (
-            <FooterNavItem
-              key={item.id}
-              item={item}
-              menu={menu}
-              pathname={pathname}
-            />
-          ))}
-        </div>
-      </nav>
-    </>
-  );
-}
-
-// Footer Nav Item
-function FooterNavItem({ item, menu, pathname }: { item: NavigationItem; menu: NavigationMenu; pathname: string }) {
-  const hasChildren = item.children && item.children.length > 0;
-  const isActive = item.href === pathname || (item.pageSlug && pathname === `/${item.pageSlug}`);
-
-  const linkStyle: React.CSSProperties = {
-    color: isActive ? menu.activeColor || menu.textColor : menu.textColor,
-  };
-
-  // If has children, render as a column with heading
-  if (hasChildren) {
-    return (
-      <div className="space-y-3">
-        {item.href ? (
-          <Link
-            href={item.href}
-            style={linkStyle}
-            className={cn(
-              'block font-semibold text-sm hover:opacity-80 transition-opacity',
-              item.cssClass
-            )}
-          >
-            {item.label}
-          </Link>
-        ) : (
-          <span
-            style={linkStyle}
-            className={cn('block font-semibold text-sm', item.cssClass)}
-          >
-            {item.label}
-          </span>
-        )}
-        <ul className="space-y-2">
-          {item.children!.map((child) => (
-            <li key={child.id}>
-              <Link
-                href={child.href || '#'}
-                target={child.openInNewTab ? '_blank' : undefined}
-                rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
-                style={{
-                  color: pathname === child.href || (child.pageSlug && pathname === `/${child.pageSlug}`)
-                    ? menu.activeColor || menu.textColor
-                    : menu.textColor,
-                }}
-                className={cn(
-                  'text-sm opacity-70 hover:opacity-100 transition-opacity flex items-center gap-1',
-                  child.cssClass
-                )}
-              >
-                {child.label}
-                {child.openInNewTab && <ExternalLink className="w-3 h-3" />}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-
-  // Single link item
-  return (
-    <Link
-      href={item.href || '#'}
-      target={item.openInNewTab ? '_blank' : undefined}
-      rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
-      style={linkStyle}
-      className={cn(
-        'text-sm hover:opacity-80 transition-opacity flex items-center gap-1',
-        item.highlighted && 'font-semibold',
-        item.cssClass
-      )}
-    >
-      {item.label}
-      {item.openInNewTab && <ExternalLink className="w-3 h-3" />}
-    </Link>
+    </motion.div>
   );
 }

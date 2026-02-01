@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "NavigationMenu" ADD COLUMN     "fontSize" INTEGER NOT NULL DEFAULT 14,
+ADD COLUMN     "mobileFontSize" INTEGER NOT NULL DEFAULT 18;
