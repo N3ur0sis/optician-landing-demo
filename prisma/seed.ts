@@ -379,48 +379,19 @@ async function main() {
   console.log('\n📄 Seeding pages...')
   
   await prisma.pageBlock.deleteMany()
-  await prisma.page.deleteMany()
-  console.log('✓ Cleared existing pages')
-
-  // ===========================================
-  // PAGE: Homepage
-  // ===========================================
-  await prisma.page.create({
-    data: {
-      slug: '/',
-      title: 'Accueil',
-      metaTitle: 'Optique de Bourbon | Votre opticien à La Réunion depuis 1981',
-      metaDescription: 'Optique de Bourbon, votre opticien santé à La Réunion depuis plus de 40 ans. 15 boutiques, équipe d\'experts. Prenez rendez-vous en ligne.',
-      published: true,
-      publishedAt: new Date(),
-      showInNav: false,
-      blocks: {
-        create: [
-          {
-            type: 'HERO',
-            order: 1,
-            content: {
-              title: 'Optique de Bourbon',
-              subtitle: 'Vos yeux, notre priorité',
-              description: 'Votre opticien santé à La Réunion depuis plus de 40 ans',
-              backgroundImage: PLACEHOLDER_IMAGE,
-              overlayOpacity: 50,
-              overlayColor: '#000000',
-              height: 'full',
-              alignment: 'CENTER',
-              buttons: [
-                { text: 'Je prends RDV', url: 'https://devices.minutpass.com/iframe.html?header=1&context=OPTIQUEBOURBON&configuration=2803', variant: 'primary' },
-                { text: 'Trouver un magasin', url: '/nos-boutiques', variant: 'secondary' },
-              ],
-            },
-            styles: { containerWidth: 'FULL', paddingTop: 'none', paddingBottom: 'none' },
-            visible: true,
-          },
-        ],
-      },
-    },
+  // Delete all pages EXCEPT the protected homepage (managed via migration)
+  await prisma.page.deleteMany({
+    where: {
+      slug: {
+        notIn: ['accueil', '/', 'home', '']
+      }
+    }
   })
-  console.log('✓ Created page: Homepage')
+  console.log('✓ Cleared existing pages (except homepage)')
+
+  // Homepage is created via migration (20260202160000_create_homepage)
+  // It's protected and managed via the Grid Manager
+  console.log('✓ Homepage managed via migration')
 
   // ===========================================
   // PAGE: Nos Boutiques

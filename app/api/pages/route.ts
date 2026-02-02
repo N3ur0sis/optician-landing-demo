@@ -78,23 +78,42 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if slug already exists
-    const existingPage = await prisma.page.findUnique({
-      where: { slug },
+    // Normalize slug
+    const normalizedSlug = slug.replace(/^\//, '').toLowerCase();
+    
+    // Block creation of homepage (protected page)
+    if (normalizedSlug === '' || normalizedSlug === '/' || normalizedSlug === 'accueil' || normalizedSlug === 'home') {
+      return NextResponse.json(
+        { error: 'La page d\'accueil existe déjà et ne peut pas être recréée' }, 
+        { status: 400 }
+      );
+    }
+
+    // Check if slug already exists (check both with and without leading slash)
+    const existingPage = await prisma.page.findFirst({
+      where: {
+        OR: [
+          { slug: normalizedSlug },
+          { slug: `/${normalizedSlug}` },
+        ],
+      },
     });
 
     if (existingPage) {
       return NextResponse.json(
-        { error: 'A page with this slug already exists' }, 
+        { error: 'Une page avec ce slug existe déjà' }, 
         { status: 400 }
       );
     }
+
+    // Final slug format (with leading slash for consistency)
+    const finalSlug = normalizedSlug;
 
     // Create page with blocks
     const page = await prisma.page.create({
       data: {
         title,
-        slug: slug.startsWith('/') ? slug : `/${slug}`,
+        slug: finalSlug,
         metaTitle,
         metaDescription,
         template,

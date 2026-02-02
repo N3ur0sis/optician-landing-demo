@@ -282,8 +282,9 @@ export function flattenItems(items: NavigationItem[], depth = 0): NavigationItem
  */
 export function getItemHref(item: NavigationItem): string {
   if (item.pageSlug) {
-    // Handle home page
-    if (item.pageSlug === 'home' || item.pageSlug === '/') {
+    // Handle home page (various slug formats)
+    const normalizedSlug = item.pageSlug.replace(/^\//, '').toLowerCase();
+    if (normalizedSlug === 'home' || normalizedSlug === 'accueil' || normalizedSlug === '' || item.pageSlug === '/') {
       return '/';
     }
     // Ensure slug starts with / but doesn't have double slashes

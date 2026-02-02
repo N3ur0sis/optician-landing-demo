@@ -18,8 +18,17 @@ import {
   Calendar,
   ChevronRight,
   Palette,
+  Home,
+  Grid3X3,
+  Lock,
 } from "lucide-react";
 import { Page } from "@/types/page-builder";
+
+// Helper to check if a page is the protected homepage
+const isHomePage = (slug: string): boolean => {
+  const normalized = slug.replace(/^\//, '').toLowerCase();
+  return normalized === '' || normalized === '/' || normalized === 'accueil' || normalized === 'home';
+};
 
 interface PagesListClientProps {
   initialPages?: Page[];
@@ -225,25 +234,36 @@ export default function PagesListClient({
         ) : (
           <div className="grid gap-4">
             <AnimatePresence mode="popLayout">
-              {filteredPages.map((page) => (
+              {filteredPages.map((page) => {
+                const isHome = isHomePage(page.slug);
+                
+                return (
                 <motion.div
                   key={page.id}
                   layout
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow group"
+                  className={`bg-white rounded-xl p-6 border hover:shadow-lg transition-shadow group ${
+                    isHome ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'
+                  }`}
                 >
                   <div className="flex items-center gap-4">
                     {/* Icon */}
                     <div
-                      className="w-12 h-12 rounded-lg flex items-center justify-center"
-                      style={{ backgroundColor: page.backgroundColor + "20" }}
+                      className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                        isHome ? 'bg-amber-100' : ''
+                      }`}
+                      style={isHome ? {} : { backgroundColor: page.backgroundColor + "20" }}
                     >
-                      <FileText
-                        className="w-6 h-6"
-                        style={{ color: page.backgroundColor }}
-                      />
+                      {isHome ? (
+                        <Home className="w-6 h-6 text-amber-600" />
+                      ) : (
+                        <FileText
+                          className="w-6 h-6"
+                          style={{ color: page.backgroundColor }}
+                        />
+                      )}
                     </div>
 
                     {/* Content */}
@@ -252,6 +272,12 @@ export default function PagesListClient({
                         <h3 className="font-semibold text-gray-900 truncate">
                           {page.title}
                         </h3>
+                        {isHome && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700">
+                            <Lock className="w-3 h-3" />
+                            Protégée
+                          </span>
+                        )}
                         <span
                           className={`px-2 py-0.5 text-xs rounded-full ${
                             page.published
@@ -291,13 +317,24 @@ export default function PagesListClient({
                           <Eye className="w-4 h-4 text-gray-600" />
                         )}
                       </button>
-                      <Link
-                        href={`/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="Modifier"
-                      >
-                        <Pencil className="w-4 h-4 text-gray-600" />
-                      </Link>
+                      {isHome ? (
+                        // Homepage: Link to grid manager instead of page builder
+                        <Link
+                          href="/admin/dashboard/grid"
+                          className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
+                          title="Gérer la grille d'accueil"
+                        >
+                          <Grid3X3 className="w-4 h-4 text-amber-600" />
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Modifier"
+                        >
+                          <Pencil className="w-4 h-4 text-gray-600" />
+                        </Link>
+                      )}
                       <a
                         href={`/${page.slug.replace(/^\//, "")}`}
                         target="_blank"
@@ -307,6 +344,8 @@ export default function PagesListClient({
                       >
                         <ExternalLink className="w-4 h-4 text-gray-600" />
                       </a>
+                      {/* More actions menu - only for non-homepage */}
+                      {!isHome && (
                       <div className="relative">
                         <button
                           onClick={() =>
@@ -348,18 +387,23 @@ export default function PagesListClient({
                           </div>
                         )}
                       </div>
+                      )}
                     </div>
 
-                    {/* Arrow */}
+                    {/* Arrow - link to grid for homepage, page editor for others */}
                     <Link
-                      href={`/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`}
+                      href={isHome 
+                        ? "/admin/dashboard/grid"
+                        : `/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`
+                      }
                       className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <ChevronRight className="w-5 h-5 text-gray-500" />
                     </Link>
                   </div>
                 </motion.div>
-              ))}
+              );
+              })}
             </AnimatePresence>
           </div>
         )}

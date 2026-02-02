@@ -1,13 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
-import { ChevronDown, ExternalLink } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useApparence } from '@/lib/apparence-context';
+import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useMotionValueEvent,
+} from "framer-motion";
+import { ChevronDown, ExternalLink } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useApparence } from "@/lib/apparence-context";
 
 import {
   NavigationMenu,
@@ -17,7 +22,7 @@ import {
   isItemActive,
   DropdownAnimation,
   DisplayMode,
-} from '@/types/navigation';
+} from "@/types/navigation";
 
 // ============================================
 // ANIMATION VARIANTS
@@ -47,7 +52,7 @@ const dropdownAnimations = {
 
 interface DynamicNavbarProps {
   className?: string;
-  variant?: 'default' | 'home';
+  variant?: "default" | "home";
   title?: string;
   subtitle?: string;
   showBackButton?: boolean;
@@ -59,7 +64,7 @@ interface DynamicNavbarProps {
 
 export default function DynamicNavbar({
   className,
-  variant = 'default',
+  variant = "default",
   title,
   subtitle,
   showBackButton = false,
@@ -71,26 +76,28 @@ export default function DynamicNavbar({
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const lastScrollY = useRef(0);
-  
+
   const pathname = usePathname();
   const router = useRouter();
   const { settings: apparenceSettings } = useApparence();
   const { scrollY } = useScroll();
 
-  const isHome = variant === 'home';
+  const isHome = variant === "home";
   const navbarLogoUrl = apparenceSettings.navbar_logo_url;
 
   // Fetch menu data (singleton menu "header")
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await fetch('/api/navigation/menus/header?includeItems=true');
+        const response = await fetch(
+          "/api/navigation/menus/header?includeItems=true",
+        );
         if (response.ok) {
           const data = await response.json();
           setMenu(data);
         }
       } catch (error) {
-        console.error('Error fetching menu:', error);
+        console.error("Error fetching menu:", error);
       } finally {
         setLoading(false);
       }
@@ -100,12 +107,12 @@ export default function DynamicNavbar({
   }, []);
 
   // Handle scroll behavior
-  useMotionValueEvent(scrollY, 'change', (latest) => {
+  useMotionValueEvent(scrollY, "change", (latest) => {
     const currentScrollY = latest;
-    
+
     // Set scrolled state for all scroll effects (shadow, shrink, opacity)
     setScrolled(currentScrollY > 50);
-    
+
     // Hide on scroll down
     if (menu?.hideOnScrollDown) {
       if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
@@ -114,7 +121,7 @@ export default function DynamicNavbar({
         setHidden(false);
       }
     }
-    
+
     lastScrollY.current = currentScrollY;
   });
 
@@ -125,8 +132,8 @@ export default function DynamicNavbar({
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, [menu?.mobileBreakpoint]);
 
   // Close mobile menu on route change
@@ -136,11 +143,11 @@ export default function DynamicNavbar({
 
   // Back button handler
   const handleBackClick = useCallback(() => {
-    const fromContentReveal = sessionStorage.getItem('fromContentReveal');
-    if (fromContentReveal === 'true') {
-      sessionStorage.removeItem('fromContentReveal');
-      sessionStorage.setItem('scrollToContentReveal', 'true');
-      router.push('/');
+    const fromContentReveal = sessionStorage.getItem("fromContentReveal");
+    if (fromContentReveal === "true") {
+      sessionStorage.removeItem("fromContentReveal");
+      sessionStorage.setItem("scrollToContentReveal", "true");
+      router.push("/");
       return;
     }
     router.back();
@@ -151,9 +158,12 @@ export default function DynamicNavbar({
 
   // Set CSS custom property for navbar height
   useEffect(() => {
-    document.documentElement.style.setProperty('--navbar-height', `${navbarHeight}px`);
+    document.documentElement.style.setProperty(
+      "--navbar-height",
+      `${navbarHeight}px`,
+    );
     return () => {
-      document.documentElement.style.removeProperty('--navbar-height');
+      document.documentElement.style.removeProperty("--navbar-height");
     };
   }, [navbarHeight]);
 
@@ -163,42 +173,47 @@ export default function DynamicNavbar({
   }
 
   const nestedItems = buildNestedItems(menu.items);
-  const displayMode = menu.displayMode || 'hamburger-only';
-  
+  const displayMode = menu.displayMode || "hamburger-only";
+
   // Determine what to show
-  const showTraditionalMenu = !isMobile && (displayMode === 'traditional' || displayMode === 'hybrid');
-  const showHamburger = isMobile || displayMode === 'hamburger-only' || displayMode === 'hybrid';
+  const showTraditionalMenu =
+    !isMobile && (displayMode === "traditional" || displayMode === "hybrid");
+  const showHamburger =
+    isMobile || displayMode === "hamburger-only" || displayMode === "hybrid";
 
   // Get scroll behavior settings from menu
   const shadowOnScroll = menu.shadowOnScroll ?? true;
   const shrinkOnScroll = menu.shrinkOnScroll ?? true;
   const scrollOpacity = menu.scrollOpacity ?? 100;
-  const alignment = menu.alignment || 'center';
-  
+  const alignment = menu.alignment || "center";
+
   // Get colors from menu or use defaults based on variant
-  const bgColor = menu.backgroundColor || (isHome ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.8)');
-  const textColor = menu.textColor || (isHome ? '#000000' : '#ffffff');
-  const hoverColor = menu.hoverColor || (isHome ? '#666666' : '#cccccc');
+  const bgColor =
+    menu.backgroundColor ||
+    (isHome ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.8)");
+  const textColor = menu.textColor || (isHome ? "#000000" : "#ffffff");
+  const hoverColor = menu.hoverColor || (isHome ? "#666666" : "#cccccc");
   const activeColor = menu.activeColor || textColor;
 
   // Calculate current navbar height based on scroll state
   const shrinkAmount = 16; // pixels to shrink
-  const currentHeight = scrolled && shrinkOnScroll ? navbarHeight - shrinkAmount : navbarHeight;
-  
+  const currentHeight =
+    scrolled && shrinkOnScroll ? navbarHeight - shrinkAmount : navbarHeight;
+
   // Calculate background opacity based on scroll state
   const getScrolledBgColor = () => {
     if (!scrolled) return bgColor;
     // Apply scroll opacity
     const opacity = scrollOpacity / 100;
     // If bgColor is hex, convert to rgba with opacity
-    if (bgColor.startsWith('#')) {
+    if (bgColor.startsWith("#")) {
       const r = parseInt(bgColor.slice(1, 3), 16);
       const g = parseInt(bgColor.slice(3, 5), 16);
       const b = parseInt(bgColor.slice(5, 7), 16);
       return `rgba(${r}, ${g}, ${b}, ${opacity})`;
     }
     // If bgColor is rgba, replace the alpha
-    if (bgColor.startsWith('rgba')) {
+    if (bgColor.startsWith("rgba")) {
       return bgColor.replace(/[\d.]+\)$/, `${opacity})`);
     }
     return bgColor;
@@ -207,36 +222,37 @@ export default function DynamicNavbar({
   // Dynamic background with scroll effect
   const getNavBackgroundClass = () => {
     return cn(
-      'backdrop-blur-md',
-      scrolled && shadowOnScroll && 'shadow-lg',
-      !isHome && 'border-b border-white/10'
+      "backdrop-blur-md",
+      scrolled && shadowOnScroll && "shadow-lg",
+      !isHome && "border-b border-white/10",
     );
   };
 
   // Alignment classes for center section
-  const alignmentClass = {
-    left: 'justify-start',
-    center: 'justify-center',
-    right: 'justify-end',
-    'space-between': 'justify-between',
-  }[alignment] || 'justify-center';
+  const alignmentClass =
+    {
+      left: "justify-start",
+      center: "justify-center",
+      right: "justify-end",
+      "space-between": "justify-between",
+    }[alignment] || "justify-center";
 
   return (
     <>
       {/* Spacer to push content below fixed navbar */}
       <div style={{ height: navbarHeight }} aria-hidden="true" />
-      
+
       <motion.nav
         initial={false}
-        animate={{ 
+        animate={{
           y: hidden ? -(navbarHeight + 10) : 0,
-          height: currentHeight
+          height: currentHeight,
         }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
           getNavBackgroundClass(),
-          className
+          className,
         )}
         style={{
           backgroundColor: getScrolledBgColor(),
@@ -259,7 +275,9 @@ export default function DynamicNavbar({
                   >
                     <div className="w-0 h-0 border-r-[6px] border-r-current border-y-[3px] border-y-transparent" />
                   </div>
-                  <span className="text-sm font-medium tracking-widest uppercase">Retour</span>
+                  <span className="text-sm font-medium tracking-widest uppercase">
+                    Retour
+                  </span>
                 </button>
               ) : (
                 <Link
@@ -282,12 +300,20 @@ export default function DynamicNavbar({
             </div>
 
             {/* Center - Title (when showBackButton) or Desktop Navigation (when traditional/hybrid) */}
-            <div className={cn('flex-1 flex', alignmentClass)}>
+            <div className={cn("flex-1 flex", alignmentClass)}>
               {showBackButton && title ? (
                 <div className="text-center">
-                  <h1 className="text-lg font-bold tracking-wide" style={{ color: textColor }}>{title}</h1>
+                  <h1
+                    className="text-lg font-bold tracking-wide"
+                    style={{ color: textColor }}
+                  >
+                    {title}
+                  </h1>
                   {subtitle && (
-                    <p className="text-xs tracking-[0.2em] uppercase opacity-60" style={{ color: textColor }}>
+                    <p
+                      className="text-xs tracking-[0.2em] uppercase opacity-60"
+                      style={{ color: textColor }}
+                    >
                       {subtitle}
                     </p>
                   )}
@@ -317,26 +343,26 @@ export default function DynamicNavbar({
                   onClick={() => setMobileOpen(!mobileOpen)}
                   className="w-8 h-8 border flex flex-col items-center justify-center space-y-1 transition-colors duration-200"
                   style={{ borderColor: `${textColor}33` }}
-                  aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+                  aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
                 >
                   <div
                     className={cn(
-                      'w-4 h-px transition-all duration-300',
-                      mobileOpen && 'rotate-45 translate-y-1.5'
+                      "w-4 h-px transition-all duration-300",
+                      mobileOpen && "rotate-45 translate-y-1.5",
                     )}
                     style={{ backgroundColor: textColor }}
                   />
                   <div
                     className={cn(
-                      'w-4 h-px transition-all duration-300',
-                      mobileOpen && 'opacity-0'
+                      "w-4 h-px transition-all duration-300",
+                      mobileOpen && "opacity-0",
                     )}
                     style={{ backgroundColor: textColor }}
                   />
                   <div
                     className={cn(
-                      'w-4 h-px transition-all duration-300',
-                      mobileOpen && '-rotate-45 -translate-y-1.5'
+                      "w-4 h-px transition-all duration-300",
+                      mobileOpen && "-rotate-45 -translate-y-1.5",
                     )}
                     style={{ backgroundColor: textColor }}
                   />
@@ -391,12 +417,14 @@ function NavItem({ item, menu, pathname, isHome }: NavItemProps) {
     timeoutRef.current = setTimeout(() => setIsOpen(false), 150);
   };
 
-  const anim = dropdownAnimations[menu.dropdownAnimation as DropdownAnimation] || dropdownAnimations.fadeDown;
+  const anim =
+    dropdownAnimations[menu.dropdownAnimation as DropdownAnimation] ||
+    dropdownAnimations.fadeDown;
 
   // Get colors from menu or use defaults
-  const textColor = menu.textColor || (isHome ? '#000000' : '#ffffff');
+  const textColor = menu.textColor || (isHome ? "#000000" : "#ffffff");
   const activeColor = menu.activeColor || textColor;
-  const hoverColor = menu.hoverColor || (isHome ? '#666666' : '#cccccc');
+  const hoverColor = menu.hoverColor || (isHome ? "#666666" : "#cccccc");
   const fontSize = menu.fontSize || 14;
 
   // For parent items with no href/pageSlug, they should not be clickable
@@ -405,19 +433,31 @@ function NavItem({ item, menu, pathname, isHome }: NavItemProps) {
   const itemContent = (
     <span
       className={cn(
-        'flex items-center gap-1 font-medium tracking-wide transition-colors duration-200',
-        item.highlighted && 'px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800'
+        "flex items-center gap-1 font-medium tracking-wide transition-colors duration-200",
+        item.highlighted &&
+          "px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800",
       )}
       style={{
-        color: item.highlighted ? undefined : (active ? activeColor : textColor),
+        color: item.highlighted ? undefined : active ? activeColor : textColor,
         fontSize,
       }}
-      onMouseEnter={(e) => !item.highlighted && (e.currentTarget.style.color = hoverColor)}
-      onMouseLeave={(e) => !item.highlighted && (e.currentTarget.style.color = active ? activeColor : textColor)}
+      onMouseEnter={(e) =>
+        !item.highlighted && (e.currentTarget.style.color = hoverColor)
+      }
+      onMouseLeave={(e) =>
+        !item.highlighted &&
+        (e.currentTarget.style.color = active ? activeColor : textColor)
+      }
     >
       {item.label}
-      {hasChildren && <ChevronDown className={cn('w-4 h-4 transition-transform', isOpen && 'rotate-180')} />}
-      {item.openInNewTab && !hasChildren && <ExternalLink className="w-3 h-3 opacity-50" />}
+      {hasChildren && (
+        <ChevronDown
+          className={cn("w-4 h-4 transition-transform", isOpen && "rotate-180")}
+        />
+      )}
+      {item.openInNewTab && !hasChildren && (
+        <ExternalLink className="w-3 h-3 opacity-50" />
+      )}
     </span>
   );
 
@@ -432,8 +472,8 @@ function NavItem({ item, menu, pathname, isHome }: NavItemProps) {
       ) : (
         <Link
           href={href}
-          target={item.openInNewTab ? '_blank' : undefined}
-          rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+          target={item.openInNewTab ? "_blank" : undefined}
+          rel={item.openInNewTab ? "noopener noreferrer" : undefined}
         >
           {itemContent}
         </Link>
@@ -457,16 +497,18 @@ function NavItem({ item, menu, pathname, isHome }: NavItemProps) {
                 <Link
                   key={child.id}
                   href={childHref}
-                  target={child.openInNewTab ? '_blank' : undefined}
-                  rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
+                  target={child.openInNewTab ? "_blank" : undefined}
+                  rel={child.openInNewTab ? "noopener noreferrer" : undefined}
                   className={cn(
-                    'block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors',
-                    childActive && 'bg-gray-50 font-medium'
+                    "block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors",
+                    childActive && "bg-gray-50 font-medium",
                   )}
                 >
                   <div className="flex items-center justify-between">
                     <span>{child.label}</span>
-                    {child.openInNewTab && <ExternalLink className="w-3 h-3 opacity-50" />}
+                    {child.openInNewTab && (
+                      <ExternalLink className="w-3 h-3 opacity-50" />
+                    )}
                   </div>
                 </Link>
               );
@@ -494,9 +536,9 @@ function MobileMenu({ items, menu, pathname, onClose }: MobileMenuProps) {
 
   // Block body scroll when menu is open
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, []);
 
@@ -510,10 +552,10 @@ function MobileMenu({ items, menu, pathname, onClose }: MobileMenuProps) {
   };
 
   // Get mobile menu colors from settings
-  const mobileMenuBg = menu.mobileMenuBg || 'rgba(0,0,0,0.95)';
-  const mobileMenuText = menu.mobileMenuText || '#ffffff';
-  const mobileMenuAccent = menu.mobileMenuAccent || '#f59e0b';
-  const mobileMenuHover = menu.mobileMenuHover || '#999999';
+  const mobileMenuBg = menu.mobileMenuBg || "rgba(0,0,0,0.95)";
+  const mobileMenuText = menu.mobileMenuText || "#ffffff";
+  const mobileMenuAccent = menu.mobileMenuAccent || "#f59e0b";
+  const mobileMenuHover = menu.mobileMenuHover || "#999999";
   const mobileFontSize = menu.mobileFontSize || 18;
 
   return (
@@ -522,14 +564,14 @@ function MobileMenu({ items, menu, pathname, onClose }: MobileMenuProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-40 backdrop-blur-lg"
-      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+      style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
       onClick={onClose}
     >
       <motion.div
-        initial={{ x: '100%' }}
+        initial={{ x: "100%" }}
         animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'tween', duration: 0.3 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "tween", duration: 0.3 }}
         className="absolute right-0 top-0 h-full w-80 border-l border-white/10"
         style={{ backgroundColor: mobileMenuBg }}
         onClick={(e) => e.stopPropagation()}
@@ -560,13 +602,13 @@ function MobileMenu({ items, menu, pathname, onClose }: MobileMenuProps) {
             className="mt-8"
           >
             <div className="flex items-center space-x-3">
-              <div 
+              <div
                 className="w-8 h-8 rounded-full flex items-center justify-center font-bold"
                 style={{ backgroundColor: mobileMenuText, color: mobileMenuBg }}
               >
                 O
               </div>
-              <span 
+              <span
                 className="text-sm tracking-[0.2em] uppercase"
                 style={{ color: mobileMenuText }}
               >
@@ -597,7 +639,18 @@ interface MobileMenuItemProps {
   fontSize: number;
 }
 
-function MobileMenuItem({ item, index, pathname, expanded, onToggleExpand, onClose, textColor, accentColor, hoverColor, fontSize }: MobileMenuItemProps) {
+function MobileMenuItem({
+  item,
+  index,
+  pathname,
+  expanded,
+  onToggleExpand,
+  onClose,
+  textColor,
+  accentColor,
+  hoverColor,
+  fontSize,
+}: MobileMenuItemProps) {
   const [isHovered, setIsHovered] = useState(false);
   const hasChildren = item.children && item.children.length > 0;
   const href = getItemHref(item);
@@ -605,12 +658,18 @@ function MobileMenuItem({ item, index, pathname, expanded, onToggleExpand, onClo
   const isClickable = !!(item.href || item.pageSlug);
 
   const handleClick = () => {
-    sessionStorage.setItem('fromContentReveal', 'true');
+    sessionStorage.setItem("fromContentReveal", "true");
     onClose();
   };
 
   // Determine current color based on state
-  const currentColor = item.highlighted ? accentColor : active ? accentColor : isHovered ? hoverColor : textColor;
+  const currentColor = item.highlighted
+    ? accentColor
+    : active
+      ? accentColor
+      : isHovered
+        ? hoverColor
+        : textColor;
 
   return (
     <motion.div
@@ -618,7 +677,7 @@ function MobileMenuItem({ item, index, pathname, expanded, onToggleExpand, onClo
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.1 }}
     >
-      <div 
+      <div
         className="flex items-center justify-between border-b pb-3"
         style={{ borderColor: `${textColor}20` }}
       >
@@ -635,10 +694,10 @@ function MobileMenuItem({ item, index, pathname, expanded, onToggleExpand, onClo
         ) : (
           <Link
             href={href}
-            target={item.openInNewTab ? '_blank' : undefined}
-            rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+            target={item.openInNewTab ? "_blank" : undefined}
+            rel={item.openInNewTab ? "noopener noreferrer" : undefined}
             className="flex-1 font-medium tracking-wide transition-colors duration-200"
-            style={{ 
+            style={{
               color: currentColor,
               fontWeight: active ? 700 : 500,
               fontSize,
@@ -651,8 +710,17 @@ function MobileMenuItem({ item, index, pathname, expanded, onToggleExpand, onClo
           </Link>
         )}
         {hasChildren && (
-          <button onClick={onToggleExpand} className="p-2" style={{ color: textColor }}>
-            <ChevronDown className={cn('w-4 h-4 transition-transform', expanded && 'rotate-180')} />
+          <button
+            onClick={onToggleExpand}
+            className="p-2"
+            style={{ color: textColor }}
+          >
+            <ChevronDown
+              className={cn(
+                "w-4 h-4 transition-transform",
+                expanded && "rotate-180",
+              )}
+            />
           </button>
         )}
       </div>
@@ -662,7 +730,7 @@ function MobileMenuItem({ item, index, pathname, expanded, onToggleExpand, onClo
         {hasChildren && expanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
+            animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
@@ -675,10 +743,10 @@ function MobileMenuItem({ item, index, pathname, expanded, onToggleExpand, onClo
                   <Link
                     key={child.id}
                     href={childHref}
-                    target={child.openInNewTab ? '_blank' : undefined}
-                    rel={child.openInNewTab ? 'noopener noreferrer' : undefined}
+                    target={child.openInNewTab ? "_blank" : undefined}
+                    rel={child.openInNewTab ? "noopener noreferrer" : undefined}
                     className="block text-sm py-1 transition-colors hover:opacity-70"
-                    style={{ 
+                    style={{
                       color: childActive ? accentColor : textColor,
                       opacity: childActive ? 1 : 0.7,
                       fontWeight: childActive ? 500 : 400,

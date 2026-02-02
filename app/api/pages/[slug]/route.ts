@@ -102,6 +102,29 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: 'Page not found' }, { status: 404 });
     }
 
+    // Check if this is the protected homepage
+    const normalizedExistingSlug = existingPage.slug.replace(/^\//, '').toLowerCase();
+    const isHomePage = normalizedExistingSlug === '' || normalizedExistingSlug === 'accueil' || normalizedExistingSlug === 'home';
+
+    // Protect homepage: block content/block modifications (but allow SEO updates)
+    if (isHomePage && blocks) {
+      return NextResponse.json(
+        { error: 'Le contenu de la page d\'accueil est géré via le Gestionnaire de Grille' },
+        { status: 403 }
+      );
+    }
+
+    // Protect homepage slug from being changed
+    if (isHomePage && newSlug) {
+      const normalizedNewSlug = newSlug.replace(/^\//, '').toLowerCase();
+      if (normalizedNewSlug !== normalizedExistingSlug) {
+        return NextResponse.json(
+          { error: 'Le slug de la page d\'accueil ne peut pas être modifié' },
+          { status: 403 }
+        );
+      }
+    }
+
     // If slug is changing, check for conflicts
     if (newSlug) {
       const normalizedNewSlug = newSlug.replace(/^\//, '');
@@ -237,6 +260,15 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
     if (!existingPage) {
       return NextResponse.json({ error: 'Page not found' }, { status: 404 });
+    }
+
+    // Protect homepage from deletion
+    const normalizedSlug = existingPage.slug.replace(/^\//, '').toLowerCase();
+    if (normalizedSlug === '' || normalizedSlug === '/' || normalizedSlug === 'accueil') {
+      return NextResponse.json(
+        { error: 'La page d\'accueil ne peut pas être supprimée' }, 
+        { status: 403 }
+      );
     }
 
     if (permanent) {
