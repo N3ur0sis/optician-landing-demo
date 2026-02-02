@@ -175,8 +175,48 @@ export default function UsersClient() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+      <div className="p-8">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="h-9 bg-gray-200 rounded-lg w-40 animate-pulse" />
+            <div className="h-5 bg-gray-100 rounded w-72 mt-2 animate-pulse" />
+          </div>
+          <div className="h-12 bg-amber-100 rounded-lg w-44 animate-pulse" />
+        </div>
+
+        {/* Table skeleton */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          {/* Table header */}
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <div className="grid grid-cols-5 gap-4">
+              <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded w-20 animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
+            </div>
+          </div>
+          
+          {/* Table rows */}
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="px-6 py-4 border-b border-gray-100">
+              <div className="grid grid-cols-5 gap-4 items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
+                  <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
+                </div>
+                <div className="h-4 bg-gray-100 rounded w-40 animate-pulse" />
+                <div className="h-6 bg-amber-100 rounded-full w-20 animate-pulse" />
+                <div className="h-4 bg-gray-100 rounded w-24 animate-pulse" />
+                <div className="flex gap-2">
+                  <div className="w-8 h-8 bg-gray-100 rounded animate-pulse" />
+                  <div className="w-8 h-8 bg-gray-100 rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

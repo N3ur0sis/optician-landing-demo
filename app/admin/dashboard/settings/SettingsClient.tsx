@@ -181,8 +181,69 @@ export default function SettingsClient() {
 
   if (loading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+      <div className="p-6 max-w-4xl mx-auto">
+        {/* Header skeleton */}
+        <div className="mb-8">
+          <div className="h-9 bg-gray-200 rounded-lg w-48 animate-pulse" />
+          <div className="h-5 bg-gray-100 rounded w-64 mt-2 animate-pulse" />
+        </div>
+
+        {/* Tabs skeleton */}
+        <div className="flex gap-2 mb-6 border-b border-gray-200 pb-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-8 bg-gray-200 rounded-lg w-28 animate-pulse" />
+          ))}
+        </div>
+
+        {/* Cards skeleton */}
+        <div className="space-y-6">
+          {/* Card 1 - Site info */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-5 h-5 bg-gray-200 rounded" />
+              <div className="h-6 bg-gray-200 rounded w-40" />
+            </div>
+            <div className="space-y-4">
+              <div>
+                <div className="h-4 bg-gray-100 rounded w-24 mb-2" />
+                <div className="h-10 bg-gray-100 rounded-lg w-full" />
+              </div>
+              <div>
+                <div className="h-4 bg-gray-100 rounded w-24 mb-2" />
+                <div className="h-24 bg-gray-100 rounded-lg w-full" />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2 - Contact */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-5 h-5 bg-gray-200 rounded" />
+              <div className="h-6 bg-gray-200 rounded w-24" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i}>
+                  <div className="h-4 bg-gray-100 rounded w-20 mb-2" />
+                  <div className="h-10 bg-gray-100 rounded-lg w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Card 3 - Social */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 animate-pulse">
+            <div className="h-6 bg-gray-200 rounded w-36 mb-4" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i}>
+                  <div className="h-4 bg-gray-100 rounded w-20 mb-2" />
+                  <div className="h-10 bg-gray-100 rounded-lg w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

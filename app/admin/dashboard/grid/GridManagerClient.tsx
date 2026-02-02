@@ -153,10 +153,32 @@ export default function GridManagerClient() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-600">Chargement des tuiles...</p>
+      <div className="space-y-8">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-9 bg-gray-200 rounded-lg w-64 animate-pulse mb-2" />
+            <div className="h-5 bg-gray-100 rounded w-96 animate-pulse" />
+          </div>
+          <div className="flex gap-3">
+            <div className="h-12 bg-gray-200 rounded-lg w-40 animate-pulse" />
+            <div className="h-12 bg-black/20 rounded-lg w-32 animate-pulse" />
+          </div>
+        </div>
+
+        {/* Grid skeleton */}
+        <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-4">
+          <div className="grid grid-cols-4 gap-4 min-h-[500px]">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className={`bg-gray-100 rounded-xl animate-pulse ${
+                  i % 3 === 0 ? 'col-span-2 row-span-2' : ''
+                }`}
+                style={{ minHeight: i % 3 === 0 ? '200px' : '100px' }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     );

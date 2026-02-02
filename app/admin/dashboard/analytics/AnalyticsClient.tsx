@@ -100,8 +100,67 @@ export default function AnalyticsClient() {
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
+      <div className="p-8">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="h-9 bg-gray-200 rounded-lg w-36 animate-pulse" />
+            <div className="h-5 bg-gray-100 rounded w-64 mt-2 animate-pulse" />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex bg-stone-100 rounded-lg p-1 gap-1">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-10 bg-gray-200 rounded-md w-20 animate-pulse" />
+              ))}
+            </div>
+            <div className="w-10 h-10 bg-gray-100 rounded-lg animate-pulse" />
+          </div>
+        </div>
+
+        {/* Stats cards skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 animate-pulse">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-4 bg-gray-200 rounded w-24" />
+                <div className="w-9 h-9 bg-blue-100 rounded-lg" />
+              </div>
+              <div className="h-8 bg-gray-200 rounded w-20 mb-2" />
+              <div className="h-3 bg-gray-100 rounded w-32" />
+            </div>
+          ))}
+        </div>
+
+        {/* Chart skeleton */}
+        <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-8 animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-40 mb-6" />
+          <div className="h-64 bg-gray-50 rounded-lg flex items-end justify-around gap-2 p-4">
+            {[...Array(7)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-gray-200 rounded-t w-full animate-pulse"
+                style={{ height: `${30 + Math.random() * 60}%` }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Tables skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-36 mb-4" />
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((j) => (
+                  <div key={j} className="flex justify-between items-center">
+                    <div className="h-4 bg-gray-100 rounded w-40" />
+                    <div className="h-4 bg-gray-200 rounded w-16" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

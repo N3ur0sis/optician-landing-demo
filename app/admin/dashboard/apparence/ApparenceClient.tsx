@@ -628,8 +628,66 @@ export default function ApparenceClient() {
 
   if (loading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="h-[calc(100vh-80px)] flex flex-col max-w-6xl mx-auto">
+        {/* Header skeleton */}
+        <div className="shrink-0 px-6 pt-6 pb-4">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <div className="h-8 bg-gray-200 rounded-lg w-36 animate-pulse" />
+              <div className="h-5 bg-gray-100 rounded w-72 mt-2 animate-pulse" />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-10 bg-gray-100 rounded-lg w-28 animate-pulse" />
+              <div className="h-10 bg-gray-200 rounded-lg w-32 animate-pulse" />
+            </div>
+          </div>
+
+          {/* Tabs skeleton */}
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-10 bg-gray-200 rounded-lg flex-1 animate-pulse" />
+            ))}
+          </div>
+        </div>
+
+        {/* Content skeleton */}
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
+          <div className="grid grid-cols-2 gap-6">
+            {/* Left panel - Forms */}
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
+                  <div className="p-4 flex items-center gap-3">
+                    <div className="w-9 h-9 bg-gray-100 rounded-lg" />
+                    <div className="h-5 bg-gray-200 rounded w-32" />
+                  </div>
+                  <div className="px-4 pb-4 space-y-4">
+                    <div className="h-32 bg-gray-50 rounded-lg" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="h-10 bg-gray-50 rounded-lg" />
+                      <div className="h-10 bg-gray-50 rounded-lg" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right panel - Preview */}
+            <div className="sticky top-0">
+              <div className="bg-white rounded-xl border border-gray-200 p-3 animate-pulse">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="h-5 bg-gray-200 rounded w-28" />
+                  <div className="flex gap-1">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-8 bg-gray-100 rounded-md w-20" />
+                    ))}
+                  </div>
+                </div>
+                <div className="aspect-[16/10] bg-gray-100 rounded-lg" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

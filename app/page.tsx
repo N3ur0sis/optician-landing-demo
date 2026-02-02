@@ -207,15 +207,17 @@ export default function Page() {
         />
       )}
 
-      {/* Loading Screen - Simple background color - shows immediately with default/loaded values */}
+      {/* Loading Screen - Wait for settings before showing personalized loader */}
       <AnimatePresence>
         {!isLoaded && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center"
-            style={{ backgroundColor: branding.loading_bg_color }}
+            style={{ backgroundColor: settingsLoaded ? branding.loading_bg_color : '#000000' }}
             exit={{ opacity: 0, scale: 1.1 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
           >
+            {/* Only show personalized content when settings are loaded */}
+            {settingsLoaded ? (
             <motion.div
               className="flex flex-col items-center gap-6 relative z-10"
               initial={{ opacity: 0, y: 20 }}
@@ -281,6 +283,7 @@ export default function Page() {
                 </motion.div>
               )}
             </motion.div>
+            ) : null}
           </motion.div>
         )}
       </AnimatePresence>
