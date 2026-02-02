@@ -227,9 +227,8 @@ export default function DynamicNavbar({
       <div style={{ height: navbarHeight }} aria-hidden="true" />
       
       <motion.nav
-        initial={{ opacity: 0, y: -16 }}
+        initial={false}
         animate={{ 
-          opacity: 1, 
           y: hidden ? -(navbarHeight + 10) : 0,
           height: currentHeight
         }}
