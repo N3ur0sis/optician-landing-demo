@@ -170,20 +170,42 @@ function ColorInput({
   onChange: (val: string) => void;
   description?: string;
 }) {
-  // Use local state to prevent infinite loops when value is empty
+  // Use local state for immediate UI feedback
   const [localValue, setLocalValue] = useState(value);
+  const isInternalChange = useRef(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Sync from parent only when not actively editing
   useEffect(() => {
-    setLocalValue(value);
+    if (!isInternalChange.current) {
+      setLocalValue(value);
+    }
+    isInternalChange.current = false;
   }, [value]);
 
   const handleChange = (newValue: string) => {
+    isInternalChange.current = true;
     setLocalValue(newValue);
-    // Only call onChange if value actually changed
-    if (newValue !== value) {
-      onChange(newValue);
+    
+    // Debounce the parent onChange to prevent rapid updates
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
+    debounceRef.current = setTimeout(() => {
+      if (newValue !== value) {
+        onChange(newValue);
+      }
+    }, 16); // ~60fps throttle
   };
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div>
