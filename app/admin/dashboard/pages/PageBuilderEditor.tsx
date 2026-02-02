@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -420,7 +420,20 @@ export default function PageBuilderEditor({
     setBlocks(newBlocks);
   }, []);
 
-  const selectedBlock = blocks.find((b) => b.id === selectedBlockId);
+  const selectedBlock = useMemo(
+    () => blocks.find((b) => b.id === selectedBlockId),
+    [blocks, selectedBlockId]
+  );
+
+  // Memoized callback for BlockEditor to prevent infinite loops
+  const handleSelectedBlockUpdate = useCallback(
+    (updates: Partial<PageBlock>) => {
+      if (selectedBlockId) {
+        handleUpdateBlock(selectedBlockId, updates);
+      }
+    },
+    [selectedBlockId, handleUpdateBlock]
+  );
 
   const deviceWidths = {
     desktop: "100%",
@@ -1017,9 +1030,7 @@ export default function PageBuilderEditor({
               ) : selectedBlock ? (
                 <BlockEditor
                   block={selectedBlock}
-                  onUpdate={(updates) =>
-                    handleUpdateBlock(selectedBlock.id, updates)
-                  }
+                  onUpdate={handleSelectedBlockUpdate}
                   onClose={() => setSelectedBlockId(null)}
                 />
               ) : null}
@@ -1194,35 +1205,39 @@ function PageSettings({
           </select>
         </div>
 
-        {/* Navigation */}
+        {/* Navbar Title Settings */}
         <div className="pt-4 border-t border-gray-200">
-          <h4 className="font-medium mb-3 text-gray-900">Navigation</h4>
+          <h4 className="font-medium mb-3 text-gray-900">Titre dans la navbar</h4>
 
           <label className="flex items-center gap-2 mb-3">
             <input
               type="checkbox"
-              checked={page.showInNav}
+              checked={page.showNavbarTitle ?? false}
               onChange={(e) =>
-                onUpdate({ ...page, showInNav: e.target.checked })
+                onUpdate({ ...page, showNavbarTitle: e.target.checked })
               }
               className="w-4 h-4 rounded border-gray-300"
             />
             <span className="text-sm text-gray-800">
-              Afficher dans la navigation
+              Afficher un titre dans la navbar
             </span>
           </label>
+          
+          <p className="text-xs text-gray-500 mb-3">
+            Si activé, le titre remplace le menu central de la navbar et un bouton retour s&apos;affiche.
+          </p>
 
-          {page.showInNav && (
+          {page.showNavbarTitle && (
             <>
               <div className="mb-3">
                 <label className="block text-sm text-gray-800 mb-1">
-                  Libellé dans le menu
+                  Titre
                 </label>
                 <input
                   type="text"
-                  value={page.navLabel || ""}
+                  value={page.navbarTitle || ""}
                   onChange={(e) =>
-                    onUpdate({ ...page, navLabel: e.target.value })
+                    onUpdate({ ...page, navbarTitle: e.target.value })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900 placeholder:text-gray-500"
                   placeholder={page.title}
@@ -1231,18 +1246,16 @@ function PageSettings({
 
               <div>
                 <label className="block text-sm text-gray-800 mb-1">
-                  Ordre dans le menu
+                  Sous-titre (optionnel)
                 </label>
                 <input
-                  type="number"
-                  value={page.navOrder}
+                  type="text"
+                  value={page.navbarSubtitle || ""}
                   onChange={(e) =>
-                    onUpdate({
-                      ...page,
-                      navOrder: parseInt(e.target.value) || 0,
-                    })
+                    onUpdate({ ...page, navbarSubtitle: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900 placeholder:text-gray-500"
+                  placeholder="Ex: Votre opticien depuis 1988"
                 />
               </div>
             </>

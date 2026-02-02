@@ -11,13 +11,13 @@ interface DynamicPageRendererProps {
 }
 
 export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) {
-  // Get first heading block for page title, or use page title
-  const firstHeroBlock = page.blocks.find(b => b.type === 'HERO');
-  const heroContent = firstHeroBlock?.content as Record<string, unknown> | undefined;
-  const pageTitle = heroContent?.title as string || page.title;
-  const pageSubtitle = heroContent?.subtitle as string || '';
+  // Check if page wants to show navbar title
+  const showNavbarTitle = (page as Page & { showNavbarTitle?: boolean }).showNavbarTitle ?? false;
+  const navbarTitle = (page as Page & { navbarTitle?: string }).navbarTitle || page.title;
+  const navbarSubtitle = (page as Page & { navbarSubtitle?: string }).navbarSubtitle || '';
 
-  // Determine if we should show the navigation header
+  // Determine if we should show the navigation header (always show on pages)
+  const firstHeroBlock = page.blocks.find(b => b.type === 'HERO');
   const showNavHeader = !firstHeroBlock || page.template !== 'landing';
 
   return (
@@ -31,9 +31,9 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
       {/* Page Navigation - includes spacer for fixed navbar */}
       {showNavHeader && (
         <DynamicNavbar
-          title={pageTitle}
-          subtitle={pageSubtitle}
-          showBackButton
+          title={showNavbarTitle ? navbarTitle : undefined}
+          subtitle={showNavbarTitle ? navbarSubtitle : undefined}
+          showBackButton={showNavbarTitle}
         />
       )}
 

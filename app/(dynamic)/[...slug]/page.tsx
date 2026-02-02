@@ -114,6 +114,11 @@ export default async function DynamicPage({ params }: DynamicPageProps) {
     backgroundColor: page.backgroundColor,
     textColor: page.textColor,
     customCSS: page.customCSS ?? undefined,
+    // Navbar title settings
+    showNavbarTitle: page.showNavbarTitle,
+    navbarTitle: page.navbarTitle ?? undefined,
+    navbarSubtitle: page.navbarSubtitle ?? undefined,
+    // Navigation settings
     showInNav: page.showInNav,
     navOrder: page.navOrder,
     navLabel: page.navLabel ?? undefined,

@@ -189,7 +189,12 @@ model Page {
   textColor       String    @default("#171717")
   customCSS       String?   // Custom CSS for page
   
-  // Navigation
+  // Navbar Title (shows title instead of menu in center)
+  showNavbarTitle  Boolean   @default(false) // Show title in navbar instead of menu
+  navbarTitle      String?   // Custom title for navbar (defaults to page title)
+  navbarSubtitle   String?   // Subtitle shown below title in navbar
+  
+  // Navigation (deprecated - use Navigation Manager instead)
   showInNav       Boolean   @default(true)
   navOrder        Int       @default(0)
   navLabel        String?   // Override title in nav
@@ -379,7 +384,9 @@ model NavigationMenu {
   padding         String?      // CSS padding value
   
   // Scroll behavior
-  blurOnScroll    Boolean      @default(true)  // Apply blur effect when scrolled
+  shadowOnScroll  Boolean      @default(true)  // Show shadow when scrolled
+  shrinkOnScroll  Boolean      @default(true)  // Reduce height when scrolled
+  scrollOpacity   Int          @default(100)   // Opacity when scrolled (0-100%)
   hideOnScrollDown Boolean     @default(false) // Hide navbar on scroll down
   
   // Dropdown global settings

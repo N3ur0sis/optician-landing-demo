@@ -113,6 +113,7 @@ export interface NavigationMenu {
   
   // Navbar styling
   navbarHeight: number;
+  fontSize: number;
   backgroundColor?: string | null;
   textColor?: string | null;
   hoverColor?: string | null;
@@ -122,10 +123,14 @@ export interface NavigationMenu {
   // Mobile menu styling
   mobileMenuBg?: string | null;
   mobileMenuText?: string | null;
+  mobileMenuHover?: string | null;
   mobileMenuAccent?: string | null;
+  mobileFontSize: number;
   
   // Scroll behavior
-  blurOnScroll: boolean;
+  shadowOnScroll: boolean;
+  shrinkOnScroll: boolean;
+  scrollOpacity: number;
   hideOnScrollDown: boolean;
   
   // Dropdown
@@ -168,7 +173,9 @@ export interface MenuStyleConfig {
   mobileFontSize: number;
   
   // Scroll behavior
-  blurOnScroll: boolean;
+  shadowOnScroll: boolean;
+  shrinkOnScroll: boolean;
+  scrollOpacity: number;
   hideOnScrollDown: boolean;
   
   // Animation
@@ -201,6 +208,7 @@ export const DEFAULT_MENU: Partial<NavigationMenu> = {
   alignment: 'center',
   displayMode: 'hamburger-only',
   navbarHeight: 64,
+  fontSize: 14,
   backgroundColor: '#ffffff',
   textColor: '#000000',
   hoverColor: '#666666',
@@ -208,8 +216,12 @@ export const DEFAULT_MENU: Partial<NavigationMenu> = {
   itemSpacing: 32,
   mobileMenuBg: 'rgba(0,0,0,0.95)',
   mobileMenuText: '#ffffff',
+  mobileMenuHover: '#999999',
   mobileMenuAccent: '#f59e0b',
-  blurOnScroll: true,
+  mobileFontSize: 18,
+  shadowOnScroll: true,
+  shrinkOnScroll: true,
+  scrollOpacity: 100,
   hideOnScrollDown: false,
   dropdownAnimation: 'fadeDown',
   dropdownDelay: 0,

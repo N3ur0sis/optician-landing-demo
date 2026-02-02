@@ -100,8 +100,8 @@ export default function NavigationManagerClient() {
   }, [fetchMenu, fetchPages]);
 
   // Save menu style
-  const handleSaveStyle = async (styleData: MenuStyleConfig) => {
-    if (!menu) return;
+  const handleSaveStyle = async (styleData: MenuStyleConfig): Promise<boolean> => {
+    if (!menu) return false;
 
     setSaving(true);
     try {
@@ -113,10 +113,12 @@ export default function NavigationManagerClient() {
 
       if (response.ok) {
         await fetchMenu();
-        setShowStyleModal(false);
+        return true;
       }
+      return false;
     } catch (error) {
       console.error("Error saving style:", error);
+      return false;
     } finally {
       setSaving(false);
     }
@@ -908,7 +910,7 @@ interface StyleModalProps {
   isOpen: boolean;
   onClose: () => void;
   menu: NavigationMenu;
-  onSave: (data: MenuStyleConfig) => void;
+  onSave: (data: MenuStyleConfig) => Promise<boolean>;
   saving: boolean;
 }
 
@@ -917,26 +919,28 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
   
   const getInitialFormData = useCallback((): MenuStyleConfig => ({
     // Navbar
-    navbarHeight: (menu as NavigationMenu & { navbarHeight?: number }).navbarHeight || 64,
+    navbarHeight: menu.navbarHeight || 64,
     backgroundColor: menu.backgroundColor || "#ffffff",
     textColor: menu.textColor || "#000000",
     hoverColor: menu.hoverColor || "#666666",
     activeColor: menu.activeColor || "#000000",
     itemSpacing: menu.itemSpacing,
-    fontSize: (menu as NavigationMenu & { fontSize?: number }).fontSize || 14,
+    fontSize: menu.fontSize || 14,
     // Mobile menu
-    mobileMenuBg: (menu as NavigationMenu & { mobileMenuBg?: string }).mobileMenuBg || "rgba(0,0,0,0.95)",
-    mobileMenuText: (menu as NavigationMenu & { mobileMenuText?: string }).mobileMenuText || "#ffffff",
-    mobileMenuHover: (menu as NavigationMenu & { mobileMenuHover?: string }).mobileMenuHover || "#999999",
-    mobileMenuAccent: (menu as NavigationMenu & { mobileMenuAccent?: string }).mobileMenuAccent || "#f59e0b",
-    mobileFontSize: (menu as NavigationMenu & { mobileFontSize?: number }).mobileFontSize || 18,
+    mobileMenuBg: menu.mobileMenuBg || "rgba(0,0,0,0.95)",
+    mobileMenuText: menu.mobileMenuText || "#ffffff",
+    mobileMenuHover: menu.mobileMenuHover || "#999999",
+    mobileMenuAccent: menu.mobileMenuAccent || "#f59e0b",
+    mobileFontSize: menu.mobileFontSize || 18,
     // Display
-    displayMode: (menu as NavigationMenu & { displayMode?: string }).displayMode || "hamburger-only",
+    displayMode: menu.displayMode || "hamburger-only",
     alignment: menu.alignment || "center",
     mobileStyle: menu.mobileStyle || "hamburger",
     // Behavior
-    blurOnScroll: (menu as NavigationMenu & { blurOnScroll?: boolean }).blurOnScroll ?? true,
-    hideOnScrollDown: (menu as NavigationMenu & { hideOnScrollDown?: boolean }).hideOnScrollDown ?? false,
+    shadowOnScroll: menu.shadowOnScroll ?? true,
+    shrinkOnScroll: menu.shrinkOnScroll ?? true,
+    scrollOpacity: menu.scrollOpacity ?? 100,
+    hideOnScrollDown: menu.hideOnScrollDown ?? false,
     // Animation
     dropdownAnimation: menu.dropdownAnimation,
     dropdownDelay: menu.dropdownDelay,
@@ -958,9 +962,13 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
     setInitialFormData(data);
   }, [menu, isOpen, getInitialFormData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const success = await onSave(formData);
+    if (success) {
+      // Reset initialFormData to current formData after successful save
+      setInitialFormData(formData);
+    }
   };
 
   if (!isOpen) return null;
@@ -1106,18 +1114,27 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
                   </div>
                 </div>
 
-                {/* Comportement */}
+                {/* Comportement au scroll */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">Comportement au scroll</label>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={formData.blurOnScroll ?? true}
-                        onChange={(e) => setFormData({ ...formData, blurOnScroll: e.target.checked })}
+                        checked={formData.shadowOnScroll ?? true}
+                        onChange={(e) => setFormData({ ...formData, shadowOnScroll: e.target.checked })}
                         className="w-4 h-4 rounded border-gray-300"
                       />
-                      <span className="text-sm text-gray-700">Effet de flou au scroll</span>
+                      <span className="text-sm text-gray-700">Ombre au scroll</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.shrinkOnScroll ?? true}
+                        onChange={(e) => setFormData({ ...formData, shrinkOnScroll: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span className="text-sm text-gray-700">Réduire la hauteur au scroll</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1128,6 +1145,26 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
                       />
                       <span className="text-sm text-gray-700">Masquer au scroll vers le bas</span>
                     </label>
+                  </div>
+                </div>
+
+                {/* Opacité au scroll */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Opacité au scroll: {formData.scrollOpacity ?? 100}%
+                  </label>
+                  <input
+                    type="range"
+                    value={formData.scrollOpacity ?? 100}
+                    onChange={(e) => setFormData({ ...formData, scrollOpacity: parseInt(e.target.value) })}
+                    className="w-full"
+                    min="0"
+                    max="100"
+                    step="5"
+                  />
+                  <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>Transparent</span>
+                    <span>Opaque</span>
                   </div>
                 </div>
 

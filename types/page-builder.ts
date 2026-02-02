@@ -670,6 +670,11 @@ export interface Page {
   backgroundColor: string;
   textColor: string;
   customCSS?: string;
+  // Navbar title settings
+  showNavbarTitle: boolean;
+  navbarTitle?: string;
+  navbarSubtitle?: string;
+  // Navigation (deprecated)
   showInNav: boolean;
   navOrder: number;
   navLabel?: string;

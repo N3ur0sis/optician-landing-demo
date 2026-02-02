@@ -103,15 +103,11 @@ export default function DynamicNavbar({
   useMotionValueEvent(scrollY, 'change', (latest) => {
     const currentScrollY = latest;
     
-    // Blur effect on scroll
-    const blurOnScroll = (menu as NavigationMenu & { blurOnScroll?: boolean })?.blurOnScroll ?? true;
-    if (blurOnScroll) {
-      setScrolled(currentScrollY > 50);
-    }
+    // Set scrolled state for all scroll effects (shadow, shrink, opacity)
+    setScrolled(currentScrollY > 50);
     
     // Hide on scroll down
-    const hideOnScrollDown = (menu as NavigationMenu & { hideOnScrollDown?: boolean })?.hideOnScrollDown ?? false;
-    if (hideOnScrollDown) {
+    if (menu?.hideOnScrollDown) {
       if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
         setHidden(true);
       } else {
@@ -151,7 +147,7 @@ export default function DynamicNavbar({
   }, [router]);
 
   // Get navbar height from menu (with fallback for SSR/loading state)
-  const navbarHeight = (menu as NavigationMenu & { navbarHeight?: number } | null)?.navbarHeight || 64;
+  const navbarHeight = menu?.navbarHeight || 64;
 
   // Set CSS custom property for navbar height
   useEffect(() => {
@@ -167,14 +163,16 @@ export default function DynamicNavbar({
   }
 
   const nestedItems = buildNestedItems(menu.items);
-  const displayMode = ((menu as NavigationMenu & { displayMode?: DisplayMode }).displayMode || 'hamburger-only') as DisplayMode;
+  const displayMode = menu.displayMode || 'hamburger-only';
   
   // Determine what to show
   const showTraditionalMenu = !isMobile && (displayMode === 'traditional' || displayMode === 'hybrid');
   const showHamburger = isMobile || displayMode === 'hamburger-only' || displayMode === 'hybrid';
 
-  // Get settings from menu
-  const blurOnScroll = (menu as NavigationMenu & { blurOnScroll?: boolean }).blurOnScroll ?? true;
+  // Get scroll behavior settings from menu
+  const shadowOnScroll = menu.shadowOnScroll ?? true;
+  const shrinkOnScroll = menu.shrinkOnScroll ?? true;
+  const scrollOpacity = menu.scrollOpacity ?? 100;
   const alignment = menu.alignment || 'center';
   
   // Get colors from menu or use defaults based on variant
@@ -183,12 +181,34 @@ export default function DynamicNavbar({
   const hoverColor = menu.hoverColor || (isHome ? '#666666' : '#cccccc');
   const activeColor = menu.activeColor || textColor;
 
+  // Calculate current navbar height based on scroll state
+  const shrinkAmount = 16; // pixels to shrink
+  const currentHeight = scrolled && shrinkOnScroll ? navbarHeight - shrinkAmount : navbarHeight;
+  
+  // Calculate background opacity based on scroll state
+  const getScrolledBgColor = () => {
+    if (!scrolled) return bgColor;
+    // Apply scroll opacity
+    const opacity = scrollOpacity / 100;
+    // If bgColor is hex, convert to rgba with opacity
+    if (bgColor.startsWith('#')) {
+      const r = parseInt(bgColor.slice(1, 3), 16);
+      const g = parseInt(bgColor.slice(3, 5), 16);
+      const b = parseInt(bgColor.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+    // If bgColor is rgba, replace the alpha
+    if (bgColor.startsWith('rgba')) {
+      return bgColor.replace(/[\d.]+\)$/, `${opacity})`);
+    }
+    return bgColor;
+  };
+
   // Dynamic background with scroll effect
   const getNavBackgroundClass = () => {
-    const baseBlur = blurOnScroll && scrolled ? 'backdrop-blur-lg' : 'backdrop-blur-md';
     return cn(
-      baseBlur,
-      scrolled && 'shadow-lg',
+      'backdrop-blur-md',
+      scrolled && shadowOnScroll && 'shadow-lg',
       !isHome && 'border-b border-white/10'
     );
   };
@@ -210,18 +230,18 @@ export default function DynamicNavbar({
         initial={{ opacity: 0, y: -16 }}
         animate={{ 
           opacity: 1, 
-          y: hidden ? -100 : 0 
+          y: hidden ? -(navbarHeight + 10) : 0,
+          height: currentHeight
         }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
           getNavBackgroundClass(),
           className
         )}
         style={{
-          backgroundColor: bgColor,
+          backgroundColor: getScrolledBgColor(),
           color: textColor,
-          height: navbarHeight,
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
@@ -378,7 +398,7 @@ function NavItem({ item, menu, pathname, isHome }: NavItemProps) {
   const textColor = menu.textColor || (isHome ? '#000000' : '#ffffff');
   const activeColor = menu.activeColor || textColor;
   const hoverColor = menu.hoverColor || (isHome ? '#666666' : '#cccccc');
-  const fontSize = (menu as NavigationMenu & { fontSize?: number }).fontSize || 14;
+  const fontSize = menu.fontSize || 14;
 
   // For parent items with no href/pageSlug, they should not be clickable
   const isClickable = !!(item.href || item.pageSlug);
@@ -491,11 +511,11 @@ function MobileMenu({ items, menu, pathname, onClose }: MobileMenuProps) {
   };
 
   // Get mobile menu colors from settings
-  const mobileMenuBg = (menu as NavigationMenu & { mobileMenuBg?: string }).mobileMenuBg || 'rgba(0,0,0,0.95)';
-  const mobileMenuText = (menu as NavigationMenu & { mobileMenuText?: string }).mobileMenuText || '#ffffff';
-  const mobileMenuAccent = (menu as NavigationMenu & { mobileMenuAccent?: string }).mobileMenuAccent || '#f59e0b';
-  const mobileMenuHover = (menu as NavigationMenu & { mobileMenuHover?: string }).mobileMenuHover || '#999999';
-  const mobileFontSize = (menu as NavigationMenu & { mobileFontSize?: number }).mobileFontSize || 18;
+  const mobileMenuBg = menu.mobileMenuBg || 'rgba(0,0,0,0.95)';
+  const mobileMenuText = menu.mobileMenuText || '#ffffff';
+  const mobileMenuAccent = menu.mobileMenuAccent || '#f59e0b';
+  const mobileMenuHover = menu.mobileMenuHover || '#999999';
+  const mobileFontSize = menu.mobileFontSize || 18;
 
   return (
     <motion.div
