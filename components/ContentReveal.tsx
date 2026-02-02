@@ -6,6 +6,7 @@ import { MotionValue } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useRef, useEffect, useState } from "react";
 import Footer from "./Footer";
+import { useApparence } from "@/lib/apparence-context";
 
 type ContentRevealProps = {
   scrollProgress?: MotionValue<number>;
@@ -50,6 +51,12 @@ const ContentReveal = ({
 }: ContentRevealProps) => {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { settings: apparenceSettings } = useApparence();
+
+  // Grid settings from apparence
+  const gridPadding = apparenceSettings.grid_horizontal_padding;
+  const gridGap = apparenceSettings.grid_gap;
+  const gridRowHeight = apparenceSettings.grid_row_height;
 
   // Fetch grid tiles from API
   useEffect(() => {
@@ -154,7 +161,13 @@ const ContentReveal = ({
         className="relative h-full w-full overflow-y-auto"
         data-reveal-scroll
       >
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 pb-24 pt-16 sm:px-6 md:px-8 lg:px-10 xl:px-12">
+        <div
+          className="mx-auto flex w-full max-w-7xl flex-col gap-12 pb-8 pt-16"
+          style={{
+            paddingLeft: `${gridPadding}px`,
+            paddingRight: `${gridPadding}px`,
+          }}
+        >
           <div className="flex items-center justify-center py-6">
             <span className="text-sm tracking-[0.3em] text-neutral-500 uppercase">
               Optique de Bourbon
@@ -169,11 +182,13 @@ const ContentReveal = ({
             </div>
           ) : (
             <div
-              className="content-reveal-grid grid auto-rows-[220px] gap-5 sm:auto-rows-[260px] lg:auto-rows-[320px] lg:grid-cols-4"
+              className="content-reveal-grid grid lg:grid-cols-4"
               style={{
                 pointerEvents: "auto",
                 position: "relative",
                 zIndex: 40,
+                gap: `${gridGap}px`,
+                gridAutoRows: `${gridRowHeight}px`,
               }}
             >
               {tiles.map((tile, index) => (
@@ -294,8 +309,16 @@ const ContentReveal = ({
               ))}
             </div>
           )}
+        </div>
 
-          {/* Footer */}
+        {/* Footer - Same width as grid but with max padding limit */}
+        <div
+          className="mx-auto max-w-7xl pb-24"
+          style={{
+            paddingLeft: `${Math.min(gridPadding, 64)}px`,
+            paddingRight: `${Math.min(gridPadding, 64)}px`,
+          }}
+        >
           <Footer />
         </div>
       </div>

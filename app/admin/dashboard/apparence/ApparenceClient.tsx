@@ -26,6 +26,7 @@ import {
   Type,
   Layout,
   Sliders,
+  Grid,
 } from "lucide-react";
 import {
   FaFacebook,
@@ -69,38 +70,38 @@ function PreviewModeSelector({
   setMode: (mode: "desktop" | "tablet" | "mobile") => void;
 }) {
   return (
-    <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-3">
-      <span className="text-sm font-medium text-gray-700">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white rounded-xl border border-gray-200 p-2 sm:p-3">
+      <span className="text-xs sm:text-sm font-medium text-gray-700 px-1">
         Prévisualisation
       </span>
       <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
         <button
           onClick={() => setMode("desktop")}
-          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${mode === "desktop" ? "bg-white shadow text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
+          className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-colors flex items-center justify-center gap-1 sm:gap-1.5 ${mode === "desktop" ? "bg-white shadow text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
         >
-          <Monitor className="w-3.5 h-3.5" />
-          Desktop
+          <Monitor className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          <span className="hidden xs:inline sm:inline">Desktop</span>
         </button>
         <button
           onClick={() => setMode("tablet")}
-          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${mode === "tablet" ? "bg-white shadow text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
+          className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-colors flex items-center justify-center gap-1 sm:gap-1.5 ${mode === "tablet" ? "bg-white shadow text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
         >
           <svg
-            className="w-3.5 h-3.5"
+            className="w-3 h-3 sm:w-3.5 sm:h-3.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <rect x="4" y="2" width="16" height="20" rx="2" strokeWidth="2" />
           </svg>
-          Tablette
+          <span className="hidden xs:inline sm:inline">Tablette</span>
         </button>
         <button
           onClick={() => setMode("mobile")}
-          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${mode === "mobile" ? "bg-white shadow text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
+          className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 rounded-md text-[10px] sm:text-xs font-medium transition-colors flex items-center justify-center gap-1 sm:gap-1.5 ${mode === "mobile" ? "bg-white shadow text-gray-900" : "text-gray-600 hover:text-gray-900"}`}
         >
           <svg
-            className="w-3.5 h-3.5"
+            className="w-3 h-3 sm:w-3.5 sm:h-3.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -133,15 +134,15 @@ function CollapsibleSection({
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between p-3 sm:p-4 hover:bg-gray-50 transition-colors"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center">
-            <Icon className="h-4 w-4 text-gray-600" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-7 h-7 sm:w-9 sm:h-9 bg-gray-100 rounded-lg flex items-center justify-center">
+            <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-600" />
           </div>
-          <span className="text-sm font-semibold text-gray-900">{title}</span>
+          <span className="text-xs sm:text-sm font-semibold text-gray-900">{title}</span>
           {badge && (
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] sm:text-xs text-gray-500 bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded-full">
               {badge}
             </span>
           )}
@@ -153,7 +154,7 @@ function CollapsibleSection({
         )}
       </button>
       {isOpen && (
-        <div className="p-4 pt-0 border-t border-gray-100">{children}</div>
+        <div className="p-3 sm:p-4 pt-0 border-t border-gray-100">{children}</div>
       )}
     </div>
   );
@@ -535,7 +536,7 @@ export default function ApparenceClient() {
     text: string;
   } | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "logos" | "loading" | "intro" | "footer"
+    "logos" | "loading" | "intro" | "grid" | "footer"
   >("logos");
   const [hasChanges, setHasChanges] = useState(false);
   const [loadingPreviewMode, setLoadingPreviewMode] = useState<
@@ -718,6 +719,7 @@ export default function ApparenceClient() {
     { id: "logos" as const, label: "Logos", icon: ImageIcon },
     { id: "loading" as const, label: "Chargement", icon: Play },
     { id: "intro" as const, label: "Introduction", icon: Sparkles },
+    { id: "grid" as const, label: "Grille", icon: Grid },
     { id: "footer" as const, label: "Footer", icon: Layout },
   ];
 
@@ -727,43 +729,44 @@ export default function ApparenceClient() {
       style={{ colorScheme: "light" }}
     >
       {/* Fixed Header Section */}
-      <div className="shrink-0 px-6 pt-6 pb-4">
+      <div className="shrink-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
         {/* Header */}
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-4 sm:mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Apparence</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Apparence</h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
               Personnalisez l&apos;identité visuelle de votre site
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {hasChanges && (
-              <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full text-sm font-medium">
-                <AlertCircle className="h-4 w-4" />
-                Non sauvegardé
+              <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium">
+                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Non sauvegardé</span>
+                <span className="xs:hidden">Modifié</span>
               </div>
             )}
             {/* Save buttons in header */}
             {hasChanges && (
               <button
                 onClick={resetChanges}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 border border-gray-200 text-sm font-medium transition-colors"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 border border-gray-200 text-xs sm:text-sm font-medium transition-colors"
               >
-                <RefreshCw className="h-4 w-4" />
-                Annuler
+                <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Annuler</span>
               </button>
             )}
             <button
               onClick={saveSettings}
               disabled={saving || !hasChanges}
-              className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-colors ${hasChanges ? "bg-gray-900 text-white hover:bg-gray-800" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${hasChanges ? "bg-gray-900 text-white hover:bg-gray-800" : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
             >
               {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
               ) : (
-                <Save className="h-4 w-4" />
+                <Save className="h-3 w-3 sm:h-4 sm:w-4" />
               )}
-              {saving ? "Sauvegarde..." : "Sauvegarder"}
+              {saving ? "..." : "Sauvegarder"}
             </button>
           </div>
         </div>
@@ -771,38 +774,38 @@ export default function ApparenceClient() {
         {/* Message */}
         {message && (
           <div
-            className={`mb-4 p-3 rounded-xl flex items-center gap-2 text-sm font-medium ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}
+            className={`mb-3 sm:mb-4 p-2 sm:p-3 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}
           >
             {message.type === "success" ? (
-              <Check className="h-4 w-4" />
+              <Check className="h-3 w-3 sm:h-4 sm:w-4" />
             ) : (
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4" />
             )}
             {message.text}
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
+        {/* Tabs - Scrollable on mobile */}
+        <div className="flex gap-1 p-1 bg-gray-100 rounded-xl overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium transition-all rounded-lg ${
+              className={`flex-1 min-w-[70px] flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all rounded-lg whitespace-nowrap ${
                 activeTab === tab.id
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              <tab.icon className="h-4 w-4" />
-              {tab.label}
+              <tab.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Main Content - Split between Preview (fixed) and Options (scrollable) */}
-      <div className="flex-1 flex flex-col min-h-0 px-6 pb-6">
+      <div className="flex-1 flex flex-col min-h-0 px-4 sm:px-6 pb-4 sm:pb-6">
         {/* LOGOS TAB */}
         {activeTab === "logos" && (
           <div className="flex-1 overflow-y-auto space-y-4 pr-2">
@@ -1465,6 +1468,171 @@ export default function ApparenceClient() {
                     />
                   </div>
                 </CollapsibleSection>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* GRID TAB */}
+        {activeTab === "grid" && (
+          <div className="flex flex-col h-full min-h-0">
+            {/* Preview Section - Scrollable container for responsive */}
+            <div className="shrink-0 mb-4 sm:mb-5">
+              <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-700">
+                    Prévisualisation
+                  </h3>
+                  <div className="text-[10px] sm:text-xs text-gray-400 font-mono">
+                    {settings.grid_horizontal_padding}px • {settings.grid_gap}px • {settings.grid_row_height}px
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <div
+                    className="bg-[#fdfbf7] rounded-lg min-w-[280px]"
+                    style={{ 
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      paddingLeft: `${(settings.grid_horizontal_padding / 200) * 80 + 4}px`,
+                      paddingRight: `${(settings.grid_horizontal_padding / 200) * 80 + 4}px`,
+                    }}
+                  >
+                    <div
+                      className="grid grid-cols-4"
+                      style={{
+                        gap: `${(settings.grid_gap / 60) * 24 + 2}px`,
+                      }}
+                    >
+                      {/* Row 1 */}
+                      <div
+                        className="col-span-2 bg-gray-300 rounded flex items-center justify-center text-gray-500 text-[10px] font-medium"
+                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
+                      >
+                        2×1
+                      </div>
+                      <div
+                        className="bg-gray-400 rounded flex items-center justify-center text-gray-600 text-[10px] font-medium"
+                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
+                      >
+                        1×1
+                      </div>
+                      <div
+                        className="bg-gray-300 rounded flex items-center justify-center text-gray-500 text-[10px] font-medium"
+                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
+                      >
+                        1×1
+                      </div>
+                      {/* Row 2 */}
+                      <div
+                        className="bg-gray-400 rounded flex items-center justify-center text-gray-600 text-[10px] font-medium"
+                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
+                      >
+                        1×1
+                      </div>
+                      <div
+                        className="col-span-2 bg-gray-300 rounded flex items-center justify-center text-gray-500 text-[10px] font-medium"
+                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
+                      >
+                        2×1
+                      </div>
+                      <div
+                        className="bg-gray-400 rounded flex items-center justify-center text-gray-600 text-[10px] font-medium"
+                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
+                      >
+                        1×1
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Settings Section */}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="space-y-3 sm:space-y-4">
+                {/* Horizontal Padding */}
+                <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Marges horizontales
+                  </label>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <input
+                      type="range"
+                      min="0"
+                      max="200"
+                      step="4"
+                      value={settings.grid_horizontal_padding}
+                      onChange={(e) =>
+                        updateSetting("grid_horizontal_padding", parseInt(e.target.value))
+                      }
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                    />
+                    <div className="w-14 sm:w-16 text-right">
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">
+                        {settings.grid_horizontal_padding}px
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                    Espace entre la grille et les bords de l&apos;écran
+                  </p>
+                </div>
+
+                {/* Gap */}
+                <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Espacement entre les tuiles
+                  </label>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <input
+                      type="range"
+                      min="0"
+                      max="60"
+                      step="2"
+                      value={settings.grid_gap}
+                      onChange={(e) =>
+                        updateSetting("grid_gap", parseInt(e.target.value))
+                      }
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                    />
+                    <div className="w-14 sm:w-16 text-right">
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">
+                        {settings.grid_gap}px
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                    Espace entre chaque tuile de la grille
+                  </p>
+                </div>
+
+                {/* Row Height */}
+                <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    Hauteur des lignes
+                  </label>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <input
+                      type="range"
+                      min="150"
+                      max="600"
+                      step="10"
+                      value={settings.grid_row_height}
+                      onChange={(e) =>
+                        updateSetting("grid_row_height", parseInt(e.target.value))
+                      }
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                    />
+                    <div className="w-14 sm:w-16 text-right">
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">
+                        {settings.grid_row_height}px
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                    Hauteur de base pour chaque ligne de la grille
+                  </p>
+                </div>
               </div>
             </div>
           </div>

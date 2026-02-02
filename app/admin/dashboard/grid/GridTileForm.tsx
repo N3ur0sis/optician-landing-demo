@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GridTile } from "./GridManagerClient";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Image as ImageIcon, Link as LinkIcon, ExternalLink } from "lucide-react";
+import MediaPicker from "@/components/media/MediaPicker";
+
+type Page = {
+  id: string;
+  title: string;
+  slug: string;
+};
 
 type GridTileFormProps = {
   tile: GridTile | null;
@@ -40,6 +47,26 @@ export default function GridTileForm({
 
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [pages, setPages] = useState<Page[]>([]);
+  const [linkType, setLinkType] = useState<"page" | "custom">(
+    tile?.href?.startsWith("/") && !tile?.href?.startsWith("http") ? "page" : "custom"
+  );
+
+  // Fetch pages for the page selector
+  useEffect(() => {
+    const fetchPages = async () => {
+      try {
+        const response = await fetch("/api/pages");
+        if (response.ok) {
+          const data = await response.json();
+          setPages(data.filter((p: Page) => p.slug !== "/")); // Exclude homepage
+        }
+      } catch (error) {
+        console.error("Failed to fetch pages:", error);
+      }
+    };
+    fetchPages();
+  }, []);
 
   const validateField = (
     name: string,
@@ -87,9 +114,10 @@ export default function GridTileForm({
         if (
           typeof value === "string" &&
           !value.startsWith("http") &&
+          !value.startsWith("/") &&
           !value.startsWith("url(")
         ) {
-          return "L'URL doit commencer par http ou être un gradient CSS";
+          return "L'URL doit commencer par http, / ou être un gradient CSS";
         }
         break;
 
@@ -256,26 +284,86 @@ export default function GridTileForm({
           {/* Link */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lien (href) <span className="text-red-500">*</span>
+              Lien <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              value={formData.href}
-              onChange={(e) => {
-                setFormData({ ...formData, href: e.target.value });
-                if (touched.href) {
-                  const error = validateField("href", e.target.value);
-                  setErrors({ ...errors, href: error });
-                }
-              }}
-              onBlur={() => handleBlur("href")}
-              className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
-                touched.href && errors.href
-                  ? "border-red-500 bg-red-50"
-                  : "border-gray-300"
-              }`}
-              placeholder="/maison"
-            />
+            
+            {/* Link type selector */}
+            <div className="flex gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setLinkType("page")}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  linkType === "page"
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                <LinkIcon className="w-4 h-4" />
+                Page interne
+              </button>
+              <button
+                type="button"
+                onClick={() => setLinkType("custom")}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  linkType === "custom"
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                <ExternalLink className="w-4 h-4" />
+                URL personnalisée
+              </button>
+            </div>
+
+            {/* Page selector */}
+            {linkType === "page" && (
+              <select
+                value={formData.href}
+                onChange={(e) => {
+                  setFormData({ ...formData, href: e.target.value });
+                  if (touched.href) {
+                    const error = validateField("href", e.target.value);
+                    setErrors({ ...errors, href: error });
+                  }
+                }}
+                onBlur={() => handleBlur("href")}
+                className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+                  touched.href && errors.href
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300"
+                }`}
+              >
+                <option value="/">Accueil</option>
+                {pages.map((page) => (
+                  <option key={page.id} value={`/${page.slug}`}>
+                    {page.title}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* Custom URL input */}
+            {linkType === "custom" && (
+              <input
+                type="text"
+                value={formData.href}
+                onChange={(e) => {
+                  setFormData({ ...formData, href: e.target.value });
+                  if (touched.href) {
+                    const error = validateField("href", e.target.value);
+                    setErrors({ ...errors, href: error });
+                  }
+                }}
+                onBlur={() => handleBlur("href")}
+                className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+                  touched.href && errors.href
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-300"
+                }`}
+                placeholder="https://exemple.com ou /page-personnalisee"
+              />
+            )}
+            
             {touched.href && errors.href && (
               <div className="flex items-center gap-1 mt-1.5 text-red-600 text-xs">
                 <AlertCircle className="w-3.5 h-3.5" />
@@ -284,21 +372,39 @@ export default function GridTileForm({
             )}
           </div>
 
-          {/* Background Image URL with Preview */}
+          {/* Background Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              URL de l'Image de Fond <span className="text-red-500">*</span>
+              Image de fond <span className="text-red-500">*</span>
             </label>
-            {formData.backgroundUrl && (
-              <div className="mb-3 rounded-lg overflow-hidden border border-gray-200">
-                <div
-                  className="w-full h-48 bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url(${formData.backgroundUrl})`,
-                  }}
-                />
+            
+            {/* MediaPicker for selecting from library */}
+            <div className="mb-3">
+              <MediaPicker
+                value={formData.backgroundUrl}
+                onChange={(url) => {
+                  setFormData({ ...formData, backgroundUrl: url });
+                  if (touched.backgroundUrl) {
+                    const error = validateField("backgroundUrl", url);
+                    setErrors({ ...errors, backgroundUrl: error });
+                  }
+                }}
+                acceptTypes="image"
+                placeholder="Sélectionner une image de la médiathèque"
+                showPreview={true}
+              />
+            </div>
+
+            {/* Or enter custom URL */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
               </div>
-            )}
+              <div className="relative flex justify-center">
+                <span className="bg-white px-3 text-xs text-gray-500">ou URL personnalisée</span>
+              </div>
+            </div>
+
             <input
               type="text"
               value={formData.backgroundUrl}
@@ -310,50 +416,17 @@ export default function GridTileForm({
                 }
               }}
               onBlur={() => handleBlur("backgroundUrl")}
-              className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors ${
+              className={`mt-3 w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors text-sm ${
                 touched.backgroundUrl && errors.backgroundUrl
                   ? "border-red-500 bg-red-50"
                   : "border-gray-300"
               }`}
-              placeholder="https://images.unsplash.com/photo-1234..."
+              placeholder="https://images.unsplash.com/photo-..."
             />
-            {touched.backgroundUrl && errors.backgroundUrl ? (
+            {touched.backgroundUrl && errors.backgroundUrl && (
               <div className="flex items-center gap-1 mt-1.5 text-red-600 text-xs">
                 <AlertCircle className="w-3.5 h-3.5" />
                 <span>{errors.backgroundUrl}</span>
-              </div>
-            ) : (
-              <p className="text-xs text-gray-500 mt-1">
-                Entrez l'URL complète d'une image
-              </p>
-            )}
-
-            {/* Image Preview */}
-            {formData.backgroundUrl && (
-              <div className="mt-3">
-                <p className="text-xs font-medium text-gray-700 mb-2">
-                  Aperçu :
-                </p>
-                <div className="relative h-32 rounded-lg overflow-hidden border border-gray-200">
-                  <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{
-                      backgroundImage: formData.backgroundUrl.startsWith("http")
-                        ? `url(${formData.backgroundUrl})`
-                        : formData.backgroundUrl,
-                    }}
-                  />
-                  <div
-                    className={`absolute inset-0 ${formData.overlayType === "DARK" ? "bg-black/60" : "bg-white/60"}`}
-                  />
-                  <div className="relative h-full flex items-center justify-center">
-                    <p
-                      className={`text-sm font-medium ${formData.overlayType === "DARK" ? "text-white" : "text-black"}`}
-                    >
-                      {formData.title || "Aperçu du titre"}
-                    </p>
-                  </div>
-                </div>
               </div>
             )}
           </div>

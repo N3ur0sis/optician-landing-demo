@@ -68,6 +68,11 @@ export interface ApparenceSettings {
   newsletter_button_color: string;
   newsletter_input_bg_color: string;
   newsletter_success_message: string;
+
+  // Grid Settings
+  grid_horizontal_padding: number; // Espacement horizontal (px)
+  grid_gap: number; // Espacement entre les tuiles (px)
+  grid_row_height: number; // Hauteur des rangées (px)
 }
 
 // Subset for landing page (page.tsx)
@@ -197,6 +202,11 @@ export const defaultApparenceSettings: ApparenceSettings = {
   newsletter_button_color: "#ffffff",
   newsletter_input_bg_color: "",
   newsletter_success_message: "Merci pour votre inscription !",
+
+  // Grid Settings
+  grid_horizontal_padding: 48, // px - marges horizontales moyennes
+  grid_gap: 20, // px - gap-5
+  grid_row_height: 320, // px - auto-rows-[320px]
 };
 
 // Helper to parse settings from API response
@@ -355,5 +365,15 @@ export function parseSettingsFromAPI(
     newsletter_success_message:
       (data.newsletter_success_message as string) ??
       defaultApparenceSettings.newsletter_success_message,
+
+    // Grid Settings
+    grid_horizontal_padding:
+      (data.grid_horizontal_padding as number) ??
+      defaultApparenceSettings.grid_horizontal_padding,
+    grid_gap:
+      (data.grid_gap as number) ?? defaultApparenceSettings.grid_gap,
+    grid_row_height:
+      (data.grid_row_height as number) ??
+      defaultApparenceSettings.grid_row_height,
   };
 }
