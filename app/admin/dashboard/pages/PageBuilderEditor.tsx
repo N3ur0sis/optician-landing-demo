@@ -30,6 +30,8 @@ import {
   AlignRight,
   Columns,
   Ruler,
+  Info,
+  AlertCircle,
 } from "lucide-react";
 import {
   Page,
@@ -78,6 +80,7 @@ export default function PageBuilderEditor({
   const [showSettings, setShowSettings] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [insertAfterBlockId, setInsertAfterBlockId] = useState<string | null>(
     null,
@@ -92,6 +95,7 @@ export default function PageBuilderEditor({
   const [showSpacingOverlay, setShowSpacingOverlay] = useState(true);
   const previewRef = useRef<HTMLDivElement>(null);
   const blockElementsRef = useRef<Map<string, HTMLElement>>(new Map());
+  const isSavingRef = useRef(false);
 
   // Undo/Redo history - using refs to avoid dependency issues
   const historyRef = useRef<PageBlock[][]>([initialPage.blocks || []]);
@@ -198,10 +202,15 @@ export default function PageBuilderEditor({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleUndo, handleRedo]);
 
-  // Track changes - skip initial render to avoid unnecessary state updates
+  // Track changes - skip initial render and post-save updates
   useEffect(() => {
     if (!isInitializedRef.current) {
       isInitializedRef.current = true;
+      return;
+    }
+    // Skip if this change is from a save operation
+    if (isSavingRef.current) {
+      isSavingRef.current = false;
       return;
     }
     setHasChanges(true);
@@ -288,6 +297,21 @@ export default function PageBuilderEditor({
   };
 
   const handleSave = async () => {
+    setSaveError(null);
+    
+    // Validation pour les nouvelles pages
+    if (isNew) {
+      const slug = page.slug.replace(/^\//, '');
+      if (!slug || slug === 'nouvelle-page') {
+        setSaveError('Veuillez modifier le slug de la page avant d\'enregistrer');
+        return;
+      }
+      if (!page.title || page.title === 'Nouvelle page') {
+        setSaveError('Veuillez modifier le titre de la page avant d\'enregistrer');
+        return;
+      }
+    }
+    
     setSaving(true);
     try {
       const url = isNew
@@ -309,6 +333,8 @@ export default function PageBuilderEditor({
 
       if (response.ok) {
         const updatedPage = await response.json();
+        // Mark that we're updating from save to prevent hasChanges from being set
+        isSavingRef.current = true;
         setPage(updatedPage);
         setBlocks(updatedPage.blocks || []);
         setSaved(true);
@@ -324,6 +350,9 @@ export default function PageBuilderEditor({
             `/admin/dashboard/pages/edit/${updatedPage.slug.replace(/^\//, "")}`,
           );
         }
+      } else {
+        const errorData = await response.json();
+        setSaveError(errorData.error || 'Erreur lors de la sauvegarde');
       }
     } catch (error) {
       console.error("Error saving page:", error);
@@ -443,6 +472,29 @@ export default function PageBuilderEditor({
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
+      {/* Error Banner */}
+      <AnimatePresence>
+        {saveError && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="bg-red-50 border-b border-red-200 px-4 py-3 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2 text-red-700">
+              <X className="w-4 h-4" />
+              <span className="text-sm font-medium">{saveError}</span>
+            </div>
+            <button
+              onClick={() => setSaveError(null)}
+              className="text-red-500 hover:text-red-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Top Toolbar */}
       <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-4">
@@ -457,8 +509,15 @@ export default function PageBuilderEditor({
             <input
               type="text"
               value={page.title}
-              onChange={(e) => setPage({ ...page, title: e.target.value })}
-              className="font-semibold text-lg bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-black/10 rounded px-2 -mx-2 text-gray-900 placeholder:text-gray-500"
+              onChange={(e) => {
+                setSaveError(null);
+                setPage({ ...page, title: e.target.value });
+              }}
+              className={`font-semibold text-lg bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-black/10 rounded px-2 -mx-2 placeholder:text-gray-500 ${
+                isNew && page.title === 'Nouvelle page'
+                  ? 'text-amber-600'
+                  : 'text-gray-900'
+              }`}
               placeholder="Titre de la page"
             />
             <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -466,13 +525,18 @@ export default function PageBuilderEditor({
               <input
                 type="text"
                 value={page.slug.replace(/^\//, "")}
-                onChange={(e) =>
+                onChange={(e) => {
+                  setSaveError(null);
                   setPage({
                     ...page,
                     slug: `/${e.target.value.replace(/^\//, "")}`,
-                  })
-                }
-                className="bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-black/10 rounded px-1 text-gray-700 placeholder:text-gray-500"
+                  });
+                }}
+                className={`bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-black/10 rounded px-1 placeholder:text-gray-500 ${
+                  isNew && page.slug === '/nouvelle-page'
+                    ? 'text-amber-600'
+                    : 'text-gray-700'
+                }`}
                 placeholder="url-de-la-page"
               />
             </div>
@@ -604,6 +668,21 @@ export default function PageBuilderEditor({
           >
             <Settings2 className="w-5 h-5 text-gray-700" />
           </button>
+
+          {/* Status Indicators */}
+          {isNew && (page.title === 'Nouvelle page' || page.slug === '/nouvelle-page') && (
+            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full text-sm font-medium">
+              <Info className="h-4 w-4" />
+              Modifier le nom et slug
+            </div>
+          )}
+          
+          {hasChanges && (
+            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full text-sm font-medium">
+              <AlertCircle className="h-4 w-4" />
+              Non sauvegardé
+            </div>
+          )}
 
           {/* Save Button */}
           <button

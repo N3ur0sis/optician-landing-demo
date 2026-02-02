@@ -52,7 +52,6 @@ const dropdownAnimations = {
 
 interface DynamicNavbarProps {
   className?: string;
-  variant?: "default" | "home";
   title?: string;
   subtitle?: string;
   showBackButton?: boolean;
@@ -64,7 +63,6 @@ interface DynamicNavbarProps {
 
 export default function DynamicNavbar({
   className,
-  variant = "default",
   title,
   subtitle,
   showBackButton = false,
@@ -82,7 +80,6 @@ export default function DynamicNavbar({
   const { settings: apparenceSettings } = useApparence();
   const { scrollY } = useScroll();
 
-  const isHome = variant === "home";
   const navbarLogoUrl = apparenceSettings.navbar_logo_url;
 
   // Fetch menu data (singleton menu "header")
@@ -187,12 +184,10 @@ export default function DynamicNavbar({
   const scrollOpacity = menu.scrollOpacity ?? 100;
   const alignment = menu.alignment || "center";
 
-  // Get colors from menu or use defaults based on variant
-  const bgColor =
-    menu.backgroundColor ||
-    (isHome ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.8)");
-  const textColor = menu.textColor || (isHome ? "#000000" : "#ffffff");
-  const hoverColor = menu.hoverColor || (isHome ? "#666666" : "#cccccc");
+  // Get colors from menu with sensible defaults
+  const bgColor = menu.backgroundColor || "rgba(255,255,255,0.9)";
+  const textColor = menu.textColor || "#000000";
+  const hoverColor = menu.hoverColor || "#666666";
   const activeColor = menu.activeColor || textColor;
 
   // Calculate current navbar height based on scroll state
@@ -224,7 +219,6 @@ export default function DynamicNavbar({
     return cn(
       "backdrop-blur-md",
       scrolled && shadowOnScroll && "shadow-lg",
-      !isHome && "border-b border-white/10",
     );
   };
 
@@ -329,7 +323,6 @@ export default function DynamicNavbar({
                       item={item}
                       menu={menu}
                       pathname={pathname}
-                      isHome={isHome}
                     />
                   ))}
                 </div>
@@ -380,6 +373,7 @@ export default function DynamicNavbar({
             items={nestedItems}
             menu={menu}
             pathname={pathname}
+            navbarHeight={navbarHeight}
             onClose={() => setMobileOpen(false)}
           />
         )}
@@ -396,10 +390,9 @@ interface NavItemProps {
   item: NavigationItem;
   menu: NavigationMenu;
   pathname: string;
-  isHome: boolean;
 }
 
-function NavItem({ item, menu, pathname, isHome }: NavItemProps) {
+function NavItem({ item, menu, pathname }: NavItemProps) {
   const [isOpen, setIsOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasChildren = item.children && item.children.length > 0;
@@ -421,10 +414,10 @@ function NavItem({ item, menu, pathname, isHome }: NavItemProps) {
     dropdownAnimations[menu.dropdownAnimation as DropdownAnimation] ||
     dropdownAnimations.fadeDown;
 
-  // Get colors from menu or use defaults
-  const textColor = menu.textColor || (isHome ? "#000000" : "#ffffff");
+  // Get colors from menu with sensible defaults
+  const textColor = menu.textColor || "#000000";
   const activeColor = menu.activeColor || textColor;
-  const hoverColor = menu.hoverColor || (isHome ? "#666666" : "#cccccc");
+  const hoverColor = menu.hoverColor || "#666666";
   const fontSize = menu.fontSize || 14;
 
   // For parent items with no href/pageSlug, they should not be clickable
@@ -528,10 +521,11 @@ interface MobileMenuProps {
   items: NavigationItem[];
   menu: NavigationMenu;
   pathname: string;
+  navbarHeight: number;
   onClose: () => void;
 }
 
-function MobileMenu({ items, menu, pathname, onClose }: MobileMenuProps) {
+function MobileMenu({ items, menu, pathname, navbarHeight, onClose }: MobileMenuProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   // Block body scroll when menu is open
@@ -576,7 +570,7 @@ function MobileMenu({ items, menu, pathname, onClose }: MobileMenuProps) {
         style={{ backgroundColor: mobileMenuBg }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-8 pt-24">
+        <div className="p-8" style={{ paddingTop: navbarHeight + 16 }}>
           <div className="space-y-4">
             {items.map((item, index) => (
               <MobileMenuItem

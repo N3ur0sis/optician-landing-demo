@@ -203,7 +203,6 @@ export default function Page() {
       {isNavVisible && (
         <DynamicNavbar
           showBackButton={false}
-          variant="home"
         />
       )}
 
