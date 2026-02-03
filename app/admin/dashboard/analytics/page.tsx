@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import AdminLayout from "@/components/AdminLayout"
 import AnalyticsClient from "./AnalyticsClient"
+import { hasPermission, parsePermissions } from "@/types/permissions"
 
 export const metadata: Metadata = {
   title: "Analytics | Admin ODB",
@@ -14,6 +15,14 @@ export default async function AnalyticsPage() {
   
   if (!session) {
     redirect("/admin/login")
+  }
+
+  // Check permission for analytics feature
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "analytics")) {
+    redirect("/admin/dashboard");
   }
 
   return (

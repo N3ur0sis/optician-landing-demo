@@ -1,6 +1,24 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { hasPermission, parsePermissions } from '@/types/permissions';
+
+// Helper to check navigation permission
+async function checkNavigationPermission() {
+  const session = await auth();
+  if (!session) {
+    return { authorized: false, error: "Unauthorized" };
+  }
+  
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "navigation")) {
+    return { authorized: false, error: "Permission denied" };
+  }
+  
+  return { authorized: true, session };
+}
 
 // GET all navigation menus
 export async function GET(request: Request) {
@@ -30,9 +48,9 @@ export async function GET(request: Request) {
 // POST create a new menu
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkNavigationPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const body = await request.json();

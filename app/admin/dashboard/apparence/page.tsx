@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import ApparenceClient from "./ApparenceClient";
 import AdminLayout from "@/components/AdminLayout";
 import { Metadata } from "next";
+import { hasPermission, parsePermissions } from "@/types/permissions";
 
 export const metadata: Metadata = {
   title: "Apparence | Admin ODB",
@@ -15,6 +16,14 @@ export default async function ApparencePage() {
 
   if (!session) {
     redirect("/admin/login");
+  }
+
+  // Check permission for apparence feature
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "apparence")) {
+    redirect('/admin/dashboard');
   }
 
   return (

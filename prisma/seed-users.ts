@@ -4,36 +4,42 @@
  */
 
 import bcrypt from "bcryptjs"
+import "dotenv/config"
 
 async function seedUsers() {
   // Dynamic imports for proper module resolution
   const { PrismaClient } = await import("./generated/prisma/client")
   const { PrismaPg } = await import("@prisma/adapter-pg")
   
-  const adapter = new PrismaPg({ 
-    connectionString: process.env.DATABASE_URL 
-  })
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set")
+  }
+  
+  const adapter = new PrismaPg({ connectionString })
   const prisma = new PrismaClient({ adapter })
 
   console.log("🔐 Seeding users...")
 
-  // Admin user (full access)
+  // Admin user (full access) - Super Admin protégé
   const adminPassword = await bcrypt.hash("Admin@ODB2024!", 12)
   const admin = await prisma.user.upsert({
     where: { email: "admin@optiquedebourbon.re" },
     update: {
       password: adminPassword,
-      name: "Administrateur ODB",
+      name: "Admin ODB",
       role: "ADMIN",
+      isSuperAdmin: true,
     },
     create: {
       email: "admin@optiquedebourbon.re",
       password: adminPassword,
-      name: "Administrateur ODB",
+      name: "Admin ODB",
       role: "ADMIN",
+      isSuperAdmin: true,
     },
   })
-  console.log(`  ✅ Admin créé: ${admin.email}`)
+  console.log(`  ✅ Super Admin créé: ${admin.email} (protégé)`)
 
   // Webmaster user (content management only)
   const webmasterPassword = await bcrypt.hash("Webmaster@ODB2024!", 12)

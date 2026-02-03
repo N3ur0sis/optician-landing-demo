@@ -111,6 +111,7 @@ export async function GET() {
 
       return {
         id: storeId,
+        slug: page.slug,
         name: page.title,
         address,
         phone,

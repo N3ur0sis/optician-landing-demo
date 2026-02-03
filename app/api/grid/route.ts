@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { hasPermission, parsePermissions } from "@/types/permissions";
 
 // GET /api/grid - Fetch all grid tiles
 export async function GET() {
@@ -19,13 +20,29 @@ export async function GET() {
   }
 }
 
+// Helper to check grid permission
+async function checkGridPermission() {
+  const session = await auth();
+  if (!session) {
+    return { authorized: false, error: "Unauthorized" };
+  }
+  
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "grid")) {
+    return { authorized: false, error: "Permission denied" };
+  }
+  
+  return { authorized: true, session };
+}
+
 // PUT /api/grid - Update all grid tiles (bulk update)
 export async function PUT(request: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session || session.user.role !== "WEBMASTER") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const check = await checkGridPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const tiles = await request.json();
@@ -69,10 +86,9 @@ export async function PUT(request: NextRequest) {
 // POST /api/grid - Create a new grid tile
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session || session.user.role !== "WEBMASTER") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const check = await checkGridPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const data = await request.json();

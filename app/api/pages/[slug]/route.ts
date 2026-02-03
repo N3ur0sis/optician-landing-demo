@@ -1,9 +1,27 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { hasPermission, parsePermissions } from '@/types/permissions';
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
+}
+
+// Helper to check pages permission
+async function checkPagesPermission() {
+  const session = await auth();
+  if (!session) {
+    return { authorized: false, error: "Unauthorized" };
+  }
+  
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "pages")) {
+    return { authorized: false, error: "Permission denied" };
+  }
+  
+  return { authorized: true, session };
 }
 
 // Helper to find page by slug, trying both with and without leading slash
@@ -65,9 +83,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 // PUT update a page
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const { slug } = await params;
@@ -175,7 +193,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
             navLabel: existingPage.navLabel,
             parentSlug: existingPage.parentSlug,
             blocksSnapshot: existingPage.blocks as object[],
-            createdBy: session.user?.id,
+            createdBy: check.session?.user?.id,
             changeNote: changeNote || null,
           },
         });
@@ -245,9 +263,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 // DELETE a page (soft delete by default, permanent with ?permanent=true)
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const { slug } = await params;
@@ -297,9 +315,9 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 // PATCH - partial update (for publish/unpublish, reorder, restore, etc.)
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const { slug } = await params;

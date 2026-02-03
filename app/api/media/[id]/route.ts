@@ -4,6 +4,24 @@ import { existsSync } from 'fs';
 import path from 'path';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { hasPermission, parsePermissions } from '@/types/permissions';
+
+// Helper to check media permission
+async function checkMediaPermission() {
+  const session = await auth();
+  if (!session) {
+    return { authorized: false, error: "Unauthorized" };
+  }
+  
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "media")) {
+    return { authorized: false, error: "Permission denied" };
+  }
+  
+  return { authorized: true, session };
+}
 
 // GET /api/media/[id] - Get single media item
 export async function GET(
@@ -11,9 +29,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkMediaPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const { id } = await params;
@@ -42,9 +60,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkMediaPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const { id } = await params;
@@ -75,9 +93,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkMediaPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const { id } = await params;

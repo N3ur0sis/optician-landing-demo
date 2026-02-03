@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 import { Session } from "next-auth";
+import { hasPermission, DashboardFeature, parsePermissions } from "@/types/permissions";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -28,58 +29,78 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, session }: AdminLayoutProps) {
   const isAdmin = session.user?.role === "ADMIN";
+  const userPermissions = parsePermissions(session.user?.permissions);
 
-  const links = [
+  // Helper function to check if user has access to a feature
+  const canAccess = (feature: DashboardFeature): boolean => {
+    return hasPermission(session.user?.role as "ADMIN" | "WEBMASTER", userPermissions, feature);
+  };
+
+  // Build links based on permissions
+  const allLinks = [
     {
       label: "Tableau de Bord",
       href: "/admin/dashboard",
       icon: <LayoutDashboard className="text-black h-5 w-5 shrink-0" />,
+      alwaysShow: true, // Dashboard is always visible
     },
     {
       label: "Pages",
       href: "/admin/dashboard/pages",
       icon: <FileText className="text-black h-5 w-5 shrink-0" />,
+      feature: "pages" as DashboardFeature,
     },
     {
       label: "Gestionnaire de Grille",
       href: "/admin/dashboard/grid",
       icon: <Grid3x3 className="text-black h-5 w-5 shrink-0" />,
+      feature: "grid" as DashboardFeature,
     },
     {
       label: "Navigation",
       href: "/admin/dashboard/navigation",
       icon: <Navigation className="text-black h-5 w-5 shrink-0" />,
+      feature: "navigation" as DashboardFeature,
     },
     {
       label: "Médiathèque",
       href: "/admin/dashboard/media",
       icon: <ImageIcon className="text-black h-5 w-5 shrink-0" />,
+      feature: "media" as DashboardFeature,
     },
     {
       label: "Analytics",
       href: "/admin/dashboard/analytics",
       icon: <BarChart3 className="text-black h-5 w-5 shrink-0" />,
+      feature: "analytics" as DashboardFeature,
     },
-    ...(isAdmin
-      ? [
-          {
-            label: "Utilisateurs",
-            href: "/admin/dashboard/users",
-            icon: <Users className="text-black h-5 w-5 shrink-0" />,
-          },
-        ]
-      : []),
+    {
+      label: "Utilisateurs",
+      href: "/admin/dashboard/users",
+      icon: <Users className="text-black h-5 w-5 shrink-0" />,
+      adminOnly: true,
+    },
     {
       label: "Apparence",
       href: "/admin/dashboard/apparence",
       icon: <Palette className="text-black h-5 w-5 shrink-0" />,
+      feature: "apparence" as DashboardFeature,
     },
     {
       label: "Paramètres",
       href: "/admin/dashboard/settings",
       icon: <Settings className="text-black h-5 w-5 shrink-0" />,
+      adminOnly: true, // Only admins can access settings
     },
   ];
+
+  // Filter links based on user role and permissions
+  const links = allLinks.filter((link) => {
+    if (link.alwaysShow) return true;
+    if (link.adminOnly) return isAdmin;
+    if (link.feature) return canAccess(link.feature);
+    return true;
+  });
 
   const [open, setOpen] = useState(false);
 

@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import PageBuilderEditor from "../../PageBuilderEditor";
 import { Page, PageBlock } from "@/types/page-builder";
+import { hasPermission, parsePermissions } from "@/types/permissions";
 
 interface EditPageProps {
   params: Promise<{ slug: string[] }>;
@@ -13,6 +14,14 @@ export default async function EditPagePage({ params }: EditPageProps) {
 
   if (!session) {
     redirect("/admin/login");
+  }
+
+  // Check permission for pages feature
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "pages")) {
+    redirect("/admin/dashboard");
   }
 
   const { slug: slugParts } = await params;
