@@ -780,3 +780,153 @@ textarea {
   --tw-prose-th-borders: rgba(255, 255, 255, 0.3);
   --tw-prose-td-borders: rgba(255, 255, 255, 0.2);
 }
+
+/* ==========================================================================
+   CMS RESPONSIVE SYSTEM
+   ========================================================================== 
+   
+   These rules ensure all CMS blocks are responsive by default.
+   Users can customize colors, text, images, and spacing, but the responsive
+   behavior is handled automatically to maintain good design on all devices.
+   ========================================================================== */
+
+/* Force all blocks to respect viewport width on mobile */
+@media (max-width: 767px) {
+  /* Limit fixed pixel widths to max 100% on mobile */
+  [data-page-block] {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  
+  /* Reduce large padding values on mobile */
+  [data-page-block][style*="padding-top: 8"],
+  [data-page-block][style*="padding-top: 9"],
+  [data-page-block][style*="padding-top: 10"],
+  [data-page-block][style*="padding-top: 11"],
+  [data-page-block][style*="padding-top: 12"] {
+    padding-top: 3rem !important;
+  }
+  
+  [data-page-block][style*="padding-bottom: 8"],
+  [data-page-block][style*="padding-bottom: 9"],
+  [data-page-block][style*="padding-bottom: 10"],
+  [data-page-block][style*="padding-bottom: 11"],
+  [data-page-block][style*="padding-bottom: 12"] {
+    padding-bottom: 3rem !important;
+  }
+  
+  /* Scale down large font sizes on mobile */
+  [data-page-block] h1 {
+    font-size: clamp(1.75rem, 8vw, 3rem) !important;
+    line-height: 1.2 !important;
+  }
+  
+  [data-page-block] h2 {
+    font-size: clamp(1.5rem, 6vw, 2.25rem) !important;
+    line-height: 1.25 !important;
+  }
+  
+  [data-page-block] h3 {
+    font-size: clamp(1.25rem, 5vw, 1.75rem) !important;
+    line-height: 1.3 !important;
+  }
+  
+  /* Ensure images don't overflow */
+  [data-page-block] img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Stack inline blocks on mobile */
+  [data-page-block][style*="display: inline-block"] {
+    display: block !important;
+    width: 100% !important;
+  }
+  
+  /* Reduce large gaps on mobile */
+  [data-page-block] .gap-12,
+  [data-page-block] .gap-16,
+  [data-page-block] .gap-20,
+  [data-page-block] .gap-24 {
+    gap: 1.5rem !important;
+  }
+  
+  /* Ensure centered content doesn't overflow */
+  [data-page-block] [class*="mx-auto"] {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  [data-page-block] {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Slightly reduce headings on tablet */
+  [data-page-block] h1 {
+    font-size: clamp(2rem, 6vw, 3.5rem) !important;
+  }
+  
+  [data-page-block] h2 {
+    font-size: clamp(1.75rem, 5vw, 2.5rem) !important;
+  }
+}
+
+/* Ensure smooth text scaling with viewport */
+[data-page-block] {
+  /* Enable smooth font scaling */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Default responsive typography for dynamic content */
+[data-page-block] p {
+  font-size: clamp(0.9rem, 2.5vw, 1.125rem);
+  line-height: 1.6;
+}
+
+/* Ensure buttons are touchable on mobile */
+@media (max-width: 767px) {
+  [data-page-block] a[class*="button"],
+  [data-page-block] button,
+  [data-page-block] [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Container utilities for CMS blocks */
+.cms-container {
+  width: 100%;
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .cms-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cms-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .cms-container {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+

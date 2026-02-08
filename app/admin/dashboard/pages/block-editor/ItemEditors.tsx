@@ -2,6 +2,7 @@
 
 import { ChevronDown, Trash2 } from "lucide-react";
 import MediaPicker from "@/components/media/MediaPicker";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { Field } from "./Field";
 import {
   StatItem,
@@ -17,6 +18,8 @@ import {
   FAQItem,
   FormField,
   FeatureItem,
+  BUTTON_VARIANTS,
+  FORM_FIELD_TYPES,
 } from "./types";
 
 // Stats Editor
@@ -427,7 +430,7 @@ export function AccordionItemsEditor({
             onChange={(e) => updateItem(index, "content", e.target.value)}
             className="input"
             rows={4}
-            placeholder="Contenu (HTML supporté)"
+            placeholder="Contenu de l'élément..."
           />
           <label className="flex items-center gap-2">
             <input
@@ -496,12 +499,10 @@ export function TabsEditor({
               className="input"
               placeholder="Libellé"
             />
-            <input
-              type="text"
+            <IconPicker
               value={tab.icon || ""}
-              onChange={(e) => updateTab(index, "icon", e.target.value)}
-              className="input"
-              placeholder="Icône (emoji)"
+              onChange={(iconName) => updateTab(index, "icon", iconName)}
+              placeholder="Icône"
             />
           </div>
           <textarea
@@ -509,7 +510,7 @@ export function TabsEditor({
             onChange={(e) => updateTab(index, "content", e.target.value)}
             className="input"
             rows={4}
-            placeholder="Contenu (HTML supporté)"
+            placeholder="Contenu de l'onglet..."
           />
         </div>
       ))}
@@ -1240,12 +1241,11 @@ export function FormFieldsEditor({
               onChange={(e) => updateField(index, "type", e.target.value)}
               className="input"
             >
-              <option value="text">Texte</option>
-              <option value="email">Email</option>
-              <option value="phone">Téléphone</option>
-              <option value="textarea">Zone de texte</option>
-              <option value="select">Liste déroulante</option>
-              <option value="checkbox">Case à cocher</option>
+              {FORM_FIELD_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
             </select>
             <input
               type="text"
@@ -1341,12 +1341,10 @@ export function FeaturesEditor({
             </button>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            <input
-              type="text"
+            <IconPicker
               value={feature.icon || ""}
-              onChange={(e) => updateFeature(index, "icon", e.target.value)}
-              className="input"
-              placeholder="Icône (emoji)"
+              onChange={(iconName) => updateFeature(index, "icon", iconName)}
+              placeholder="Icône"
             />
             <input
               type="text"
@@ -1379,6 +1377,267 @@ export function FeaturesEditor({
         className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-700 hover:border-gray-400"
       >
         + Ajouter une fonctionnalité
+      </button>
+    </div>
+  );
+}
+
+// Columns Editor - for COLUMNS block
+export function ColumnsEditor({
+  columns,
+  onChange,
+}: {
+  columns: Array<{ width?: number; content?: string }>;
+  onChange: (columns: Array<{ width?: number; content?: string }>) => void;
+}) {
+  const addColumn = () => onChange([...columns, { width: 50, content: "" }]);
+  const updateColumn = (index: number, field: string, value: unknown) => {
+    const newColumns = [...columns];
+    newColumns[index] = { ...newColumns[index], [field]: value };
+    onChange(newColumns);
+  };
+  const removeColumn = (index: number) =>
+    onChange(columns.filter((_, i) => i !== index));
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-medium text-gray-800 mb-1">
+        Colonnes ({columns.length})
+      </label>
+      {columns.map((column, index) => (
+        <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-700">
+              Colonne {index + 1}
+            </span>
+            <button
+              onClick={() => removeColumn(index)}
+              className="text-red-500 text-xs hover:text-red-700"
+              disabled={columns.length <= 1}
+            >
+              Supprimer
+            </button>
+          </div>
+          <Field label="Largeur (%)">
+            <input
+              type="number"
+              min={10}
+              max={100}
+              value={column.width || 50}
+              onChange={(e) =>
+                updateColumn(index, "width", parseInt(e.target.value) || 50)
+              }
+              className="input"
+            />
+          </Field>
+          <Field label="Contenu">
+            <textarea
+              value={column.content || ""}
+              onChange={(e) => updateColumn(index, "content", e.target.value)}
+              className="input"
+              rows={4}
+              placeholder="Contenu de la colonne..."
+            />
+          </Field>
+        </div>
+      ))}
+      <button
+        onClick={addColumn}
+        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-700 hover:border-gray-400"
+      >
+        + Ajouter une colonne
+      </button>
+    </div>
+  );
+}
+
+// Services List Editor - for SERVICES_LIST block
+export function ServicesListEditor({
+  services,
+  onChange,
+}: {
+  services: string[];
+  onChange: (services: string[]) => void;
+}) {
+  const addService = () => onChange([...services, ""]);
+  const updateService = (index: number, value: string) => {
+    const newServices = [...services];
+    newServices[index] = value;
+    onChange(newServices);
+  };
+  const removeService = (index: number) =>
+    onChange(services.filter((_, i) => i !== index));
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-800 mb-1">
+        Services
+      </label>
+      {services.map((service, index) => (
+        <div key={index} className="flex items-center gap-2">
+          <input
+            type="text"
+            value={service}
+            onChange={(e) => updateService(index, e.target.value)}
+            className="input flex-1"
+            placeholder={`Service ${index + 1}`}
+          />
+          <button
+            onClick={() => removeService(index)}
+            className="p-1 hover:bg-red-100 rounded text-red-500"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={addService}
+        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-700 hover:border-gray-400"
+      >
+        + Ajouter un service
+      </button>
+    </div>
+  );
+}
+
+// Hours Editor - for HOURS_TABLE block
+export function HoursEditor({
+  hours,
+  onChange,
+}: {
+  hours: Record<string, string>;
+  onChange: (hours: Record<string, string>) => void;
+}) {
+  const defaultDays = [
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+    "Dimanche",
+  ];
+
+  const updateHours = (day: string, value: string) => {
+    onChange({ ...hours, [day]: value });
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-800 mb-1">
+        Horaires d'ouverture
+      </label>
+      {defaultDays.map((day) => (
+        <div key={day} className="flex items-center gap-2">
+          <span className="w-24 text-sm text-gray-700">{day}</span>
+          <input
+            type="text"
+            value={hours[day] || ""}
+            onChange={(e) => updateHours(day, e.target.value)}
+            className="input flex-1"
+            placeholder="ex: 9h-12h / 14h-19h ou Fermé"
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Store Buttons Editor - for STORE_HERO, CTA blocks
+export function ButtonsEditor({
+  buttons,
+  onChange,
+}: {
+  buttons: Array<{
+    label: string;
+    href: string;
+    variant?: string;
+    openInNewTab?: boolean;
+  }>;
+  onChange: (
+    buttons: Array<{
+      label: string;
+      href: string;
+      variant?: string;
+      openInNewTab?: boolean;
+    }>,
+  ) => void;
+}) {
+  const addButton = () =>
+    onChange([...buttons, { label: "Nouveau bouton", href: "#" }]);
+  const updateButton = (index: number, field: string, value: unknown) => {
+    const newButtons = [...buttons];
+    newButtons[index] = { ...newButtons[index], [field]: value };
+    onChange(newButtons);
+  };
+  const removeButton = (index: number) =>
+    onChange(buttons.filter((_, i) => i !== index));
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-medium text-gray-800 mb-1">
+        Boutons
+      </label>
+      {buttons.map((button, index) => (
+        <div key={index} className="p-3 bg-gray-50 rounded-lg space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-700">
+              Bouton {index + 1}
+            </span>
+            <button
+              onClick={() => removeButton(index)}
+              className="text-red-500 text-xs hover:text-red-700"
+            >
+              Supprimer
+            </button>
+          </div>
+          <input
+            type="text"
+            value={button.label}
+            onChange={(e) => updateButton(index, "label", e.target.value)}
+            className="input"
+            placeholder="Texte du bouton"
+          />
+          <input
+            type="text"
+            value={button.href}
+            onChange={(e) => updateButton(index, "href", e.target.value)}
+            className="input"
+            placeholder="URL"
+          />
+          <div className="flex gap-4">
+            <Field label="Style">
+              <select
+                value={button.variant || "primary"}
+                onChange={(e) => updateButton(index, "variant", e.target.value)}
+                className="input"
+              >
+                {BUTTON_VARIANTS.map((v) => (
+                  <option key={v.value} value={v.value}>
+                    {v.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <label className="flex items-center gap-2 mt-6">
+              <input
+                type="checkbox"
+                checked={button.openInNewTab || false}
+                onChange={(e) =>
+                  updateButton(index, "openInNewTab", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm">Nouvel onglet</span>
+            </label>
+          </div>
+        </div>
+      ))}
+      <button
+        onClick={addButton}
+        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-700 hover:border-gray-400"
+      >
+        + Ajouter un bouton
       </button>
     </div>
   );

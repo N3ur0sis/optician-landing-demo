@@ -39,10 +39,53 @@ import {
   BlockType,
   BLOCK_DEFINITIONS,
   BLOCK_CATEGORIES,
+  BlockStyles,
 } from "@/types/page-builder";
 import BlockEditor from "./block-editor";
 import InlineEditableBlock from "./InlineEditableBlock";
+import ChildElementEditor, { useChildElementEditor } from "./ChildElementEditor";
 import SpacingOverlay from "./block-editor/SpacingOverlay";
+import ResizeHandles from "./block-editor/ResizeHandles";
+import { PageBuilderProvider } from "@/components/page-builder/PageBuilderContext";
+
+// Migrate legacy style properties to new format
+function migrateBlockStyles(styles: BlockStyles): BlockStyles {
+  const migrated = { ...styles };
+  
+  // Migrate width properties
+  if (migrated.containerWidth && !migrated.widthMode) {
+    migrated.widthMode = "preset";
+    migrated.widthPreset = migrated.containerWidth.toLowerCase() as any;
+    delete migrated.containerWidth;
+  }
+  
+  if (migrated.widthPercent !== undefined && !migrated.widthMode) {
+    migrated.widthMode = "custom";
+    migrated.widthValue = migrated.widthPercent;
+    migrated.widthUnit = "%";
+    delete migrated.widthPercent;
+  }
+  
+  // Migrate deprecated 'full' preset to 'wide'
+  if (migrated.widthPreset === "full") {
+    migrated.widthPreset = "wide";
+  }
+  
+  // Migrate height properties
+  if (migrated.fullHeight && !migrated.heightMode) {
+    migrated.heightMode = "viewport";
+    delete migrated.fullHeight;
+  }
+  
+  if (migrated.minHeight && !migrated.heightMode) {
+    migrated.heightMode = "custom";
+    const heightValue = typeof migrated.minHeight === 'number' ? migrated.minHeight : parseInt(String(migrated.minHeight));
+    migrated.heightValue = heightValue;
+    migrated.heightUnit = "px";
+  }
+  
+  return migrated;
+}
 
 interface PageRevision {
   id: string;
@@ -71,8 +114,17 @@ export default function PageBuilderEditor({
   isNew = false,
 }: PageBuilderEditorProps) {
   const router = useRouter();
+  
+  // Migrate legacy styles on initial load
+  const migratedBlocks = useMemo(() => {
+    return (initialPage.blocks || []).map(block => ({
+      ...block,
+      styles: block.styles ? migrateBlockStyles(block.styles) : block.styles
+    }));
+  }, [initialPage.blocks]);
+  
   const [page, setPage] = useState<Page>(initialPage);
-  const [blocks, setBlocks] = useState<PageBlock[]>(initialPage.blocks || []);
+  const [blocks, setBlocks] = useState<PageBlock[]>(migratedBlocks);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("edit");
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
@@ -93,9 +145,13 @@ export default function PageBuilderEditor({
   );
   const [restoringRevision, setRestoringRevision] = useState(false);
   const [showSpacingOverlay, setShowSpacingOverlay] = useState(true);
+  const [containerWidth, setContainerWidth] = useState(0);
   const previewRef = useRef<HTMLDivElement>(null);
   const blockElementsRef = useRef<Map<string, HTMLElement>>(new Map());
   const isSavingRef = useRef(false);
+
+  // Child element editor for styling child elements (cards, items, etc.)
+  const childElementEditor = useChildElementEditor();
 
   // Undo/Redo history - using refs to avoid dependency issues
   const historyRef = useRef<PageBlock[][]>([initialPage.blocks || []]);
@@ -201,6 +257,19 @@ export default function PageBuilderEditor({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleUndo, handleRedo]);
+
+  // Measure container width for resize handles
+  useEffect(() => {
+    const measureContainer = () => {
+      if (previewRef.current) {
+        setContainerWidth(previewRef.current.offsetWidth);
+      }
+    };
+
+    measureContainer();
+    window.addEventListener("resize", measureContainer);
+    return () => window.removeEventListener("resize", measureContainer);
+  }, [deviceMode]);
 
   // Track changes - skip initial render and post-save updates
   useEffect(() => {
@@ -462,6 +531,30 @@ export default function PageBuilderEditor({
       }
     },
     [selectedBlockId, handleUpdateBlock]
+  );
+
+  // Live style preview callback - directly manipulates DOM for instant feedback
+  const handleLiveStylePreview = useCallback(
+    (width?: string, height?: string) => {
+      if (selectedBlockId) {
+        const element = blockElementsRef.current.get(selectedBlockId);
+        if (element) {
+          if (width !== undefined) {
+            element.style.width = width || '';
+            element.style.transition = 'none'; // Disable transition for instant feedback
+          }
+          if (height !== undefined) {
+            element.style.minHeight = height || '';
+            element.style.transition = 'none';
+          }
+          // Clear both if both are undefined (end of drag)
+          if (width === undefined && height === undefined) {
+            element.style.transition = '';
+          }
+        }
+      }
+    },
+    [selectedBlockId]
   );
 
   const deviceWidths = {
@@ -852,15 +945,98 @@ export default function PageBuilderEditor({
                 </div>
               </div>
             ) : (
+              <PageBuilderProvider isEditing={viewMode === "edit"}>
               <div className="min-h-full relative">
                 {blocks.map((block) => {
                   const isInline = block.styles?.inline === true;
-                  const widthPercent = block.styles?.widthPercent;
                   const isSelected = selectedBlockId === block.id;
+                  const blockStyles = block.styles || {};
+
+                  // Preset maps for width and height
+                  // Note: 'full' is deprecated, mapped to 'wide' for backwards compatibility
+                  const widthPresetMap: Record<string, string> = {
+                    narrow: "672px",
+                    medium: "896px",
+                    wide: "1152px",
+                    full: "1152px", // Deprecated: same as wide
+                    edge: "100%",
+                  };
+                  
+                  const heightPresetMap: Record<string, string> = {
+                    small: "200px",
+                    medium: "400px",
+                    large: "600px",
+                    xlarge: "800px",
+                  };
+
+                  // Calculate wrapper styles for proper visual feedback
+                  // Only apply dimension styles in edit mode - in preview mode, BlockRenderer handles them
+                  const wrapperStyle: React.CSSProperties = {
+                    display: isInline ? "inline-block" : "block",
+                    verticalAlign: isInline ? "top" : undefined,
+                  };
+
+                  // Only apply dimension styles in edit mode
+                  if (viewMode === "edit") {
+                    wrapperStyle.transition = "width 0.15s ease, min-height 0.15s ease";
+                    
+                    // Apply width from block styles - handle all modes
+                    if (blockStyles.widthMode === "custom" && blockStyles.widthValue) {
+                      const unit = blockStyles.widthUnit || "%";
+                      wrapperStyle.width = `${blockStyles.widthValue}${unit}`;
+                    } else if (blockStyles.widthMode === "preset" && blockStyles.widthPreset) {
+                      wrapperStyle.width = widthPresetMap[blockStyles.widthPreset] || "100%";
+                      wrapperStyle.maxWidth = "100%"; // Ensure it doesn't overflow
+                    } else if (blockStyles.widthPercent && blockStyles.widthPercent < 100) {
+                      wrapperStyle.width = `${blockStyles.widthPercent}%`;
+                    }
+
+                    // Apply height from block styles - handle all modes
+                    if (blockStyles.heightMode === "viewport" || blockStyles.fullHeight) {
+                      wrapperStyle.minHeight = "100vh";
+                    } else if (blockStyles.heightMode === "preset" && blockStyles.heightPreset) {
+                      wrapperStyle.minHeight = heightPresetMap[blockStyles.heightPreset] || "auto";
+                    } else if (blockStyles.heightMode === "custom" && blockStyles.heightValue) {
+                      const unit = blockStyles.heightUnit || "px";
+                      wrapperStyle.minHeight = `${blockStyles.heightValue}${unit}`;
+                    } else if (blockStyles.minHeight) {
+                      wrapperStyle.minHeight = typeof blockStyles.minHeight === "number" 
+                        ? `${blockStyles.minHeight}px` 
+                        : blockStyles.minHeight;
+                    }
+
+                    // Apply alignment (margin auto)
+                    if (wrapperStyle.width && !isInline) {
+                      if (blockStyles.alignment === "center") {
+                        wrapperStyle.marginLeft = "auto";
+                        wrapperStyle.marginRight = "auto";
+                      } else if (blockStyles.alignment === "right") {
+                        wrapperStyle.marginLeft = "auto";
+                        wrapperStyle.marginRight = "0";
+                      } else {
+                        wrapperStyle.marginLeft = "0";
+                        wrapperStyle.marginRight = "auto";
+                      }
+                    }
+
+                    // Apply vertical alignment when height is defined
+                    if (wrapperStyle.minHeight && blockStyles.verticalAlign) {
+                      wrapperStyle.display = "flex";
+                      wrapperStyle.flexDirection = "column";
+                      if (blockStyles.verticalAlign === "top") {
+                        wrapperStyle.justifyContent = "flex-start";
+                      } else if (blockStyles.verticalAlign === "center") {
+                        wrapperStyle.justifyContent = "center";
+                      } else if (blockStyles.verticalAlign === "bottom") {
+                        wrapperStyle.justifyContent = "flex-end";
+                      }
+                    }
+                  }
 
                   return (
                     <div
                       key={block.id}
+                      data-page-block={block.type}
                       ref={(el) => {
                         if (el) blockElementsRef.current.set(block.id, el);
                         else blockElementsRef.current.delete(block.id);
@@ -868,11 +1044,7 @@ export default function PageBuilderEditor({
                       className={`relative ${viewMode === "edit" ? "group" : ""} ${
                         !block.visible ? "opacity-30" : ""
                       }`}
-                      style={{
-                        display: isInline ? "inline-block" : "flow-root",
-                        verticalAlign: isInline ? "top" : undefined,
-                        width: widthPercent ? `${widthPercent}%` : undefined,
-                      }}
+                      style={wrapperStyle}
                       onClick={() =>
                         viewMode === "edit" && setSelectedBlockId(block.id)
                       }
@@ -894,6 +1066,24 @@ export default function PageBuilderEditor({
                             visible={showSpacingOverlay}
                           />
                         )}
+
+                      {/* Resize Handles - visible when block is selected */}
+                      {viewMode === "edit" && isSelected && (
+                        <ResizeHandles
+                          blockElement={
+                            blockElementsRef.current.get(block.id) || null
+                          }
+                          styles={block.styles || {}}
+                          onUpdateStyle={(styleUpdates) =>
+                            handleUpdateBlock(block.id, {
+                              styles: { ...block.styles, ...styleUpdates },
+                            })
+                          }
+                          onLivePreview={handleLiveStylePreview}
+                          visible={true}
+                          containerWidth={containerWidth}
+                        />
+                      )}
 
                       {/* Block Selection Outline */}
                       {viewMode === "edit" && (
@@ -968,35 +1158,58 @@ export default function PageBuilderEditor({
                                 <Columns className="w-3.5 h-3.5" />
                               </button>
 
-                              {/* Block Width Quick Selectors */}
+                              {/* Block Width Quick Selectors - Synced with StyleEditor */}
                               <div className="flex items-center gap-0.5 border-r border-gray-200 pr-1 mr-1">
                                 {[
                                   { value: 25, label: "25%" },
                                   { value: 50, label: "50%" },
                                   { value: 75, label: "75%" },
                                   { value: 100, label: "100%" },
-                                ].map((opt) => (
-                                  <button
-                                    key={opt.value}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleUpdateBlock(block.id, {
-                                        styles: {
-                                          ...block.styles,
-                                          widthPercent: opt.value,
-                                        },
-                                      });
-                                    }}
-                                    className={`px-2 py-1 text-xs rounded transition-colors ${
-                                      block.styles?.widthPercent === opt.value
-                                        ? "bg-black text-white"
-                                        : "hover:bg-gray-100 text-gray-700"
-                                    }`}
-                                    title={`Largeur ${opt.label}`}
-                                  >
-                                    {opt.label}
-                                  </button>
-                                ))}
+                                ].map((opt) => {
+                                  // Determine if this button is active based on new system only
+                                  const styles = block.styles || {};
+                                  let currentWidthPercent = 100;
+                                  
+                                  if (styles.widthMode === "custom" && styles.widthUnit === "%" && styles.widthValue !== undefined) {
+                                    currentWidthPercent = styles.widthValue;
+                                  } else if (styles.widthMode === "preset" && styles.widthPreset) {
+                                    const presetMap: Record<string, number> = {
+                                      "narrow": 50, "medium": 67, "wide": 85, "full": 95, "edge": 100,
+                                    };
+                                    currentWidthPercent = presetMap[styles.widthPreset] || 100;
+                                  }
+                                  // No longer reading widthPercent - it's legacy
+                                  
+                                  const isActive = Math.abs(currentWidthPercent - opt.value) < 3;
+                                  
+                                  return (
+                                    <button
+                                      key={opt.value}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleUpdateBlock(block.id, {
+                                          styles: {
+                                            ...block.styles,
+                                            widthMode: "custom",
+                                            widthValue: opt.value,
+                                            widthUnit: "%",
+                                            // Clear legacy properties
+                                            widthPercent: undefined,
+                                            containerWidth: undefined,
+                                          },
+                                        });
+                                      }}
+                                      className={`px-2 py-1 text-xs rounded transition-colors ${
+                                        isActive
+                                          ? "bg-black text-white"
+                                          : "hover:bg-gray-100 text-gray-700"
+                                      }`}
+                                      title={`Largeur ${opt.label}`}
+                                    >
+                                      {opt.label}
+                                    </button>
+                                  );
+                                })}
                               </div>
 
                               {/* Block Alignment */}
@@ -1073,11 +1286,22 @@ export default function PageBuilderEditor({
                         onUpdate={(updates) =>
                           handleUpdateBlock(block.id, updates)
                         }
+                        onChildClick={(e, element, childType, index, arrayField) => {
+                          childElementEditor.handleChildClick(
+                            e,
+                            element,
+                            childType,
+                            index,
+                            block.id,
+                            arrayField
+                          );
+                        }}
                       />
                     </div>
                   );
                 })}
               </div>
+              </PageBuilderProvider>
             )}
           </div>
         </div>
@@ -1111,6 +1335,7 @@ export default function PageBuilderEditor({
                   block={selectedBlock}
                   onUpdate={handleSelectedBlockUpdate}
                   onClose={() => setSelectedBlockId(null)}
+                  onLiveStylePreview={handleLiveStylePreview}
                 />
               ) : null}
             </div>
@@ -1129,6 +1354,50 @@ export default function PageBuilderEditor({
           />
         )}
       </AnimatePresence>
+
+      {/* Child Element Editor - for styling child elements like cards, items, etc. */}
+      {childElementEditor.selectedChild && (
+        <ChildElementEditor
+          isOpen={childElementEditor.isEditorOpen}
+          onClose={childElementEditor.closeEditor}
+          elementType={childElementEditor.selectedChild.type}
+          elementIndex={childElementEditor.selectedChild.index}
+          targetElement={childElementEditor.selectedChild.element}
+          currentStyles={(() => {
+            // Get current styles from the block content
+            const block = blocks.find(b => b.id === childElementEditor.selectedChild?.blockId);
+            if (block && childElementEditor.selectedChild) {
+              const { arrayField, index: itemIndex } = childElementEditor.selectedChild;
+              const content = block.content as Record<string, unknown>;
+              const items = content[arrayField] as Array<Record<string, unknown>> | undefined;
+              if (items && items[itemIndex]) {
+                return (items[itemIndex]._styles as Record<string, string>) || {};
+              }
+            }
+            return {};
+          })()}
+          onUpdateStyles={(styles) => {
+            // Update the styles in the block content
+            const block = blocks.find(b => b.id === childElementEditor.selectedChild?.blockId);
+            if (block && childElementEditor.selectedChild) {
+              const { arrayField, index: itemIndex } = childElementEditor.selectedChild;
+              const content = block.content as Record<string, unknown>;
+              const items = content[arrayField] as Array<Record<string, unknown>> | undefined;
+              if (items && items[itemIndex]) {
+                const newItems = [...items];
+                newItems[itemIndex] = {
+                  ...newItems[itemIndex],
+                  _styles: styles,
+                };
+                handleUpdateBlock(block.id, {
+                  content: { ...content, [arrayField]: newItems },
+                });
+              }
+            }
+          }}
+          position={childElementEditor.editorPosition}
+        />
+      )}
     </div>
   );
 }

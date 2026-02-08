@@ -284,7 +284,7 @@ function BoxModelVisual({
 
 interface SpacingEditorProps {
   styles: BlockStyles;
-  updateStyles: (key: string, value: unknown) => void;
+  updateStyles: (keyOrUpdates: string | Partial<BlockStyles>, value?: unknown) => void;
 }
 
 export default function SpacingEditor({
@@ -349,18 +349,22 @@ export default function SpacingEditor({
   );
 
   const resetMargins = () => {
-    updateStyles("marginTop", undefined);
-    updateStyles("marginRight", undefined);
-    updateStyles("marginBottom", undefined);
-    updateStyles("marginLeft", undefined);
+    updateStyles({
+      marginTop: undefined,
+      marginRight: undefined,
+      marginBottom: undefined,
+      marginLeft: undefined,
+    });
     setActiveMarginSide(null);
   };
 
   const resetPaddings = () => {
-    updateStyles("paddingTop", undefined);
-    updateStyles("paddingRight", undefined);
-    updateStyles("paddingBottom", undefined);
-    updateStyles("paddingLeft", undefined);
+    updateStyles({
+      paddingTop: undefined,
+      paddingRight: undefined,
+      paddingBottom: undefined,
+      paddingLeft: undefined,
+    });
     setActivePaddingSide(null);
   };
 

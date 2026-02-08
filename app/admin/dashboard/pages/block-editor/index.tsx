@@ -16,6 +16,7 @@ export default function BlockEditor({
   block,
   onUpdate,
   onClose,
+  onLiveStylePreview,
 }: BlockEditorProps) {
   const [activeTab, setActiveTab] = useState<"content" | "style" | "settings">(
     "content",
@@ -28,10 +29,18 @@ export default function BlockEditor({
     });
   };
 
-  const updateStyles = (key: string, value: unknown) => {
-    onUpdate({
-      styles: { ...block.styles, [key]: value },
-    });
+  const updateStyles = (keyOrUpdates: string | Partial<BlockStyles>, value?: unknown) => {
+    if (typeof keyOrUpdates === "string") {
+      // Single key-value update (backward compatible)
+      onUpdate({
+        styles: { ...block.styles, [keyOrUpdates]: value },
+      });
+    } else {
+      // Batch update with object
+      onUpdate({
+        styles: { ...block.styles, ...keyOrUpdates },
+      });
+    }
   };
 
   return (
@@ -79,6 +88,7 @@ export default function BlockEditor({
           <StyleEditor
             styles={block.styles as BlockStyles}
             updateStyles={updateStyles}
+            onLiveStylePreview={onLiveStylePreview}
           />
         )}
         {activeTab === "settings" && (

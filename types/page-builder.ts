@@ -24,6 +24,7 @@ export type BlockType =
   | "CONTAINER"
   // Interactive
   | "BUTTON"
+  | "BUTTON_GROUP"
   | "LINK_BLOCK"
   | "ACCORDION"
   | "TABS"
@@ -549,13 +550,43 @@ export interface BlockStyles {
   textColor?: string;
   textAlign?: "left" | "center" | "right" | "justify";
 
-  // Block Alignment (centers the entire block, not just text)
-  alignment?: "left" | "center" | "right";
-  verticalAlign?: "top" | "center" | "bottom";
+  // Typography
+  fontSize?: "xs" | "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
+  fontWeight?: "light" | "normal" | "medium" | "semibold" | "bold" | "extrabold";
+  lineHeight?: "none" | "tight" | "snug" | "normal" | "relaxed" | "loose";
+  letterSpacing?: "tighter" | "tight" | "normal" | "wide" | "wider" | "widest";
 
-  // Size - widthPercent for precise horizontal control (10-100%)
-  widthPercent?: number; // 10, 20, 25, 33, 50, 66, 75, 100
+  // =====================================================
+  // WIDTH - Complete system
+  // =====================================================
+  widthMode?: "auto" | "preset" | "custom"; // How width is determined
+  widthPreset?: "narrow" | "medium" | "wide" | "full" | "edge"; // Preset widths
+  widthValue?: number; // Custom width value
+  widthUnit?: "px" | "%"; // Unit for custom width
+  
+  // Legacy support
+  widthPercent?: number; // 10, 20, 25, 33, 50, 66, 75, 100 (deprecated, use widthValue + widthUnit)
+  containerWidth?: ContainerWidth; // Legacy preset widths
+
+  // =====================================================
+  // HEIGHT - Complete system  
+  // =====================================================
+  heightMode?: "auto" | "preset" | "custom" | "viewport"; // How height is determined
+  heightPreset?: "small" | "medium" | "large" | "xlarge"; // Preset heights
+  heightValue?: number; // Custom height value
+  heightUnit?: "px" | "vh"; // Unit for custom height (px or viewport height)
+  
+  // Legacy support
   height?: "auto" | "small" | "medium" | "large" | "xlarge" | "screen";
+  minHeight?: number; // Minimum height in px (legacy)
+  maxHeight?: number; // Maximum height in px
+  fullHeight?: boolean; // 100vh mode (legacy)
+
+  // =====================================================
+  // BLOCK ALIGNMENT - Position of the block in its container
+  // =====================================================
+  alignment?: "left" | "center" | "right"; // Horizontal alignment of the block
+  verticalAlign?: "top" | "center" | "bottom"; // Vertical alignment (when height > content)
 
   // Layout - inline allows blocks side by side
   inline?: boolean;
@@ -599,9 +630,6 @@ export interface BlockStyles {
   marginBottom?: string;
   marginLeft?: string; // Also supports 'auto' for centering
   marginRight?: string;
-
-  // Container
-  containerWidth?: ContainerWidth;
 
   // Border
   borderRadius?: "none" | "sm" | "md" | "lg" | "xl" | "full";
@@ -952,6 +980,28 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
       url: "#",
       variant: "primary",
       size: "md",
+      borderRadius: "md",
+    },
+    defaultStyles: {
+      paddingTop: "sm",
+      paddingBottom: "sm",
+    },
+  },
+  {
+    type: "BUTTON_GROUP",
+    label: "Groupe de boutons",
+    category: "interactive",
+    icon: "LayoutGrid",
+    description: "Plusieurs boutons côte à côte",
+    defaultContent: {
+      buttons: [
+        { label: "Bouton 1", href: "#", variant: "primary" },
+        { label: "Bouton 2", href: "#", variant: "outline" },
+      ],
+      alignment: "center",
+      gap: "md",
+      direction: "horizontal",
+      stackOnMobile: true,
     },
     defaultStyles: {
       paddingTop: "sm",

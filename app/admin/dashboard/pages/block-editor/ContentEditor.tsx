@@ -14,8 +14,42 @@ import {
 } from "lucide-react";
 import { PageBlock } from "@/types/page-builder";
 import MediaPicker from "@/components/media/MediaPicker";
-import { Field } from "./Field";
-import { ContentEditorProps } from "./types";
+import { IconPicker } from "@/components/ui/icon-picker";
+import { Field, DebouncedColorInput, DebouncedRangeInput } from "./Field";
+import {
+  ContentEditorProps,
+  BUTTON_VARIANTS,
+  HEADING_LEVELS,
+  LIST_STYLE_OPTIONS,
+  SOCIAL_PLATFORMS,
+  INFO_BOX_TYPES,
+  COLUMN_OPTIONS,
+  SIZE_OPTIONS,
+  TEXT_ALIGN_OPTIONS,
+  GAP_OPTIONS,
+  CARD_STYLE_OPTIONS,
+  HERO_LAYOUT_OPTIONS,
+  HERO_STYLE_OPTIONS,
+  QUOTE_STYLE_OPTIONS,
+  DIVIDER_STYLE_OPTIONS,
+  TESTIMONIAL_STYLE_OPTIONS,
+  ASPECT_RATIO_OPTIONS,
+  STATS_LAYOUT_OPTIONS,
+  FAQ_STYLE_OPTIONS,
+  PRICING_STYLE_OPTIONS,
+  TEAM_STYLE_OPTIONS,
+  GALLERY_STYLE_OPTIONS,
+  FEATURE_STYLE_OPTIONS,
+  NEWSLETTER_STYLE_OPTIONS,
+  FORM_STYLE_OPTIONS,
+  TIMELINE_STYLE_OPTIONS,
+  TABS_STYLE_OPTIONS,
+  TABLE_STYLE_OPTIONS,
+  ANIMATION_OPTIONS,
+  HOVER_EFFECT_OPTIONS,
+  CTA_STYLE_OPTIONS,
+  RADIUS_OPTIONS,
+} from "./types";
 import {
   StatsEditor,
   CardsEditor,
@@ -32,6 +66,10 @@ import {
   FAQEditor,
   FormFieldsEditor,
   FeaturesEditor,
+  ColumnsEditor,
+  ServicesListEditor,
+  HoursEditor,
+  ButtonsEditor,
 } from "./ItemEditors";
 
 export default function ContentEditor({
@@ -100,6 +138,55 @@ export default function ContentEditor({
               placeholder="/contact"
             />
           </Field>
+          <div className="pt-6 mt-4">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Apparence
+            </span>
+          </div>
+          <Field label="Disposition">
+            <select
+              value={(content.layout as string) || "centered"}
+              onChange={(e) => updateContent("layout", e.target.value)}
+              className="input"
+            >
+              {HERO_LAYOUT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Style visuel">
+            <select
+              value={(content.style as string) || "default"}
+              onChange={(e) => updateContent("style", e.target.value)}
+              className="input"
+            >
+              {HERO_STYLE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Overlay">
+            <div className="flex items-center gap-2">
+              <DebouncedColorInput
+                value={(content.overlayColor as string) || "#000000"}
+                onChange={(val) => updateContent("overlayColor", val)}
+              />
+              <DebouncedRangeInput
+                value={(content.overlayOpacity as number) || 50}
+                onChange={(val) => updateContent("overlayOpacity", val)}
+                min={0}
+                max={100}
+                className="flex-1"
+              />
+              <span className="text-sm w-12">
+                {(content.overlayOpacity as number) || 50}%
+              </span>
+            </div>
+          </Field>
         </div>
       );
 
@@ -166,6 +253,90 @@ export default function ContentEditor({
               placeholder="Légende (optionnelle)"
             />
           </Field>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Apparence</h4>
+
+            <Field label="Format de l'image">
+              <select
+                value={(content.aspectRatio as string) || "auto"}
+                onChange={(e) => updateContent("aspectRatio", e.target.value)}
+                className="input"
+              >
+                {ASPECT_RATIO_OPTIONS.map((a) => (
+                  <option key={a.value} value={a.value}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Bords de l'image">
+              <select
+                value={(content.borderRadius as string) || "md"}
+                onChange={(e) => updateContent("borderRadius", e.target.value)}
+                className="input"
+              >
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Ombre">
+              <select
+                value={(content.shadow as string) || "none"}
+                onChange={(e) => updateContent("shadow", e.target.value)}
+                className="input"
+              >
+                <option value="none">Aucune</option>
+                <option value="sm">Légère</option>
+                <option value="md">Moyenne</option>
+                <option value="lg">Grande</option>
+                <option value="xl">Très grande</option>
+              </select>
+            </Field>
+
+            <Field label="Effet au survol">
+              <select
+                value={(content.hoverEffect as string) || "none"}
+                onChange={(e) => updateContent("hoverEffect", e.target.value)}
+                className="input"
+              >
+                {HOVER_EFFECT_OPTIONS.map((h) => (
+                  <option key={h.value} value={h.value}>
+                    {h.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showCaption as boolean) || false}
+                onChange={(e) => updateContent("showCaption", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Afficher la légende</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.lightbox as boolean) || false}
+                onChange={(e) => updateContent("lightbox", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Ouvrir en plein écran
+              </span>
+            </label>
+          </div>
+
           {(content.src as string) && (
             <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
               <Image
@@ -194,35 +365,186 @@ export default function ContentEditor({
           <Field label="Lien">
             <input
               type="text"
-              value={(content.href as string) || ""}
-              onChange={(e) => updateContent("href", e.target.value)}
+              value={(content.url as string) || (content.href as string) || ""}
+              onChange={(e) => updateContent("url", e.target.value)}
               className="input"
               placeholder="/page-destination"
             />
           </Field>
-          <Field label="Style">
-            <select
-              value={(content.variant as string) || "primary"}
-              onChange={(e) => updateContent("variant", e.target.value)}
-              className="input"
-            >
-              <option value="primary">Principal (noir)</option>
-              <option value="secondary">Secondaire (blanc)</option>
-              <option value="outline">Contour</option>
-              <option value="ghost">Fantôme</option>
-            </select>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Style du bouton</h4>
+
+            <Field label="Variante">
+              <select
+                value={(content.variant as string) || "primary"}
+                onChange={(e) => updateContent("variant", e.target.value)}
+                className="input"
+              >
+                {BUTTON_VARIANTS.map((v) => (
+                  <option key={v.value} value={v.value}>
+                    {v.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Taille">
+              <select
+                value={(content.size as string) || "md"}
+                onChange={(e) => updateContent("size", e.target.value)}
+                className="input"
+              >
+                {SIZE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Arrondi des coins">
+              <select
+                value={(content.borderRadius as string) || "md"}
+                onChange={(e) => updateContent("borderRadius", e.target.value)}
+                className="input"
+              >
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Couleurs</h4>
+
+            <Field label="Couleur de fond">
+              <DebouncedColorInput
+                value={(content.backgroundColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("backgroundColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur du texte">
+              <DebouncedColorInput
+                value={(content.textColor as string) || "#ffffff"}
+                onChange={(val) => updateContent("textColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur de bordure (pour contour)">
+              <DebouncedColorInput
+                value={(content.borderColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("borderColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.fullWidth as boolean) || false}
+                onChange={(e) => updateContent("fullWidth", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Pleine largeur</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.newTab as boolean) || false}
+                onChange={(e) => updateContent("newTab", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Ouvrir dans un nouvel onglet
+              </span>
+            </label>
+          </div>
+
+          <Field label="Icône (optionnel)">
+            <IconPicker
+              value={(content.icon as string) || ""}
+              onChange={(iconName) => updateContent("icon", iconName)}
+              placeholder="Choisir une icône"
+            />
           </Field>
-          <Field label="Taille">
-            <select
-              value={(content.size as string) || "md"}
-              onChange={(e) => updateContent("size", e.target.value)}
-              className="input"
-            >
-              <option value="sm">Petit</option>
-              <option value="md">Moyen</option>
-              <option value="lg">Grand</option>
-            </select>
-          </Field>
+        </div>
+      );
+
+    case "BUTTON_GROUP":
+      return (
+        <div className="space-y-4">
+          <ButtonsEditor
+            buttons={
+              (content.buttons as Array<{
+                label: string;
+                href: string;
+                variant?: string;
+                openInNewTab?: boolean;
+              }>) || []
+            }
+            onChange={(buttons) => updateContent("buttons", buttons)}
+          />
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Disposition</h4>
+
+            <Field label="Alignement">
+              <select
+                value={(content.alignment as string) || "center"}
+                onChange={(e) => updateContent("alignment", e.target.value)}
+                className="input"
+              >
+                <option value="left">Gauche</option>
+                <option value="center">Centre</option>
+                <option value="right">Droite</option>
+                <option value="space-between">Espacé</option>
+              </select>
+            </Field>
+
+            <Field label="Espacement">
+              <select
+                value={(content.gap as string) || "md"}
+                onChange={(e) => updateContent("gap", e.target.value)}
+                className="input"
+              >
+                {GAP_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Direction">
+              <select
+                value={(content.direction as string) || "horizontal"}
+                onChange={(e) => updateContent("direction", e.target.value)}
+                className="input"
+              >
+                <option value="horizontal">Horizontal</option>
+                <option value="vertical">Vertical</option>
+              </select>
+            </Field>
+          </div>
+
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.stackOnMobile as boolean) !== false}
+              onChange={(e) => updateContent("stackOnMobile", e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-700">Empiler sur mobile</span>
+          </label>
         </div>
       );
 
@@ -254,6 +576,26 @@ export default function ContentEditor({
               onChange={(e) => updateContent("role", e.target.value)}
               className="input"
               placeholder="PDG, Expert, etc."
+            />
+          </Field>
+          <Field label="Style">
+            <select
+              value={(content.style as string) || "default"}
+              onChange={(e) => updateContent("style", e.target.value)}
+              className="input"
+            >
+              {QUOTE_STYLE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Couleur d'accent">
+            <DebouncedColorInput
+              value={(content.accentColor as string) || "#d4af37"}
+              onChange={(val) => updateContent("accentColor", val)}
+              className="w-full h-10"
             />
           </Field>
         </div>
@@ -293,11 +635,42 @@ export default function ContentEditor({
               onChange={(e) => updateContent("variant", e.target.value)}
               className="input"
             >
-              <option value="solid">Ligne pleine</option>
-              <option value="dashed">Pointillés</option>
-              <option value="dotted">Points</option>
-              <option value="double">Double ligne</option>
+              {DIVIDER_STYLE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
+          </Field>
+          <Field label="Épaisseur">
+            <select
+              value={(content.thickness as string) || "thin"}
+              onChange={(e) => updateContent("thickness", e.target.value)}
+              className="input"
+            >
+              <option value="thin">Fine (1px)</option>
+              <option value="medium">Moyenne (2px)</option>
+              <option value="thick">Épaisse (4px)</option>
+            </select>
+          </Field>
+          <Field label="Largeur">
+            <select
+              value={(content.width as string) || "full"}
+              onChange={(e) => updateContent("width", e.target.value)}
+              className="input"
+            >
+              <option value="short">Courte (25%)</option>
+              <option value="half">Moitié (50%)</option>
+              <option value="long">Longue (75%)</option>
+              <option value="full">Pleine (100%)</option>
+            </select>
+          </Field>
+          <Field label="Couleur">
+            <DebouncedColorInput
+              value={(content.color as string) || "#ffffff"}
+              onChange={(val) => updateContent("color", val)}
+              className="w-full h-10"
+            />
           </Field>
         </div>
       );
@@ -316,6 +689,19 @@ export default function ContentEditor({
             }
             onChange={(stats) => updateContent("stats", stats)}
           />
+          <Field label="Disposition">
+            <select
+              value={(content.layout as string) || "horizontal"}
+              onChange={(e) => updateContent("layout", e.target.value)}
+              className="input"
+            >
+              {STATS_LAYOUT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </Field>
           <Field label="Colonnes">
             <select
               value={(content.columns as number) || 4}
@@ -329,6 +715,48 @@ export default function ContentEditor({
               <option value={4}>4 colonnes</option>
             </select>
           </Field>
+          <Field label="Espacement">
+            <select
+              value={(content.gap as string) || "md"}
+              onChange={(e) => updateContent("gap", e.target.value)}
+              className="input"
+            >
+              {GAP_OPTIONS.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Style">
+            <select
+              value={(content.style as string) || "default"}
+              onChange={(e) => updateContent("style", e.target.value)}
+              className="input"
+            >
+              {CARD_STYLE_OPTIONS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Couleur des valeurs">
+            <DebouncedColorInput
+              value={(content.valueColor as string) || "#ffffff"}
+              onChange={(val) => updateContent("valueColor", val)}
+              className="w-full h-10"
+            />
+          </Field>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.animate as boolean) || false}
+              onChange={(e) => updateContent("animate", e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-700">Animer les chiffres</span>
+          </label>
         </div>
       );
 
@@ -346,19 +774,146 @@ export default function ContentEditor({
             }
             onChange={(cards) => updateContent("cards", cards)}
           />
-          <Field label="Colonnes">
-            <select
-              value={(content.columns as number) || 3}
-              onChange={(e) =>
-                updateContent("columns", parseInt(e.target.value))
-              }
-              className="input"
-            >
-              <option value={2}>2 colonnes</option>
-              <option value={3}>3 colonnes</option>
-              <option value={4}>4 colonnes</option>
-            </select>
-          </Field>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style des cartes">
+              <select
+                value={(content.cardStyle as string) || "default"}
+                onChange={(e) => updateContent("cardStyle", e.target.value)}
+                className="input"
+              >
+                {CARD_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Colonnes">
+              <select
+                value={(content.columns as number) || 3}
+                onChange={(e) =>
+                  updateContent("columns", parseInt(e.target.value))
+                }
+                className="input"
+              >
+                <option value={2}>2 colonnes</option>
+                <option value={3}>3 colonnes</option>
+                <option value={4}>4 colonnes</option>
+              </select>
+            </Field>
+
+            <Field label="Espacement">
+              <select
+                value={(content.gap as string) || "md"}
+                onChange={(e) => updateContent("gap", e.target.value)}
+                className="input"
+              >
+                {GAP_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Bords des cartes">
+              <select
+                value={(content.cardRadius as string) || "md"}
+                onChange={(e) => updateContent("cardRadius", e.target.value)}
+                className="input"
+              >
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Images</h4>
+
+            <Field label="Format des images">
+              <select
+                value={(content.imageRatio as string) || "video"}
+                onChange={(e) => updateContent("imageRatio", e.target.value)}
+                className="input"
+              >
+                {ASPECT_RATIO_OPTIONS.map((a) => (
+                  <option key={a.value} value={a.value}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">
+              Couleurs et effets
+            </h4>
+
+            <Field label="Couleur d'accent">
+              <DebouncedColorInput
+                value={(content.accentColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("accentColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Effet au survol">
+              <select
+                value={(content.hoverEffect as string) || "lift"}
+                onChange={(e) => updateContent("hoverEffect", e.target.value)}
+                className="input"
+              >
+                {HOVER_EFFECT_OPTIONS.map((h) => (
+                  <option key={h.value} value={h.value}>
+                    {h.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showImage as boolean) !== false}
+                onChange={(e) => updateContent("showImage", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Afficher les images</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showDescription as boolean) !== false}
+                onChange={(e) =>
+                  updateContent("showDescription", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher les descriptions
+              </span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showLink as boolean) !== false}
+                onChange={(e) => updateContent("showLink", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Afficher les liens</span>
+            </label>
+          </div>
         </div>
       );
 
@@ -420,7 +975,40 @@ export default function ContentEditor({
               showPreview={true}
             />
           </Field>
-          <div className="flex gap-4">
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Apparence</h4>
+
+            <Field label="Format de la vidéo">
+              <select
+                value={(content.aspectRatio as string) || "video"}
+                onChange={(e) => updateContent("aspectRatio", e.target.value)}
+                className="input"
+              >
+                {ASPECT_RATIO_OPTIONS.map((a) => (
+                  <option key={a.value} value={a.value}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Bords de la vidéo">
+              <select
+                value={(content.borderRadius as string) || "md"}
+                onChange={(e) => updateContent("borderRadius", e.target.value)}
+                className="input"
+              >
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="flex flex-wrap gap-4">
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -447,6 +1035,15 @@ export default function ContentEditor({
                 className="w-4 h-4 rounded border-gray-300"
               />
               <span className="text-sm">Muet</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.controls as boolean) !== false}
+                onChange={(e) => updateContent("controls", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm">Contrôles</span>
             </label>
           </div>
         </div>
@@ -487,31 +1084,126 @@ export default function ContentEditor({
             }
             onChange={(images) => updateContent("images", images)}
           />
-          <Field label="Disposition">
-            <select
-              value={(content.layout as string) || "grid"}
-              onChange={(e) => updateContent("layout", e.target.value)}
-              className="input"
-            >
-              <option value="grid">Grille</option>
-              <option value="masonry">Masonry</option>
-              <option value="carousel">Carrousel</option>
-            </select>
-          </Field>
-          <Field label="Colonnes">
-            <select
-              value={(content.columns as number) || 3}
-              onChange={(e) =>
-                updateContent("columns", parseInt(e.target.value))
-              }
-              className="input"
-            >
-              <option value={2}>2 colonnes</option>
-              <option value={3}>3 colonnes</option>
-              <option value={4}>4 colonnes</option>
-              <option value={5}>5 colonnes</option>
-            </select>
-          </Field>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "grid"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {GALLERY_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Colonnes">
+              <select
+                value={(content.columns as number) || 3}
+                onChange={(e) =>
+                  updateContent("columns", parseInt(e.target.value))
+                }
+                className="input"
+              >
+                <option value={2}>2 colonnes</option>
+                <option value={3}>3 colonnes</option>
+                <option value={4}>4 colonnes</option>
+                <option value={5}>5 colonnes</option>
+              </select>
+            </Field>
+
+            <Field label="Espacement">
+              <select
+                value={(content.gap as string) || "md"}
+                onChange={(e) => updateContent("gap", e.target.value)}
+                className="input"
+              >
+                {GAP_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">
+              Apparence des images
+            </h4>
+
+            <Field label="Format des images">
+              <select
+                value={(content.aspectRatio as string) || "auto"}
+                onChange={(e) => updateContent("aspectRatio", e.target.value)}
+                className="input"
+              >
+                {ASPECT_RATIO_OPTIONS.map((a) => (
+                  <option key={a.value} value={a.value}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Bords des images">
+              <select
+                value={(content.imageRadius as string) || "md"}
+                onChange={(e) => updateContent("imageRadius", e.target.value)}
+                className="input"
+              >
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Effet au survol">
+              <select
+                value={(content.hoverEffect as string) || "zoom"}
+                onChange={(e) => updateContent("hoverEffect", e.target.value)}
+                className="input"
+              >
+                {HOVER_EFFECT_OPTIONS.map((h) => (
+                  <option key={h.value} value={h.value}>
+                    {h.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showCaptions as boolean) || false}
+                onChange={(e) =>
+                  updateContent("showCaptions", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher les légendes
+              </span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.lightbox as boolean) !== false}
+                onChange={(e) => updateContent("lightbox", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Ouvrir en lightbox</span>
+            </label>
+          </div>
         </div>
       );
 
@@ -582,9 +1274,11 @@ export default function ContentEditor({
               onChange={(e) => updateContent("gap", e.target.value)}
               className="input"
             >
-              <option value="sm">Petit</option>
-              <option value="md">Moyen</option>
-              <option value="lg">Grand</option>
+              {GAP_OPTIONS.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
             </select>
           </Field>
         </div>
@@ -660,26 +1354,131 @@ export default function ContentEditor({
 
     case "TABS":
       return (
-        <TabsEditor
-          tabs={
-            (content.tabs as Array<{
-              label: string;
-              content: string;
-              icon?: string;
-            }>) || []
-          }
-          onChange={(tabs) => updateContent("tabs", tabs)}
-        />
+        <div className="space-y-4">
+          <TabsEditor
+            tabs={
+              (content.tabs as Array<{
+                label: string;
+                content: string;
+                icon?: string;
+              }>) || []
+            }
+            onChange={(tabs) => updateContent("tabs", tabs)}
+          />
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "default"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {TABS_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Position des onglets">
+              <select
+                value={(content.position as string) || "top"}
+                onChange={(e) => updateContent("position", e.target.value)}
+                className="input"
+              >
+                <option value="top">En haut</option>
+                <option value="left">À gauche</option>
+                <option value="bottom">En bas</option>
+              </select>
+            </Field>
+
+            <Field label="Couleur active">
+              <DebouncedColorInput
+                value={(content.activeColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("activeColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showIcon as boolean) || false}
+                onChange={(e) => updateContent("showIcon", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Afficher les icônes</span>
+            </label>
+          </div>
+        </div>
       );
 
     case "TABLE":
       return (
-        <TableEditor
-          headers={(content.headers as string[]) || []}
-          rows={(content.rows as string[][]) || []}
-          onHeadersChange={(headers) => updateContent("headers", headers)}
-          onRowsChange={(rows) => updateContent("rows", rows)}
-        />
+        <div className="space-y-4">
+          <TableEditor
+            headers={(content.headers as string[]) || []}
+            rows={(content.rows as string[][]) || []}
+            onHeadersChange={(headers) => updateContent("headers", headers)}
+            onRowsChange={(rows) => updateContent("rows", rows)}
+          />
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">
+              Design du tableau
+            </h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "default"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {TABLE_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Couleur d'en-tête">
+              <DebouncedColorInput
+                value={(content.headerColor as string) || "#1f2937"}
+                onChange={(val) => updateContent("headerColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.striped as boolean) || false}
+                onChange={(e) => updateContent("striped", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Lignes alternées</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.hoverable as boolean) || false}
+                onChange={(e) => updateContent("hoverable", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Surbrillance au survol
+              </span>
+            </label>
+          </div>
+        </div>
       );
 
     case "TIMELINE":
@@ -696,16 +1495,63 @@ export default function ContentEditor({
             }
             onChange={(items) => updateContent("items", items)}
           />
-          <Field label="Direction">
-            <select
-              value={(content.direction as string) || "vertical"}
-              onChange={(e) => updateContent("direction", e.target.value)}
-              className="input"
-            >
-              <option value="vertical">Verticale</option>
-              <option value="alternating">Alternée</option>
-            </select>
-          </Field>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "vertical"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {TIMELINE_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Couleur de la ligne">
+              <DebouncedColorInput
+                value={(content.lineColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("lineColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur des points">
+              <DebouncedColorInput
+                value={(content.dotColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("dotColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showImage as boolean) || false}
+                onChange={(e) => updateContent("showImage", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Afficher les images</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.animated as boolean) !== false}
+                onChange={(e) => updateContent("animated", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Animer à l'apparition
+              </span>
+            </label>
+          </div>
         </div>
       );
 
@@ -832,30 +1678,147 @@ export default function ContentEditor({
             }
             onChange={(members) => updateContent("members", members)}
           />
-          <Field label="Colonnes">
-            <select
-              value={(content.columns as number) || 3}
-              onChange={(e) =>
-                updateContent("columns", parseInt(e.target.value))
-              }
-              className="input"
-            >
-              <option value={2}>2 colonnes</option>
-              <option value={3}>3 colonnes</option>
-              <option value={4}>4 colonnes</option>
-            </select>
-          </Field>
-          <Field label="Variante">
-            <select
-              value={(content.variant as string) || "card"}
-              onChange={(e) => updateContent("variant", e.target.value)}
-              className="input"
-            >
-              <option value="card">Carte complète</option>
-              <option value="minimal">Minimal</option>
-              <option value="profile">Profil détaillé</option>
-            </select>
-          </Field>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "grid"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {TEAM_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Colonnes">
+              <select
+                value={(content.columns as number) || 3}
+                onChange={(e) =>
+                  updateContent("columns", parseInt(e.target.value))
+                }
+                className="input"
+              >
+                <option value={2}>2 colonnes</option>
+                <option value={3}>3 colonnes</option>
+                <option value={4}>4 colonnes</option>
+              </select>
+            </Field>
+
+            <Field label="Espacement">
+              <select
+                value={(content.gap as string) || "md"}
+                onChange={(e) => updateContent("gap", e.target.value)}
+                className="input"
+              >
+                {GAP_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Photos</h4>
+
+            <Field label="Format des photos">
+              <select
+                value={(content.imageShape as string) || "rounded"}
+                onChange={(e) => updateContent("imageShape", e.target.value)}
+                className="input"
+              >
+                <option value="rounded">Arrondi</option>
+                <option value="circle">Cercle</option>
+                <option value="square">Carré</option>
+              </select>
+            </Field>
+
+            <Field label="Taille des photos">
+              <select
+                value={(content.imageSize as string) || "md"}
+                onChange={(e) => updateContent("imageSize", e.target.value)}
+                className="input"
+              >
+                {SIZE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">
+              Couleurs et effets
+            </h4>
+
+            <Field label="Couleur d'accent">
+              <DebouncedColorInput
+                value={(content.accentColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("accentColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Animation">
+              <select
+                value={(content.animation as string) || "none"}
+                onChange={(e) => updateContent("animation", e.target.value)}
+                className="input"
+              >
+                {ANIMATION_OPTIONS.map((a) => (
+                  <option key={a.value} value={a.value}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Effet au survol">
+              <select
+                value={(content.hoverEffect as string) || "none"}
+                onChange={(e) => updateContent("hoverEffect", e.target.value)}
+                className="input"
+              >
+                {HOVER_EFFECT_OPTIONS.map((h) => (
+                  <option key={h.value} value={h.value}>
+                    {h.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showBio as boolean) !== false}
+                onChange={(e) => updateContent("showBio", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Afficher la bio</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showSocial as boolean) !== false}
+                onChange={(e) => updateContent("showSocial", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher les réseaux sociaux
+              </span>
+            </label>
+          </div>
         </div>
       );
 
@@ -877,6 +1840,25 @@ export default function ContentEditor({
               updateContent("testimonials", testimonials)
             }
           />
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "card"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {TESTIMONIAL_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
           <Field label="Disposition">
             <select
               value={(content.layout as string) || "grid"}
@@ -886,6 +1868,7 @@ export default function ContentEditor({
               <option value="grid">Grille</option>
               <option value="carousel">Carrousel</option>
               <option value="masonry">Masonry</option>
+              <option value="single">Une à la fois</option>
             </select>
           </Field>
           <Field label="Colonnes">
@@ -901,6 +1884,91 @@ export default function ContentEditor({
               <option value={3}>3 colonnes</option>
             </select>
           </Field>
+          <Field label="Espacement">
+            <select
+              value={(content.gap as string) || "md"}
+              onChange={(e) => updateContent("gap", e.target.value)}
+              className="input"
+            >
+              {GAP_OPTIONS.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">
+              Couleurs et effets
+            </h4>
+
+            <Field label="Couleur d'accent">
+              <DebouncedColorInput
+                value={(content.accentColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("accentColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur de fond des cartes">
+              <DebouncedColorInput
+                value={(content.cardBackground as string) || "#ffffff"}
+                onChange={(val) => updateContent("cardBackground", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Animation">
+              <select
+                value={(content.animation as string) || "none"}
+                onChange={(e) => updateContent("animation", e.target.value)}
+                className="input"
+              >
+                {ANIMATION_OPTIONS.map((a) => (
+                  <option key={a.value} value={a.value}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showRating as boolean) !== false}
+                onChange={(e) => updateContent("showRating", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher les étoiles
+              </span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showImage as boolean) !== false}
+                onChange={(e) => updateContent("showImage", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Afficher les photos</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showQuoteIcon as boolean) !== false}
+                onChange={(e) =>
+                  updateContent("showQuoteIcon", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher l'icône de citation
+              </span>
+            </label>
+          </div>
         </div>
       );
 
@@ -922,19 +1990,97 @@ export default function ContentEditor({
             }
             onChange={(plans) => updateContent("plans", plans)}
           />
-          <Field label="Colonnes">
-            <select
-              value={(content.columns as number) || 3}
-              onChange={(e) =>
-                updateContent("columns", parseInt(e.target.value))
-              }
-              className="input"
-            >
-              <option value={2}>2 colonnes</option>
-              <option value={3}>3 colonnes</option>
-              <option value={4}>4 colonnes</option>
-            </select>
-          </Field>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "default"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {PRICING_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Colonnes">
+              <select
+                value={(content.columns as number) || 3}
+                onChange={(e) =>
+                  updateContent("columns", parseInt(e.target.value))
+                }
+                className="input"
+              >
+                <option value={2}>2 colonnes</option>
+                <option value={3}>3 colonnes</option>
+                <option value={4}>4 colonnes</option>
+              </select>
+            </Field>
+
+            <Field label="Espacement">
+              <select
+                value={(content.gap as string) || "md"}
+                onChange={(e) => updateContent("gap", e.target.value)}
+                className="input"
+              >
+                {GAP_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Couleurs</h4>
+
+            <Field label="Couleur d'accent (plan mis en avant)">
+              <DebouncedColorInput
+                value={(content.accentColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("accentColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur de fond des cartes">
+              <DebouncedColorInput
+                value={(content.cardBackground as string) || "#ffffff"}
+                onChange={(val) => updateContent("cardBackground", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showBadge as boolean) !== false}
+                onChange={(e) => updateContent("showBadge", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher le badge "Populaire"
+              </span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showPeriod as boolean) !== false}
+                onChange={(e) => updateContent("showPeriod", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher la période (/mois, /an...)
+              </span>
+            </label>
+          </div>
         </div>
       );
 
@@ -950,17 +2096,109 @@ export default function ContentEditor({
             }
             onChange={(questions) => updateContent("questions", questions)}
           />
-          <Field label="Disposition">
-            <select
-              value={(content.layout as string) || "accordion"}
-              onChange={(e) => updateContent("layout", e.target.value)}
-              className="input"
-            >
-              <option value="accordion">Accordéon</option>
-              <option value="cards">Cartes</option>
-              <option value="two-column">Deux colonnes</option>
-            </select>
-          </Field>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "accordion"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {FAQ_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Disposition">
+              <select
+                value={(content.layout as string) || "single"}
+                onChange={(e) => updateContent("layout", e.target.value)}
+                className="input"
+              >
+                <option value="single">Une colonne</option>
+                <option value="two-column">Deux colonnes</option>
+              </select>
+            </Field>
+
+            <Field label="Espacement">
+              <select
+                value={(content.gap as string) || "md"}
+                onChange={(e) => updateContent("gap", e.target.value)}
+                className="input"
+              >
+                {GAP_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Couleurs</h4>
+
+            <Field label="Couleur d'accent (icône, bordure)">
+              <DebouncedColorInput
+                value={(content.accentColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("accentColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur de fond des questions">
+              <DebouncedColorInput
+                value={(content.questionBackground as string) || "#f9fafb"}
+                onChange={(val) => updateContent("questionBackground", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showIcon as boolean) !== false}
+                onChange={(e) => updateContent("showIcon", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher l'icône +/-
+              </span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.allowMultiple as boolean) || false}
+                onChange={(e) =>
+                  updateContent("allowMultiple", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Permettre plusieurs ouverts
+              </span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.startExpanded as boolean) || false}
+                onChange={(e) =>
+                  updateContent("startExpanded", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Premier élément ouvert par défaut
+              </span>
+            </label>
+          </div>
         </div>
       );
 
@@ -998,6 +2236,59 @@ export default function ContentEditor({
             }
             onChange={(fields) => updateContent("fields", fields)}
           />
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">
+              Design du formulaire
+            </h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "default"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {FORM_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Disposition">
+              <select
+                value={(content.layout as string) || "stacked"}
+                onChange={(e) => updateContent("layout", e.target.value)}
+                className="input"
+              >
+                <option value="stacked">Empilée</option>
+                <option value="inline">En ligne</option>
+                <option value="two-column">Deux colonnes</option>
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Couleurs</h4>
+
+            <Field label="Couleur du bouton">
+              <DebouncedColorInput
+                value={(content.buttonColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("buttonColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur de fond">
+              <DebouncedColorInput
+                value={(content.backgroundColor as string) || "#ffffff"}
+                onChange={(val) => updateContent("backgroundColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
           <Field label="Texte du bouton">
             <input
               type="text"
@@ -1048,6 +2339,57 @@ export default function ContentEditor({
               placeholder="Inscrivez-vous à notre newsletter..."
             />
           </Field>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "default"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {NEWSLETTER_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Disposition">
+              <select
+                value={(content.layout as string) || "horizontal"}
+                onChange={(e) => updateContent("layout", e.target.value)}
+                className="input"
+              >
+                <option value="horizontal">Horizontale</option>
+                <option value="vertical">Verticale</option>
+                <option value="centered">Centrée</option>
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Couleurs</h4>
+
+            <Field label="Couleur du bouton">
+              <DebouncedColorInput
+                value={(content.buttonColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("buttonColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur de fond">
+              <DebouncedColorInput
+                value={(content.backgroundColor as string) || "#ffffff"}
+                onChange={(val) => updateContent("backgroundColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
           <Field label="Placeholder du champ email">
             <input
               type="text"
@@ -1104,6 +2446,867 @@ export default function ContentEditor({
             }
             onChange={(features) => updateContent("features", features)}
           />
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "icon-top"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {FEATURE_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Colonnes">
+              <select
+                value={(content.columns as number) || 3}
+                onChange={(e) =>
+                  updateContent("columns", parseInt(e.target.value))
+                }
+                className="input"
+              >
+                <option value={2}>2 colonnes</option>
+                <option value={3}>3 colonnes</option>
+                <option value={4}>4 colonnes</option>
+              </select>
+            </Field>
+
+            <Field label="Espacement">
+              <select
+                value={(content.gap as string) || "md"}
+                onChange={(e) => updateContent("gap", e.target.value)}
+                className="input"
+              >
+                {GAP_OPTIONS.map((g) => (
+                  <option key={g.value} value={g.value}>
+                    {g.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Icônes</h4>
+
+            <Field label="Style des icônes">
+              <select
+                value={(content.iconStyle as string) || "circle"}
+                onChange={(e) => updateContent("iconStyle", e.target.value)}
+                className="input"
+              >
+                <option value="circle">Cercle</option>
+                <option value="square">Carré</option>
+                <option value="rounded">Arrondi</option>
+                <option value="none">Sans fond</option>
+              </select>
+            </Field>
+
+            <Field label="Taille des icônes">
+              <select
+                value={(content.iconSize as string) || "md"}
+                onChange={(e) => updateContent("iconSize", e.target.value)}
+                className="input"
+              >
+                {SIZE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Couleur des icônes">
+              <DebouncedColorInput
+                value={(content.iconColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("iconColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">
+              Animation et effets
+            </h4>
+
+            <Field label="Animation">
+              <select
+                value={(content.animation as string) || "none"}
+                onChange={(e) => updateContent("animation", e.target.value)}
+                className="input"
+              >
+                {ANIMATION_OPTIONS.map((a) => (
+                  <option key={a.value} value={a.value}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Effet au survol">
+              <select
+                value={(content.hoverEffect as string) || "none"}
+                onChange={(e) => updateContent("hoverEffect", e.target.value)}
+                className="input"
+              >
+                {HOVER_EFFECT_OPTIONS.map((h) => (
+                  <option key={h.value} value={h.value}>
+                    {h.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </div>
+      );
+
+    case "COLUMNS":
+      return (
+        <div className="space-y-4">
+          <ColumnsEditor
+            columns={
+              (content.columns as Array<{
+                width?: number;
+                content?: string;
+              }>) || [
+                { width: 50, content: "" },
+                { width: 50, content: "" },
+              ]
+            }
+            onChange={(columns) => updateContent("columns", columns)}
+          />
+          <Field label="Écart entre colonnes">
+            <select
+              value={(content.gap as string) || "medium"}
+              onChange={(e) => updateContent("gap", e.target.value)}
+              className="input"
+            >
+              <option value="none">Aucun</option>
+              <option value="small">Petit (16px)</option>
+              <option value="medium">Moyen (32px)</option>
+              <option value="large">Grand (48px)</option>
+            </select>
+          </Field>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.stackOnMobile as boolean) !== false}
+              onChange={(e) => updateContent("stackOnMobile", e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm">Empiler sur mobile</span>
+          </label>
+        </div>
+      );
+
+    case "CONTAINER":
+      return (
+        <div className="space-y-4">
+          <Field label="Contenu HTML">
+            <textarea
+              value={(content.content as string) || ""}
+              onChange={(e) => updateContent("content", e.target.value)}
+              className="input font-mono text-xs"
+              rows={8}
+              placeholder="<p>Votre contenu HTML ici...</p>"
+            />
+          </Field>
+          <Field label="Largeur">
+            <select
+              value={(content.width as string) || "MEDIUM"}
+              onChange={(e) => updateContent("width", e.target.value)}
+              className="input"
+            >
+              <option value="NARROW">Étroit (max-w-2xl)</option>
+              <option value="MEDIUM">Moyen (max-w-4xl)</option>
+              <option value="WIDE">Large (max-w-6xl)</option>
+              <option value="FULL">Plein (max-w-7xl)</option>
+              <option value="EDGE">Bord à bord</option>
+            </select>
+          </Field>
+        </div>
+      );
+
+    case "INFO_BOX":
+      return (
+        <div className="space-y-4">
+          <Field label="Icône">
+            <IconPicker
+              value={(content.icon as string) || "Info"}
+              onChange={(iconName) => updateContent("icon", iconName)}
+              placeholder="Choisir une icône"
+            />
+          </Field>
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Titre de l'info"
+            />
+          </Field>
+          <Field label="Contenu principal">
+            <textarea
+              value={(content.content as string) || ""}
+              onChange={(e) => updateContent("content", e.target.value)}
+              className="input"
+              rows={3}
+              placeholder="Contenu (adresse, numéro, etc.)"
+            />
+          </Field>
+          <Field label="Lien">
+            <input
+              type="text"
+              value={(content.link as string) || ""}
+              onChange={(e) => updateContent("link", e.target.value)}
+              className="input"
+              placeholder="URL (optionnel)"
+            />
+          </Field>
+          <Field label="Texte du lien">
+            <input
+              type="text"
+              value={(content.linkLabel as string) || ""}
+              onChange={(e) => updateContent("linkLabel", e.target.value)}
+              className="input"
+              placeholder="Voir sur la carte"
+            />
+          </Field>
+          <Field label="Variante">
+            <select
+              value={(content.variant as string) || "default"}
+              onChange={(e) => updateContent("variant", e.target.value)}
+              className="input"
+            >
+              <option value="default">Par défaut</option>
+              <option value="compact">Compact</option>
+              <option value="card">Carte</option>
+            </select>
+          </Field>
+        </div>
+      );
+
+    case "HOURS_TABLE":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Horaires d'ouverture"
+            />
+          </Field>
+          <HoursEditor
+            hours={(content.hours as Record<string, string>) || {}}
+            onChange={(hours) => updateContent("hours", hours)}
+          />
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showIcon as boolean) !== false}
+                onChange={(e) => updateContent("showIcon", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm">Afficher icône</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.highlightToday as boolean) || false}
+                onChange={(e) =>
+                  updateContent("highlightToday", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm">Mettre en avant aujourd'hui</span>
+            </label>
+          </div>
+          <Field label="Variante">
+            <select
+              value={(content.variant as string) || "table"}
+              onChange={(e) => updateContent("variant", e.target.value)}
+              className="input"
+            >
+              <option value="table">Tableau</option>
+              <option value="list">Liste</option>
+              <option value="compact">Compact</option>
+            </select>
+          </Field>
+        </div>
+      );
+
+    case "SERVICES_LIST":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Nos services"
+            />
+          </Field>
+          <Field label="Sous-titre">
+            <input
+              type="text"
+              value={(content.subtitle as string) || ""}
+              onChange={(e) => updateContent("subtitle", e.target.value)}
+              className="input"
+              placeholder="Description courte"
+            />
+          </Field>
+          <ServicesListEditor
+            services={(content.services as string[]) || []}
+            onChange={(services) => updateContent("services", services)}
+          />
+          <Field label="Colonnes">
+            <select
+              value={(content.columns as number) || 2}
+              onChange={(e) =>
+                updateContent("columns", parseInt(e.target.value))
+              }
+              className="input"
+            >
+              <option value={1}>1 colonne</option>
+              <option value={2}>2 colonnes</option>
+              <option value={3}>3 colonnes</option>
+            </select>
+          </Field>
+          <Field label="Variante">
+            <select
+              value={(content.variant as string) || "bullets"}
+              onChange={(e) => updateContent("variant", e.target.value)}
+              className="input"
+            >
+              <option value="bullets">Puces</option>
+              <option value="checks">Coches</option>
+              <option value="cards">Cartes</option>
+              <option value="badges">Badges</option>
+            </select>
+          </Field>
+        </div>
+      );
+
+    case "CTA_CARD":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Prenez rendez-vous"
+            />
+          </Field>
+          <Field label="Description">
+            <textarea
+              value={(content.description as string) || ""}
+              onChange={(e) => updateContent("description", e.target.value)}
+              className="input"
+              rows={2}
+              placeholder="Description du CTA"
+            />
+          </Field>
+          <div className="p-3 bg-gray-50 rounded-lg space-y-2">
+            <span className="text-xs font-medium text-gray-700">
+              Bouton principal
+            </span>
+            <input
+              type="text"
+              value={
+                ((content.primaryButton as Record<string, unknown>)
+                  ?.label as string) || ""
+              }
+              onChange={(e) =>
+                updateContent("primaryButton", {
+                  ...((content.primaryButton as Record<string, unknown>) || {}),
+                  label: e.target.value,
+                })
+              }
+              className="input"
+              placeholder="Texte du bouton"
+            />
+            <input
+              type="text"
+              value={
+                ((content.primaryButton as Record<string, unknown>)
+                  ?.url as string) || ""
+              }
+              onChange={(e) =>
+                updateContent("primaryButton", {
+                  ...((content.primaryButton as Record<string, unknown>) || {}),
+                  url: e.target.value,
+                })
+              }
+              className="input"
+              placeholder="URL"
+            />
+          </div>
+          <div className="p-3 bg-gray-50 rounded-lg space-y-2">
+            <span className="text-xs font-medium text-gray-700">
+              Bouton secondaire (optionnel)
+            </span>
+            <input
+              type="text"
+              value={
+                ((content.secondaryButton as Record<string, unknown>)
+                  ?.label as string) || ""
+              }
+              onChange={(e) =>
+                updateContent("secondaryButton", {
+                  ...((content.secondaryButton as Record<string, unknown>) ||
+                    {}),
+                  label: e.target.value,
+                })
+              }
+              className="input"
+              placeholder="Texte du bouton"
+            />
+            <input
+              type="text"
+              value={
+                ((content.secondaryButton as Record<string, unknown>)
+                  ?.url as string) || ""
+              }
+              onChange={(e) =>
+                updateContent("secondaryButton", {
+                  ...((content.secondaryButton as Record<string, unknown>) ||
+                    {}),
+                  url: e.target.value,
+                })
+              }
+              className="input"
+              placeholder="URL"
+            />
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Design du bloc</h4>
+
+            <Field label="Style visuel">
+              <select
+                value={(content.style as string) || "default"}
+                onChange={(e) => updateContent("style", e.target.value)}
+                className="input"
+              >
+                {CTA_STYLE_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Alignement">
+              <select
+                value={(content.alignment as string) || "center"}
+                onChange={(e) => updateContent("alignment", e.target.value)}
+                className="input"
+              >
+                {TEXT_ALIGN_OPTIONS.map((a) => (
+                  <option key={a.value} value={a.value}>
+                    {a.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Couleurs</h4>
+
+            <Field label="Couleur de fond">
+              <DebouncedColorInput
+                value={(content.backgroundColor as string) || "#1f2937"}
+                onChange={(val) => updateContent("backgroundColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur du bouton principal">
+              <DebouncedColorInput
+                value={(content.buttonColor as string) || "#D4A574"}
+                onChange={(val) => updateContent("buttonColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+
+            <Field label="Couleur du texte">
+              <DebouncedColorInput
+                value={(content.textColor as string) || "#ffffff"}
+                onChange={(val) => updateContent("textColor", val)}
+                className="w-full h-10"
+              />
+            </Field>
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={(content.showIcon as boolean) || false}
+                onChange={(e) => updateContent("showIcon", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Afficher une icône</span>
+            </label>
+          </div>
+        </div>
+      );
+
+    case "REVIEW_BADGE":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Avis clients"
+            />
+          </Field>
+          <Field label="Note (sur 5)">
+            <input
+              type="number"
+              min={0}
+              max={5}
+              step={0.1}
+              value={(content.rating as number) || 0}
+              onChange={(e) =>
+                updateContent("rating", parseFloat(e.target.value))
+              }
+              className="input"
+            />
+          </Field>
+          <Field label="Nombre d'avis">
+            <input
+              type="number"
+              min={0}
+              value={(content.reviewCount as number) || 0}
+              onChange={(e) =>
+                updateContent("reviewCount", parseInt(e.target.value))
+              }
+              className="input"
+            />
+          </Field>
+          <Field label="Source">
+            <input
+              type="text"
+              value={(content.source as string) || ""}
+              onChange={(e) => updateContent("source", e.target.value)}
+              className="input"
+              placeholder="Google, Trustpilot..."
+            />
+          </Field>
+          <Field label="URL de la source">
+            <input
+              type="text"
+              value={(content.sourceUrl as string) || ""}
+              onChange={(e) => updateContent("sourceUrl", e.target.value)}
+              className="input"
+              placeholder="https://..."
+            />
+          </Field>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.showStars as boolean) !== false}
+              onChange={(e) => updateContent("showStars", e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm">Afficher les étoiles</span>
+          </label>
+          <Field label="Variante">
+            <select
+              value={(content.variant as string) || "default"}
+              onChange={(e) => updateContent("variant", e.target.value)}
+              className="input"
+            >
+              <option value="default">Par défaut</option>
+              <option value="compact">Compact</option>
+              <option value="detailed">Détaillé</option>
+            </select>
+          </Field>
+        </div>
+      );
+
+    case "LOCATION_CARD":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Notre adresse"
+            />
+          </Field>
+          <Field label="Adresse">
+            <textarea
+              value={(content.address as string) || ""}
+              onChange={(e) => updateContent("address", e.target.value)}
+              className="input"
+              rows={2}
+              placeholder="123 Rue Example&#10;97400 Saint-Denis"
+            />
+          </Field>
+          <Field label="URL Google Maps">
+            <input
+              type="text"
+              value={(content.mapUrl as string) || ""}
+              onChange={(e) => updateContent("mapUrl", e.target.value)}
+              className="input"
+              placeholder="https://maps.google.com/..."
+            />
+          </Field>
+          <Field label="URL d'intégration carte">
+            <input
+              type="text"
+              value={(content.embedUrl as string) || ""}
+              onChange={(e) => updateContent("embedUrl", e.target.value)}
+              className="input"
+              placeholder="https://www.google.com/maps/embed?..."
+            />
+          </Field>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.showPreview as boolean) || false}
+              onChange={(e) => updateContent("showPreview", e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm">Afficher aperçu de la carte</span>
+          </label>
+          <Field label="Variante">
+            <select
+              value={(content.variant as string) || "default"}
+              onChange={(e) => updateContent("variant", e.target.value)}
+              className="input"
+            >
+              <option value="default">Par défaut</option>
+              <option value="compact">Compact</option>
+              <option value="map-only">Carte uniquement</option>
+            </select>
+          </Field>
+        </div>
+      );
+
+    case "ICON_FEATURE":
+      return (
+        <div className="space-y-4">
+          <Field label="Icône (emoji ou texte)">
+            <input
+              type="text"
+              value={(content.icon as string) || ""}
+              onChange={(e) => updateContent("icon", e.target.value)}
+              className="input"
+              placeholder="👁️ ou texte"
+            />
+          </Field>
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Titre de la fonctionnalité"
+            />
+          </Field>
+          <Field label="Description">
+            <textarea
+              value={(content.description as string) || ""}
+              onChange={(e) => updateContent("description", e.target.value)}
+              className="input"
+              rows={2}
+              placeholder="Description"
+            />
+          </Field>
+          <Field label="Lien">
+            <input
+              type="text"
+              value={(content.link as string) || ""}
+              onChange={(e) => updateContent("link", e.target.value)}
+              className="input"
+              placeholder="URL (optionnel)"
+            />
+          </Field>
+          <Field label="Variante">
+            <select
+              value={(content.variant as string) || "default"}
+              onChange={(e) => updateContent("variant", e.target.value)}
+              className="input"
+            >
+              <option value="default">Par défaut</option>
+              <option value="card">Carte</option>
+              <option value="centered">Centré</option>
+              <option value="horizontal">Horizontal</option>
+            </select>
+          </Field>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.iconBackground as boolean) !== false}
+              onChange={(e) =>
+                updateContent("iconBackground", e.target.checked)
+              }
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm">Fond d'icône</span>
+          </label>
+        </div>
+      );
+
+    // ============================================
+    // STORE BLOCKS
+    // ============================================
+
+    case "STORE_HERO":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Nom de la boutique"
+            />
+          </Field>
+          <Field label="Sous-titre">
+            <input
+              type="text"
+              value={(content.subtitle as string) || ""}
+              onChange={(e) => updateContent("subtitle", e.target.value)}
+              className="input"
+              placeholder="Slogan ou adresse"
+            />
+          </Field>
+          <Field label="Description">
+            <textarea
+              value={(content.description as string) || ""}
+              onChange={(e) => updateContent("description", e.target.value)}
+              className="input"
+              rows={2}
+              placeholder="Description de la boutique"
+            />
+          </Field>
+          <Field label="Image de fond">
+            <MediaPicker
+              value={(content.backgroundImage as string) || ""}
+              onChange={(url) => updateContent("backgroundImage", url)}
+              acceptTypes="image"
+              placeholder="Sélectionner une image"
+              showPreview={true}
+            />
+          </Field>
+          <ButtonsEditor
+            buttons={
+              (content.buttons as Array<{
+                label: string;
+                href: string;
+                variant?: string;
+                openInNewTab?: boolean;
+              }>) || []
+            }
+            onChange={(buttons) => updateContent("buttons", buttons)}
+          />
+        </div>
+      );
+
+    case "STORE_CONTACT":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Informations de contact"
+            />
+          </Field>
+          <Field label="Adresse">
+            <textarea
+              value={(content.address as string) || ""}
+              onChange={(e) => updateContent("address", e.target.value)}
+              className="input"
+              rows={2}
+              placeholder="Adresse complète"
+            />
+          </Field>
+          <Field label="Téléphone">
+            <input
+              type="text"
+              value={(content.phone as string) || ""}
+              onChange={(e) => updateContent("phone", e.target.value)}
+              className="input"
+              placeholder="02 62 XX XX XX"
+            />
+          </Field>
+          <Field label="Téléphone 2 (optionnel)">
+            <input
+              type="text"
+              value={(content.phone2 as string) || ""}
+              onChange={(e) => updateContent("phone2", e.target.value)}
+              className="input"
+              placeholder="06 92 XX XX XX"
+            />
+          </Field>
+          <Field label="Email">
+            <input
+              type="email"
+              value={(content.email as string) || ""}
+              onChange={(e) => updateContent("email", e.target.value)}
+              className="input"
+              placeholder="contact@exemple.re"
+            />
+          </Field>
+          <HoursEditor
+            hours={(content.hours as Record<string, string>) || {}}
+            onChange={(hours) => updateContent("hours", hours)}
+          />
+        </div>
+      );
+
+    case "STORE_SERVICES":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Nos services"
+            />
+          </Field>
+          <FeaturesEditor
+            features={
+              (content.features as Array<{
+                icon?: string;
+                title: string;
+                description: string;
+                link?: string;
+              }>) || []
+            }
+            onChange={(features) => updateContent("features", features)}
+          />
           <Field label="Colonnes">
             <select
               value={(content.columns as number) || 3}
@@ -1117,35 +3320,272 @@ export default function ContentEditor({
               <option value={4}>4 colonnes</option>
             </select>
           </Field>
-          <Field label="Disposition">
+        </div>
+      );
+
+    case "STORE_CTA":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Prenez rendez-vous"
+            />
+          </Field>
+          <Field label="Description">
+            <textarea
+              value={(content.description as string) || ""}
+              onChange={(e) => updateContent("description", e.target.value)}
+              className="input"
+              rows={2}
+              placeholder="Description"
+            />
+          </Field>
+          <Field label="URL du bouton principal">
+            <input
+              type="text"
+              value={(content.buttonUrl as string) || ""}
+              onChange={(e) => updateContent("buttonUrl", e.target.value)}
+              className="input"
+              placeholder="URL de réservation"
+            />
+          </Field>
+          <Field label="Texte du bouton">
+            <input
+              type="text"
+              value={(content.buttonText as string) || ""}
+              onChange={(e) => updateContent("buttonText", e.target.value)}
+              className="input"
+              placeholder="Réserver maintenant"
+            />
+          </Field>
+          <Field label="Téléphone">
+            <input
+              type="text"
+              value={(content.phone as string) || ""}
+              onChange={(e) => updateContent("phone", e.target.value)}
+              className="input"
+              placeholder="Pour afficher un bouton appeler"
+            />
+          </Field>
+        </div>
+      );
+
+    case "STORE_REVIEWS":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Avis clients"
+            />
+          </Field>
+          <Field label="Note (sur 5)">
+            <input
+              type="number"
+              min={0}
+              max={5}
+              step={0.1}
+              value={(content.rating as number) || 0}
+              onChange={(e) =>
+                updateContent("rating", parseFloat(e.target.value))
+              }
+              className="input"
+            />
+          </Field>
+          <Field label="Nombre d'avis">
+            <input
+              type="number"
+              min={0}
+              value={(content.reviewCount as number) || 0}
+              onChange={(e) =>
+                updateContent("reviewCount", parseInt(e.target.value))
+              }
+              className="input"
+            />
+          </Field>
+          <Field label="Source (Google, etc.)">
+            <input
+              type="text"
+              value={(content.source as string) || ""}
+              onChange={(e) => updateContent("source", e.target.value)}
+              className="input"
+              placeholder="Google"
+            />
+          </Field>
+          <Field label="URL vers les avis">
+            <input
+              type="text"
+              value={(content.reviewsUrl as string) || ""}
+              onChange={(e) => updateContent("reviewsUrl", e.target.value)}
+              className="input"
+              placeholder="https://..."
+            />
+          </Field>
+        </div>
+      );
+
+    case "STORE_MAP":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Nous trouver"
+            />
+          </Field>
+          <Field label="URL d'intégration Google Maps">
+            <textarea
+              value={(content.embedUrl as string) || ""}
+              onChange={(e) => updateContent("embedUrl", e.target.value)}
+              className="input font-mono text-xs"
+              rows={3}
+              placeholder="https://www.google.com/maps/embed?pb=..."
+            />
+          </Field>
+          <Field label="Hauteur (px)">
+            <input
+              type="number"
+              min={200}
+              max={800}
+              value={(content.height as number) || 400}
+              onChange={(e) =>
+                updateContent("height", parseInt(e.target.value))
+              }
+              className="input"
+            />
+          </Field>
+          <Field label="Adresse (texte)">
+            <textarea
+              value={(content.address as string) || ""}
+              onChange={(e) => updateContent("address", e.target.value)}
+              className="input"
+              rows={2}
+              placeholder="Adresse affichée sous la carte"
+            />
+          </Field>
+        </div>
+      );
+
+    case "STORE_LIST":
+      return (
+        <div className="space-y-4">
+          <Field label="Titre">
+            <input
+              type="text"
+              value={(content.title as string) || ""}
+              onChange={(e) => updateContent("title", e.target.value)}
+              className="input"
+              placeholder="Nos boutiques"
+            />
+          </Field>
+          <Field label="Sous-titre">
+            <input
+              type="text"
+              value={(content.subtitle as string) || ""}
+              onChange={(e) => updateContent("subtitle", e.target.value)}
+              className="input"
+              placeholder="Trouvez la boutique la plus proche"
+            />
+          </Field>
+          <Field label="Colonnes">
             <select
-              value={(content.layout as string) || "cards"}
-              onChange={(e) => updateContent("layout", e.target.value)}
+              value={(content.columns as number) || 3}
+              onChange={(e) =>
+                updateContent("columns", parseInt(e.target.value))
+              }
               className="input"
             >
-              <option value="cards">Cartes</option>
-              <option value="list">Liste</option>
-              <option value="icons">Icônes centrées</option>
+              <option value={1}>1 colonne</option>
+              <option value={2}>2 colonnes</option>
+              <option value={3}>3 colonnes</option>
+              <option value={4}>4 colonnes</option>
             </select>
           </Field>
-          <Field label="Style des icônes">
-            <select
-              value={(content.iconStyle as string) || "circle"}
-              onChange={(e) => updateContent("iconStyle", e.target.value)}
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.showRating as boolean) !== false}
+              onChange={(e) => updateContent("showRating", e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm">Afficher les notes</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.showPhone as boolean) !== false}
+              onChange={(e) => updateContent("showPhone", e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm">Afficher les téléphones</span>
+          </label>
+        </div>
+      );
+
+    case "STORE_LAYOUT":
+      return (
+        <div className="space-y-4">
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>STORE_LAYOUT</strong> est un bloc composite qui génère
+              automatiquement une mise en page complète pour les pages de
+              boutique. Configurez les sections individuelles ci-dessous.
+            </p>
+          </div>
+          <Field label="Nom de la boutique">
+            <input
+              type="text"
+              value={(content.storeName as string) || ""}
+              onChange={(e) => updateContent("storeName", e.target.value)}
               className="input"
-            >
-              <option value="circle">Cercle</option>
-              <option value="square">Carré</option>
-              <option value="none">Sans fond</option>
-            </select>
+              placeholder="ODB Saint-Denis"
+            />
+          </Field>
+          <Field label="Slogan">
+            <input
+              type="text"
+              value={(content.tagline as string) || ""}
+              onChange={(e) => updateContent("tagline", e.target.value)}
+              className="input"
+              placeholder="Votre opticien de confiance"
+            />
+          </Field>
+          <Field label="Description">
+            <textarea
+              value={(content.description as string) || ""}
+              onChange={(e) => updateContent("description", e.target.value)}
+              className="input"
+              rows={3}
+              placeholder="Description de la boutique"
+            />
+          </Field>
+          <Field label="Image hero">
+            <MediaPicker
+              value={(content.heroImage as string) || ""}
+              onChange={(url) => updateContent("heroImage", url)}
+              acceptTypes="image"
+              placeholder="Image principale"
+              showPreview={true}
+            />
           </Field>
         </div>
       );
 
     default:
       return (
-        <div className="text-sm text-gray-700 text-center py-8">
-          Éditeur pour ce type de bloc en développement
+        <div className="text-sm text-gray-500 text-center py-8 bg-gray-50 rounded-lg">
+          <p className="font-medium mb-2">Type de bloc : {block.type}</p>
+          <p>Configurez ce bloc via les onglets Style et Paramètres.</p>
         </div>
       );
   }

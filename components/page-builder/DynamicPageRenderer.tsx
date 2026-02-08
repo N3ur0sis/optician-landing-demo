@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import DynamicNavbar from '@/components/DynamicNavbar';
 import Footer from '@/components/Footer';
 import BlockRenderer from '@/components/page-builder/BlockRenderer';
+import { PageBuilderProvider } from '@/components/page-builder/PageBuilderContext';
 import { Page, PageBlock } from '@/types/page-builder';
 
 interface DynamicPageRendererProps {
@@ -38,7 +39,7 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
       )}
 
       {/* Page Content - no padding needed, navbar has spacer */}
-      <div>
+      <PageBuilderProvider isEditing={false}>
         <div className="page-blocks-container">
           {page.blocks
             .filter(block => block.visible)
@@ -64,7 +65,7 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
               );
             })}
         </div>
-      </div>
+      </PageBuilderProvider>
 
       {/* Footer */}
       {page.template !== 'minimal' && <Footer />}
