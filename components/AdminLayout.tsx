@@ -14,6 +14,7 @@ import {
   BarChart3,
   Users,
   Palette,
+  Store,
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -78,6 +79,12 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
       label: "Utilisateurs",
       href: "/admin/dashboard/users",
       icon: <Users className="text-black h-5 w-5 shrink-0" />,
+      adminOnly: true,
+    },
+    {
+      label: "Boutiques",
+      href: "/admin/dashboard/stores",
+      icon: <Store className="text-black h-5 w-5 shrink-0" />,
       adminOnly: true,
     },
     {
