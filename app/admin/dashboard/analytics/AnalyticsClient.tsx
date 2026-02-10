@@ -100,7 +100,7 @@ export default function AnalyticsClient() {
 
   if (loading && !data) {
     return (
-      <div className="p-8">
+      <div className="p-6 max-w-7xl mx-auto">
         {/* Header skeleton */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -135,11 +135,11 @@ export default function AnalyticsClient() {
         <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-8 animate-pulse">
           <div className="h-6 bg-gray-200 rounded w-40 mb-6" />
           <div className="h-64 bg-gray-50 rounded-lg flex items-end justify-around gap-2 p-4">
-            {[...Array(7)].map((_, i) => (
+            {[45, 70, 55, 80, 40, 65, 75].map((height, i) => (
               <div
                 key={i}
                 className="bg-gray-200 rounded-t w-full animate-pulse"
-                style={{ height: `${30 + Math.random() * 60}%` }}
+                style={{ height: `${height}%` }}
               />
             ))}
           </div>
@@ -166,7 +166,7 @@ export default function AnalyticsClient() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-serif text-stone-900">Analytics</h1>
@@ -191,7 +191,7 @@ export default function AnalyticsClient() {
           <button
             onClick={fetchAnalytics}
             disabled={loading}
-            className="p-2 text-stone-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
           </button>
@@ -232,8 +232,8 @@ export default function AnalyticsClient() {
             <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-stone-500 text-sm">Durée moyenne</span>
-                <div className="p-2 bg-amber-100 rounded-lg">
-                  <Clock className="w-5 h-5 text-amber-600" />
+                <div className="p-2 bg-stone-100 rounded-lg">
+                  <Clock className="w-5 h-5 text-stone-600" />
                 </div>
               </div>
               <p className="text-3xl font-semibold text-stone-900">
@@ -245,8 +245,8 @@ export default function AnalyticsClient() {
             <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-stone-500 text-sm">En ligne maintenant</span>
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Activity className="w-5 h-5 text-purple-600" />
+                <div className="p-2 bg-stone-100 rounded-lg">
+                  <Activity className="w-5 h-5 text-stone-600" />
                 </div>
               </div>
               <p className="text-3xl font-semibold text-stone-900">
@@ -259,21 +259,21 @@ export default function AnalyticsClient() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-stone-200 p-6">
               <h2 className="text-lg font-medium text-stone-900 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-amber-600" />
+                <TrendingUp className="w-5 h-5 text-stone-600" />
                 Évolution des visites
               </h2>
-              <div className="h-64 flex items-end gap-1">
+              <div className="h-64 flex items-end gap-1 overflow-hidden">
                 {data.dailyStats.map((day, i) => (
                   <div key={day.date} className="flex-1 flex flex-col items-center">
-                    <div className="w-full flex flex-col items-center gap-1">
+                    <div className="w-full flex items-end gap-0.5 h-full">
                       <div
-                        className="w-full bg-amber-500 rounded-t transition-all hover:bg-amber-600"
-                        style={{ height: `${(day.views / maxViews) * 180}px`, minHeight: "4px" }}
+                        className="flex-1 bg-stone-800 rounded-t transition-all hover:bg-black"
+                        style={{ height: `${(day.views / maxViews) * 100}%`, minHeight: "4px" }}
                         title={`${day.views} vues`}
                       />
                       <div
-                        className="w-full bg-amber-200 rounded-t"
-                        style={{ height: `${(day.uniqueVisitors / maxViews) * 180}px`, minHeight: "2px" }}
+                        className="flex-1 bg-stone-400 rounded-t"
+                        style={{ height: `${(day.uniqueVisitors / maxViews) * 100}%`, minHeight: "2px" }}
                         title={`${day.uniqueVisitors} visiteurs`}
                       />
                     </div>
@@ -287,11 +287,11 @@ export default function AnalyticsClient() {
               </div>
               <div className="flex items-center justify-center gap-6 mt-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-amber-500 rounded" />
+                  <div className="w-3 h-3 bg-stone-800 rounded" />
                   <span className="text-stone-600">Pages vues</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-amber-200 rounded" />
+                  <div className="w-3 h-3 bg-stone-400 rounded" />
                   <span className="text-stone-600">Visiteurs uniques</span>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function AnalyticsClient() {
 
             <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
               <h2 className="text-lg font-medium text-stone-900 mb-4 flex items-center gap-2">
-                <Monitor className="w-5 h-5 text-amber-600" />
+                <Monitor className="w-5 h-5 text-stone-600" />
                 Appareils
               </h2>
               <div className="space-y-4">
@@ -321,7 +321,7 @@ export default function AnalyticsClient() {
                       </div>
                       <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-amber-500 rounded-full transition-all"
+                          className="h-full bg-stone-800 rounded-full transition-all"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
@@ -336,7 +336,7 @@ export default function AnalyticsClient() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
               <h2 className="text-lg font-medium text-stone-900 mb-4 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-amber-600" />
+                <BarChart3 className="w-5 h-5 text-stone-600" />
                 Pages les plus visitées
               </h2>
               <div className="space-y-3">
@@ -349,7 +349,7 @@ export default function AnalyticsClient() {
                       className="flex items-center justify-between py-2 border-b border-stone-100 last:border-0"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center text-sm font-medium">
+                        <span className="w-6 h-6 bg-stone-100 text-stone-700 rounded-full flex items-center justify-center text-sm font-medium">
                           {i + 1}
                         </span>
                         <div>
@@ -369,7 +369,7 @@ export default function AnalyticsClient() {
 
             <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
               <h2 className="text-lg font-medium text-stone-900 mb-4 flex items-center gap-2">
-                <Globe className="w-5 h-5 text-amber-600" />
+                <Globe className="w-5 h-5 text-stone-600" />
                 Sources de trafic
               </h2>
               <div className="space-y-3">
@@ -389,7 +389,7 @@ export default function AnalyticsClient() {
                         </div>
                         <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all"
+                            className="h-full bg-gradient-to-r from-stone-400 to-stone-700 rounded-full transition-all"
                             style={{ width: `${percentage}%` }}
                           />
                         </div>

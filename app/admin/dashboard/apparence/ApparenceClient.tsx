@@ -725,11 +725,11 @@ export default function ApparenceClient() {
 
   return (
     <div
-      className="h-[calc(100vh-80px)] flex flex-col max-w-6xl mx-auto"
+      className="h-[calc(100vh-80px)] flex flex-col max-w-6xl mx-auto px-4 sm:px-6 lg:px-8"
       style={{ colorScheme: "light" }}
     >
       {/* Fixed Header Section */}
-      <div className="shrink-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
+      <div className="shrink-0 pt-4 sm:pt-6 pb-3 sm:pb-4">
         {/* Header */}
         <div className="mb-4 sm:mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
