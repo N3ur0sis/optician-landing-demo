@@ -74,11 +74,12 @@ function getBlockStyles(styles: BlockStyles, isEditing = false): {
   style: React.CSSProperties;
 } {
   // Base classes to prevent overflow - blocks should never exceed page width
-  const classNames: string[] = ["max-w-full", "overflow-hidden"];
+  const classNames: string[] = ["overflow-hidden"];
   const inlineStyles: React.CSSProperties = {};
 
   let hasCustomWidth = false;
   let requestedFullWidth = false; // Track if 100% width was requested
+  let hasWidthPreset = false; // Track if a width preset was applied
 
   if (!isEditing) {
     // New width system
@@ -107,9 +108,15 @@ function getBlockStyles(styles: BlockStyles, isEditing = false): {
         const widthClass = widthMap[preset];
         if (widthClass) {
           classNames.push(widthClass);
+          hasWidthPreset = true;
           if (preset.toLowerCase() !== "edge") hasCustomWidth = true;
         }
       }
+    }
+    
+    // Add max-w-full only if no preset was applied (fallback to full width)
+    if (!hasWidthPreset && !hasCustomWidth && !requestedFullWidth) {
+      classNames.push("max-w-full");
     }
 
     if (styles.inline) {
