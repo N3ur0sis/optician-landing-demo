@@ -239,28 +239,37 @@ const ContentReveal = ({
                         backgroundRepeat: "no-repeat",
                       }}
                     />
-                    <div
-                      className="absolute inset-0 transition-all duration-500"
-                      style={{
-                        backgroundColor: tile.overlayColor
-                          ? tile.overlayColor
-                          : tile.overlay === "dark"
-                            ? "rgba(0,0,0,1)"
-                            : "rgba(255,255,255,1)",
-                        opacity: tile.overlayOpacity / 100,
-                      }}
-                    />
-                    <div
-                      className="absolute inset-0 transition-all duration-500 opacity-0 group-hover:opacity-100"
-                      style={{
-                        backgroundColor: tile.overlayColor
-                          ? tile.overlayColor
-                          : tile.overlay === "dark"
-                            ? "rgba(0,0,0,1)"
-                            : "rgba(255,255,255,1)",
-                        opacity: Math.max(0, tile.overlayOpacity - 20) / 100,
-                      }}
-                    />
+                    {/* Color overlay with hover transition */}
+                    {(() => {
+                      const hexToRgb = (hex: string) => {
+                        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                        return result
+                          ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+                          : { r: 0, g: 0, b: 0 };
+                      };
+                      const baseHex = tile.overlayColor
+                        ? tile.overlayColor
+                        : tile.overlay === "dark"
+                          ? "#000000"
+                          : "#ffffff";
+                      const { r, g, b } = hexToRgb(baseHex);
+                      const baseAlpha = tile.overlayOpacity / 100;
+                      const hoverAlpha = Math.max(0, tile.overlayOpacity - 20) / 100;
+                      return (
+                        <>
+                          {/* Base overlay - visible by default, hidden on hover */}
+                          <div
+                            className="absolute inset-0 transition-opacity duration-500 group-hover:opacity-0"
+                            style={{ backgroundColor: `rgba(${r}, ${g}, ${b}, ${baseAlpha})` }}
+                          />
+                          {/* Hover overlay - hidden by default, visible on hover */}
+                          <div
+                            className="absolute inset-0 transition-opacity duration-500 opacity-0 group-hover:opacity-100"
+                            style={{ backgroundColor: `rgba(${r}, ${g}, ${b}, ${hoverAlpha})` }}
+                          />
+                        </>
+                      );
+                    })()}
                     {/* Professional grid overlay */}
                     <div
                       className="absolute inset-0 opacity-10 group-hover:opacity-5 transition-opacity duration-500"
