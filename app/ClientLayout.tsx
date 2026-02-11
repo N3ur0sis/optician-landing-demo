@@ -64,7 +64,17 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         return "content" as const;
       }
 
-      // Scrolling up
+      // Scrolling up - once animation is complete (scroll >= 1), prevent reversing it
+      if (current >= 1 - epsilon) {
+        // Animation complete - only allow scrolling content
+        if (container.scrollTop > 0) {
+          return "content" as const;
+        }
+        // At top of content and animation complete - block scroll
+        return "none" as const;
+      }
+      
+      // Animation not complete - allow reversing
       if (container.scrollTop > 0) {
         return "content" as const;
       }
@@ -75,6 +85,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     };
 
     const handleWheel = (e: WheelEvent) => {
+      // Ignore scroll when mobile menu is open
+      if (document.body.classList.contains('mobile-menu-open')) {
+        return;
+      }
+
       // Allow normal interaction if clicking on content reveal cards
       const target = e.target as HTMLElement;
       if (
@@ -89,6 +104,12 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
       const scrollTarget = resolveScrollTarget(e.deltaY);
       const container = getRevealContainer();
+
+      // Block scroll when target is "none" (animation complete, at top of content)
+      if (scrollTarget === "none") {
+        e.preventDefault();
+        return;
+      }
 
       if (scrollTarget === "animation") {
         e.preventDefault();
@@ -108,6 +129,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     let lastVelocity = 0;
 
     const handleTouch = (e: TouchEvent) => {
+      // Ignore touch when mobile menu is open
+      if (document.body.classList.contains('mobile-menu-open')) {
+        return;
+      }
+
       // Allow normal interaction if touching content reveal cards
       const target = e.target as HTMLElement;
       if (
@@ -144,7 +170,10 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           const target = resolveScrollTarget(intendedScroll);
           const container = getRevealContainer();
 
-          if (target === "animation") {
+          // Block scroll when target is "none"
+          if (target === "none") {
+            e.preventDefault();
+          } else if (target === "animation") {
             e.preventDefault();
             const scrollDelta = intendedScroll * sensitivity * momentum;
             setScroll(scroll.get() + scrollDelta);

@@ -105,6 +105,9 @@ export default function DynamicNavbar({
 
   // Handle scroll behavior
   useMotionValueEvent(scrollY, "change", (latest) => {
+    // Ignore scroll events when mobile menu is open
+    if (mobileOpen) return;
+
     const currentScrollY = latest;
 
     // Set scrolled state for all scroll effects (shadow, shrink, opacity)
@@ -138,16 +141,34 @@ export default function DynamicNavbar({
     setMobileOpen(false);
   }, [pathname]);
 
-  // Back button handler
-  const handleBackClick = useCallback(() => {
-    const fromContentReveal = sessionStorage.getItem("fromContentReveal");
-    if (fromContentReveal === "true") {
-      sessionStorage.removeItem("fromContentReveal");
-      sessionStorage.setItem("scrollToContentReveal", "true");
-      router.push("/");
-      return;
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('mobile-menu-open');
+      // Also reset hidden state when menu opens
+      setHidden(false);
+    } else {
+      document.body.style.overflow = '';
+      document.body.classList.remove('mobile-menu-open');
     }
-    router.back();
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('mobile-menu-open');
+    };
+  }, [mobileOpen]);
+
+  // Back button handler - always navigate to home
+  const handleBackClick = useCallback(() => {
+    sessionStorage.setItem("scrollToContentReveal", "true");
+    router.push("/");
+  }, [router]);
+
+  // Logo click handler - skip animation when returning to home
+  const handleLogoClick = useCallback((e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    sessionStorage.setItem("scrollToContentReveal", "true");
+    router.push("/");
   }, [router]);
 
   // Get navbar height from menu (with fallback for SSR/loading state)
@@ -278,6 +299,7 @@ export default function DynamicNavbar({
                   href="/"
                   aria-label="Accueil"
                   className="flex items-center px-3 py-2 transition-colors duration-200 hover:opacity-80"
+                  onClick={handleLogoClick}
                 >
                   <div className="h-8 flex items-center">
                     <Image
@@ -557,18 +579,22 @@ function MobileMenu({ items, menu, pathname, navbarHeight, onClose }: MobileMenu
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-40 backdrop-blur-lg"
-      style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+      className="fixed inset-0 z-40 backdrop-blur-lg overflow-hidden touch-none"
+      style={{ backgroundColor: "rgba(0,0,0,0.6)", overscrollBehavior: "contain" }}
       onClick={onClose}
+      onTouchMove={(e) => e.preventDefault()}
+      onWheel={(e) => e.stopPropagation()}
     >
       <motion.div
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "tween", duration: 0.3 }}
-        className="absolute right-0 top-0 h-full w-80 border-l border-white/10"
-        style={{ backgroundColor: mobileMenuBg }}
+        className="absolute right-0 top-0 h-full w-80 border-l border-white/10 overflow-y-auto touch-auto"
+        style={{ backgroundColor: mobileMenuBg, overscrollBehavior: "contain" }}
         onClick={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
       >
         <div className="p-8" style={{ paddingTop: navbarHeight + 16 }}>
           <div className="space-y-4">
@@ -652,7 +678,12 @@ function MobileMenuItem({
   const isClickable = !!(item.href || item.pageSlug);
 
   const handleClick = () => {
-    sessionStorage.setItem("fromContentReveal", "true");
+    // If navigating to home, set flag to skip animation
+    if (href === "/") {
+      sessionStorage.setItem("scrollToContentReveal", "true");
+    } else {
+      sessionStorage.setItem("fromContentReveal", "true");
+    }
     onClose();
   };
 

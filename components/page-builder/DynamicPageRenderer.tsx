@@ -40,7 +40,7 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
 
       {/* Page Content - no padding needed, navbar has spacer */}
       <PageBuilderProvider isEditing={false}>
-        <div className="page-blocks-container">
+        <div className="page-blocks-container @container">
           {page.blocks
             .filter(block => block.visible)
             .map((block, index) => {

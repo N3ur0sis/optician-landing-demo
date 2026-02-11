@@ -158,7 +158,7 @@ const ContentReveal = ({
       <div className="absolute inset-0 bg-gradient-to-br from-[#fdfbf7] via-[#f5eee6] to-[#f1e2d2]" />
 
       <div
-        className="relative h-full w-full overflow-y-auto"
+        className="absolute inset-0 overflow-y-auto"
         data-reveal-scroll
       >
         <div

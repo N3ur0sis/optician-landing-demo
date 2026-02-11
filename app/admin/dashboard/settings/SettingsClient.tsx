@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Building2,
   Mail,
+  RefreshCw,
 } from "lucide-react";
 
 interface SiteSettings {
@@ -129,6 +130,10 @@ export default function SettingsClient() {
       setSaving(false);
       setTimeout(() => setMessage(null), 3000);
     }
+  };
+
+  const resetChanges = () => {
+    setSettings(initialSettings);
   };
 
   const handleExport = async () => {
@@ -275,6 +280,15 @@ export default function SettingsClient() {
                 <AlertCircle className="h-4 w-4" />
                 Non sauvegardé
               </div>
+            )}
+            {hasChanges && (
+              <button
+                onClick={resetChanges}
+                className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-50 border border-gray-200 text-sm font-medium transition-colors"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Annuler
+              </button>
             )}
             <button
               onClick={saveSettings}
