@@ -1549,13 +1549,27 @@ export default function PageBuilderEditor({
               const { arrayField, index: itemIndex } =
                 childElementEditor.selectedChild;
               const content = block.content as Record<string, unknown>;
+              
+              // Special handling for CTA_CARD buttons (not an array)
+              if (arrayField === "buttons" && !content.buttons) {
+                const buttonKey = itemIndex === 0 ? "primaryButton" : "secondaryButton";
+                const button = content[buttonKey] as Record<string, unknown> | undefined;
+                if (button) {
+                  return (button._styles as Record<string, string>) || {};
+                }
+                return {};
+              }
+              
               const items = content[arrayField] as
-                | Array<Record<string, unknown>>
+                | Array<Record<string, unknown> | string>
                 | undefined;
-              if (items && items[itemIndex]) {
-                return (
-                  (items[itemIndex]._styles as Record<string, string>) || {}
-                );
+              if (items && items[itemIndex] !== undefined) {
+                const item = items[itemIndex];
+                // Handle both string and object items
+                if (typeof item === "object" && item !== null) {
+                  return (item._styles as Record<string, string>) || {};
+                }
+                return {};
               }
             }
             return {};
@@ -1569,15 +1583,32 @@ export default function PageBuilderEditor({
               const { arrayField, index: itemIndex } =
                 childElementEditor.selectedChild;
               const content = block.content as Record<string, unknown>;
+              
+              // Special handling for CTA_CARD buttons (not an array)
+              if (arrayField === "buttons" && !content.buttons) {
+                const buttonKey = itemIndex === 0 ? "primaryButton" : "secondaryButton";
+                const button = content[buttonKey] as Record<string, unknown> | undefined;
+                if (button) {
+                  handleUpdateBlock(block.id, {
+                    content: { ...content, [buttonKey]: { ...button, _styles: styles } },
+                  });
+                }
+                return;
+              }
+              
               const items = content[arrayField] as
-                | Array<Record<string, unknown>>
+                | Array<Record<string, unknown> | string>
                 | undefined;
-              if (items && items[itemIndex]) {
+              if (items && items[itemIndex] !== undefined) {
                 const newItems = [...items];
-                newItems[itemIndex] = {
-                  ...newItems[itemIndex],
-                  _styles: styles,
-                };
+                const currentItem = newItems[itemIndex];
+                // Handle both string and object items - convert string to object if needed
+                if (typeof currentItem === "string") {
+                  // Convert string to object with text property
+                  newItems[itemIndex] = { text: currentItem, _styles: styles };
+                } else if (typeof currentItem === "object" && currentItem !== null) {
+                  newItems[itemIndex] = { ...currentItem, _styles: styles };
+                }
                 handleUpdateBlock(block.id, {
                   content: { ...content, [arrayField]: newItems },
                 });

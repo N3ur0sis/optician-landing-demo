@@ -9,7 +9,33 @@ interface SettingRecord {
   updatedAt: Date
 }
 
+// Public setting keys that can be read without auth (needed by frontend)
+const PUBLIC_SETTING_KEYS = [
+  "site_name", "site_description", "logo_url", "logo_dark_url",
+  "footer_", "social_", "contact_", "newsletter_",
+  "intro_", "loading_", "grid_",
+  "apparence",
+]
+
+function isPublicKey(key: string): boolean {
+  return PUBLIC_SETTING_KEYS.some(prefix => key.startsWith(prefix))
+}
+
+// Helper to check admin role
+async function checkSettingsPermission() {
+  const session = await auth()
+  if (!session?.user) {
+    return { authorized: false, error: "Non autorisé" }
+  }
+  const role = session.user.role as string
+  if (role !== "ADMIN") {
+    return { authorized: false, error: "Accès réservé aux administrateurs" }
+  }
+  return { authorized: true, session }
+}
+
 // GET /api/settings - Get all settings or specific keys
+// Public keys accessible without auth, all keys require ADMIN
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -19,13 +45,27 @@ export async function GET(request: NextRequest) {
       const setting = await prisma.settings.findUnique({
         where: { key }
       })
+      // Allow public keys without auth, restrict others
+      if (!isPublicKey(key)) {
+        const check = await checkSettingsPermission()
+        if (!check.authorized) {
+          return NextResponse.json({ error: check.error }, { status: 403 })
+        }
+      }
       return NextResponse.json(setting?.value ?? null)
     }
     
     const settings: SettingRecord[] = await prisma.settings.findMany()
     
-    // Convert to key-value object for easier consumption
-    const settingsObject = settings.reduce((acc: Record<string, unknown>, setting: SettingRecord) => {
+    // Check if user is admin — if not, only return public keys
+    const session = await auth()
+    const isAdmin = session?.user?.role === "ADMIN"
+    
+    const filteredSettings = isAdmin 
+      ? settings 
+      : settings.filter(s => isPublicKey(s.key))
+    
+    const settingsObject = filteredSettings.reduce((acc: Record<string, unknown>, setting: SettingRecord) => {
       acc[setting.key] = setting.value
       return acc
     }, {} as Record<string, unknown>)
@@ -40,12 +80,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/settings - Update multiple settings at once
+// POST /api/settings - Update multiple settings at once (ADMIN only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+    const check = await checkSettingsPermission()
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 403 })
     }
 
     const body = await request.json()
@@ -82,12 +122,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT /api/settings - Update a single setting
+// PUT /api/settings - Update a single setting (ADMIN only)
 export async function PUT(request: NextRequest) {
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+    const check = await checkSettingsPermission()
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 403 })
     }
 
     const body = await request.json()

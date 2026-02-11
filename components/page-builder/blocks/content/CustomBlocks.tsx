@@ -501,7 +501,7 @@ export function TestimonialsBlock({
           )}
           <blockquote
             className={`${getQuoteClasses()} whitespace-pre-line`}
-            data-field="quote"
+            data-field="text"
           >
             {style === "elegant"
               ? `"${testimonial.text}"`

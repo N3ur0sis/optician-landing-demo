@@ -1451,18 +1451,39 @@ export function ColumnsEditor({
   );
 }
 
+// Service item type - can be string or object with text property
+type ServiceItem = string | { text: string; _styles?: Record<string, unknown> };
+
+// Helper to get service text
+function getServiceText(item: ServiceItem): string {
+  if (typeof item === "string") return item;
+  if (typeof item === "object" && item !== null && typeof item.text === "string") {
+    return item.text;
+  }
+  return "";
+}
+
+// Helper to update service text while preserving _styles
+function updateServiceText(item: ServiceItem, newText: string): ServiceItem {
+  if (typeof item === "object" && item !== null && item._styles) {
+    return { ...item, text: newText };
+  }
+  // For new or string items, return object format
+  return { text: newText };
+}
+
 // Services List Editor - for SERVICES_LIST block
 export function ServicesListEditor({
   services,
   onChange,
 }: {
-  services: string[];
-  onChange: (services: string[]) => void;
+  services: ServiceItem[];
+  onChange: (services: ServiceItem[]) => void;
 }) {
-  const addService = () => onChange([...services, ""]);
+  const addService = () => onChange([...services, { text: "" }]);
   const updateService = (index: number, value: string) => {
     const newServices = [...services];
-    newServices[index] = value;
+    newServices[index] = updateServiceText(services[index] || "", value);
     onChange(newServices);
   };
   const removeService = (index: number) =>
@@ -1477,7 +1498,7 @@ export function ServicesListEditor({
         <div key={index} className="flex items-center gap-2">
           <input
             type="text"
-            value={service}
+            value={getServiceText(service)}
             onChange={(e) => updateService(index, e.target.value)}
             className="input flex-1"
             placeholder={`Service ${index + 1}`}

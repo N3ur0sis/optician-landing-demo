@@ -205,9 +205,20 @@ export const ARRAY_EDITABLE_FIELDS: Record<string, ArrayFieldConfig[]> = {
   // List
   LIST: [{ arrayField: "items", textFields: ["text"], childType: "list-item" }],
 
-  // Services List - services are simple strings, not objects
-  // The inline editing finds the text in the span and updates the array item directly
-  SERVICES_LIST: [],
+  // Services List - services can be strings or objects with title/name/text
+  SERVICES_LIST: [
+    {
+      arrayField: "services",
+      textFields: ["text", "title", "name"],
+      childType: "service",
+    },
+  ],
+
+  // HOURS_TABLE uses Record<string, string> not an array, so child styling is not supported
+  // The hours are day->time mappings and don't need individual styling
+
+  // CTA_CARD uses primaryButton/secondaryButton objects, not an array
+  // The PageBuilderEditor handles these specially in onUpdateStyles
 
   // Tabs
   TABS: [
@@ -228,7 +239,7 @@ export const ARRAY_EDITABLE_FIELDS: Record<string, ArrayFieldConfig[]> = {
 
   // Buttons group
   BUTTONS: [
-    { arrayField: "buttons", textFields: ["text"], childType: "button" },
+    { arrayField: "buttons", textFields: ["label"], childType: "button" },
   ],
 
   // Store blocks with items

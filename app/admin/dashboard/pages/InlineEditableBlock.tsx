@@ -58,7 +58,8 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string {
 }
 
 /**
- * Set nested value in object using dot-path, returns new object
+ * Set nested value in object using dot-path, returns new object.
+ * Special handling for string array items: converts them to objects with text property.
  */
 function setNestedValue(
   obj: Record<string, unknown>,
@@ -74,9 +75,42 @@ function setNestedValue(
     if (!current[part]) {
       current[part] = isNaN(Number(parts[i + 1])) ? {} : [];
     }
-    current = current[part] as Record<string, unknown>;
+    
+    // Handle string array items - convert to object when trying to set a property
+    const currentValue = current[part];
+    if (typeof currentValue === "string" && !isNaN(Number(parts[i + 1]))) {
+      // This is an array of strings, we don't need to convert
+      current = current[part] as Record<string, unknown>;
+    } else if (Array.isArray(currentValue)) {
+      // Check if we're setting a property on a string array item
+      const nextIndex = Number(parts[i + 1]);
+      if (!isNaN(nextIndex) && typeof currentValue[nextIndex] === "string") {
+        // Keep it as a string array for now, we'll handle the final value
+        current = current[part] as Record<string, unknown>;
+      } else {
+        current = current[part] as Record<string, unknown>;
+      }
+    } else {
+      current = current[part] as Record<string, unknown>;
+    }
   }
-  current[parts[parts.length - 1]] = value;
+  
+  // If the last part is an index setting a property on a string, handle specially
+  const finalPart = parts[parts.length - 1];
+  const secondLastPart = parts.length >= 2 ? parts[parts.length - 2] : null;
+  
+  // Check if we're setting text on a string array item
+  if (secondLastPart && !isNaN(Number(secondLastPart)) && finalPart === "text") {
+    // The parent is an array index, check if the item is a string
+    const arrayIndex = Number(secondLastPart);
+    if (typeof current[arrayIndex] === "string") {
+      // Convert string to object with text property
+      current[arrayIndex] = { text: value };
+      return result;
+    }
+  }
+  
+  current[finalPart] = value;
   return result;
 }
 
@@ -471,14 +505,47 @@ function InlineEditableBlock({
     // 2. Setup array-based editable fields
     const arrayConfigs = ARRAY_EDITABLE_FIELDS[block.type] || [];
     arrayConfigs.forEach(({ arrayField, textFields }) => {
-      const items = content[arrayField] as
-        | Array<Record<string, unknown>>
-        | undefined;
-      if (!items?.length) return;
+      const rawItems = content[arrayField];
+      if (!rawItems || !Array.isArray(rawItems) || !rawItems.length) return;
 
-      items.forEach((item, index) => {
+      rawItems.forEach((item: unknown, index: number) => {
+        // Handle both string items and object items
+        if (typeof item === "string") {
+          // For string items, use "text" as the field path
+          const fieldPath = `${arrayField}.${index}.text`;
+          
+          // Find the element with this index and set up editing
+          const itemContainer = container.querySelector(
+            `[data-item-index="${index}"]`,
+          );
+          
+          if (itemContainer) {
+            // Try data-field="text" first
+            const dataFieldEl = itemContainer.querySelector<HTMLElement>(
+              `[data-field="text"]`,
+            );
+            if (dataFieldEl && !dataFieldEl.getAttribute("data-inline-editable")) {
+              makeElementEditable(dataFieldEl, fieldPath, createHandlers(fieldPath));
+              return;
+            }
+            
+            // Fallback to matching text content
+            const selectors = getSelectorsForField("text");
+            for (const selector of selectors.split(", ")) {
+              const el = findElementByText(itemContainer, selector.trim(), item);
+              if (el) {
+                makeElementEditable(el, fieldPath, createHandlers(fieldPath));
+                return;
+              }
+            }
+          }
+          return;
+        }
+        
+        // Object items - handle each text field
+        const objectItem = item as Record<string, unknown>;
         textFields.forEach((textField) => {
-          const value = item[textField];
+          const value = objectItem[textField];
           if (!value || typeof value !== "string") return;
 
           const fieldPath = `${arrayField}.${index}.${textField}`;
@@ -728,4 +795,31 @@ function InlineEditableBlock({
   );
 }
 
-export default memo(InlineEditableBlock);
+// Custom comparison for memo - ensure content changes trigger re-render
+function arePropsEqual(
+  prevProps: InlineEditableBlockProps,
+  nextProps: InlineEditableBlockProps
+): boolean {
+  // Always re-render if block id changes
+  if (prevProps.block.id !== nextProps.block.id) return false;
+  
+  // Always re-render if block content changes (deep compare via JSON)
+  if (JSON.stringify(prevProps.block.content) !== JSON.stringify(nextProps.block.content)) {
+    return false;
+  }
+  
+  // Always re-render if block styles change
+  if (JSON.stringify(prevProps.block.styles) !== JSON.stringify(nextProps.block.styles)) {
+    return false;
+  }
+  
+  // Check other important props
+  if (prevProps.isEditing !== nextProps.isEditing) return false;
+  if (prevProps.isPreviewMode !== nextProps.isPreviewMode) return false;
+  if (prevProps.styleMode !== nextProps.styleMode) return false;
+  
+  // If none of the above changed, consider props equal
+  return true;
+}
+
+export default memo(InlineEditableBlock, arePropsEqual);

@@ -240,6 +240,7 @@ export function TabsBlock({ content }: BlockContentProps<TabsContent>) {
           <div
             data-field="content"
             data-item-index={activeTab}
+            data-child-type="tab"
             dangerouslySetInnerHTML={{ __html: tabs[activeTab].content }}
           />
         )}

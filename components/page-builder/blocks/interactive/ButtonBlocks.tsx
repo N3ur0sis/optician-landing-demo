@@ -90,7 +90,6 @@ export function ButtonBlock({ content }: BlockContentProps<ButtonContent>) {
 
   return isEditing ? (
     <span
-      data-field="text"
       className={`inline-flex items-center justify-center gap-2 font-medium transition-all opacity-70 cursor-not-allowed ${sizeStyles[size]} ${radiusStyles[borderRadius]}`}
       style={inlineStyles}
     >
@@ -102,7 +101,6 @@ export function ButtonBlock({ content }: BlockContentProps<ButtonContent>) {
       href={url}
       target={newTab ? "_blank" : undefined}
       rel={newTab ? "noopener noreferrer" : undefined}
-      data-field="text"
       className={`inline-flex items-center justify-center gap-2 font-medium transition-all hover:opacity-80 ${sizeStyles[size]} ${radiusStyles[borderRadius]}`}
       style={inlineStyles}
     >

@@ -3,6 +3,38 @@ import prisma from "@/lib/prisma"
 import { headers } from "next/headers"
 import { v4 as uuidv4 } from "uuid"
 
+// Simple in-memory rate limiter (per IP, 30 requests per minute)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_WINDOW = 60_000 // 1 minute
+const RATE_LIMIT_MAX = 30 // max requests per window
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
+    return false
+  }
+  
+  entry.count++
+  if (entry.count > RATE_LIMIT_MAX) {
+    return true
+  }
+  return false
+}
+
+// Cleanup old entries every 5 minutes to prevent memory leak
+if (typeof globalThis !== "undefined") {
+  const cleanup = () => {
+    const now = Date.now()
+    for (const [key, value] of rateLimitMap) {
+      if (now > value.resetAt) rateLimitMap.delete(key)
+    }
+  }
+  setInterval(cleanup, 5 * 60_000).unref?.()
+}
+
 // Helper to parse user agent
 function parseUserAgent(ua: string): { device: string; browser: string; os: string } {
   const device = /Mobile|Android|iPhone|iPad/i.test(ua) 
@@ -29,6 +61,15 @@ function parseUserAgent(ua: string): { device: string; browser: string; os: stri
 // POST /api/analytics/track - Track a page view
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting by IP
+    const headersList = await headers()
+    const forwarded = headersList.get("x-forwarded-for")
+    const ip = forwarded?.split(",")[0]?.trim() || "unknown"
+    
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+    }
+
     const body = await request.json()
     const { path, pageId, duration, sessionId: existingSessionId } = body as {
       path: string
@@ -41,7 +82,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Path required" }, { status: 400 })
     }
 
-    const headersList = await headers()
     const userAgent = headersList.get("user-agent") || ""
     const referrer = headersList.get("referer") || ""
     

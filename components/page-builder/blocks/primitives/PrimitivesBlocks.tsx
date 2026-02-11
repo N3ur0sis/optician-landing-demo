@@ -3,55 +3,63 @@
 import React from "react";
 import { motion } from "framer-motion";
 import {
-  MapPin,
-  Phone,
-  Mail,
-  Clock,
-  Calendar,
-  User,
-  Star,
   Check,
   ExternalLink,
-  LucideIcon as LucideIconType,
+  Star,
 } from "lucide-react";
-import type { BlockContentProps } from "../types";
-import { LucideIcon, isValidIcon } from "../types";
+import type { BlockContentProps, ChildElementStyles } from "../types";
+import { LucideIcon, getChildElementInlineStyles } from "../types";
 
 // ============================================
-// ICON MAP (Legacy fallback)
+// COLOR UTILITIES
 // ============================================
 
-const iconMap: Record<string, React.FC<{ className?: string }>> = {
-  "map-pin": MapPin,
-  phone: Phone,
-  mail: Mail,
-  clock: Clock,
-  calendar: Calendar,
-  user: User,
-  star: Star,
-  info: (props) => (
-    <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  ),
-  check: Check,
-  "external-link": ExternalLink,
-  "arrow-right": (props) => (
-    <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M14 5l7 7m0 0l-7 7m7-7H3"
-      />
-    </svg>
-  ),
+// Named color map for backward compatibility
+const namedColorMap: Record<string, string> = {
+  amber: "#f59e0b",
+  blue: "#2563eb",
+  green: "#16a34a",
+  red: "#dc2626",
+  purple: "#9333ea",
+  pink: "#db2777",
+  indigo: "#4f46e5",
+  gray: "#4b5563",
 };
+
+// Convert hex to RGB
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+}
+
+// Generate lighter shade for backgrounds
+function getLighterShade(color: string, opacity: number = 0.15): string {
+  // Handle named colors for backward compatibility
+  const hexColor = namedColorMap[color] || color;
+  const rgb = hexToRgb(hexColor);
+  if (rgb) {
+    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
+  }
+  return hexColor;
+}
+
+// Get icon colors from a base color (hex or named)
+function getIconColors(color: string): { bg: string; bgHover: string; text: string } {
+  const hexColor = namedColorMap[color] || color;
+  return {
+    bg: getLighterShade(hexColor, 0.15),
+    bgHover: getLighterShade(hexColor, 0.25),
+    text: hexColor,
+  };
+}
+
+
 
 // ============================================
 // INFO BOX BLOCK
@@ -72,7 +80,7 @@ interface InfoBoxBlockContent {
 }
 
 export function InfoBoxBlock({ content }: BlockContentProps<InfoBoxBlockContent>) {
-  const icon = content.icon || "info";
+  const icon = content.icon || "Info";
   const title = content.title;
   const mainContent = content.content;
   const link = content.link;
@@ -80,25 +88,12 @@ export function InfoBoxBlock({ content }: BlockContentProps<InfoBoxBlockContent>
   const secondaryContent = content.secondaryContent;
   const secondaryLink = content.secondaryLink;
   const variant = content.variant || "default";
-  const iconColor = content.iconColor || "amber";
+  const iconColor = content.iconColor || "#f59e0b"; // amber default
   const backgroundColor = content.backgroundColor;
   const textColor = content.textColor;
 
-  // Color map for icon colors
-  const colorMap: Record<string, { bg: string; text: string }> = {
-    amber: { bg: "#fef3c7", text: "#d97706" },
-    blue: { bg: "#dbeafe", text: "#2563eb" },
-    green: { bg: "#dcfce7", text: "#16a34a" },
-    red: { bg: "#fee2e2", text: "#dc2626" },
-    purple: { bg: "#f3e8ff", text: "#9333ea" },
-    pink: { bg: "#fce7f3", text: "#db2777" },
-    indigo: { bg: "#e0e7ff", text: "#4f46e5" },
-    gray: { bg: "#f3f4f6", text: "#4b5563" },
-  };
-  const colors = colorMap[iconColor] || colorMap.amber;
-
-  // Use LucideIcon if valid, otherwise fallback to legacy iconMap
-  const IconComponent = isValidIcon(icon) ? null : (iconMap[icon] || iconMap["info"]);
+  // Get colors from hex or named color
+  const colors = getIconColors(iconColor);
 
   const variantClasses = {
     default: "bg-white/90 backdrop-blur-sm rounded-xl p-5 border border-neutral-100",
@@ -106,12 +101,15 @@ export function InfoBoxBlock({ content }: BlockContentProps<InfoBoxBlockContent>
     card: "bg-white rounded-2xl shadow-lg p-6 border border-neutral-100 hover:shadow-xl transition-shadow duration-300",
   };
 
-  const ContentWrapper = link ? motion.a : motion.div;
-  const wrapperProps = link
+  // Determine if wrapper should be a link
+  // If wrapper is <a>, we cannot have nested <a> for secondaryLink
+  const hasWrapperLink = Boolean(link);
+  const ContentWrapper = hasWrapperLink ? motion.a : motion.div;
+  const wrapperProps = hasWrapperLink
     ? {
         href: link,
-        target: link.startsWith("http") ? "_blank" : undefined,
-        rel: link.startsWith("http") ? "noopener noreferrer" : undefined,
+        target: link?.startsWith("http") ? "_blank" : undefined,
+        rel: link?.startsWith("http") ? "noopener noreferrer" : undefined,
       }
     : {};
 
@@ -119,44 +117,65 @@ export function InfoBoxBlock({ content }: BlockContentProps<InfoBoxBlockContent>
   if (backgroundColor) wrapperStyle.backgroundColor = backgroundColor;
   if (textColor) wrapperStyle.color = textColor;
 
+  // Render icon using LucideIcon which handles all name formats
+  const renderIcon = () => {
+    if (!icon) return null;
+    return <LucideIcon name={icon} className="w-5 h-5" style={{ color: colors.text }} fallback={<Star className="w-5 h-5" style={{ color: colors.text }} />} />;
+  };
+
+  // Render secondary content - avoid nested <a> when wrapper is already <a>
+  const renderSecondaryContent = () => {
+    if (!secondaryContent) return null;
+    
+    if (secondaryLink && !hasWrapperLink) {
+      // Only render as <a> if wrapper is NOT an <a>
+      return (
+        <a
+          href={secondaryLink}
+          target={secondaryLink.startsWith("http") ? "_blank" : undefined}
+          rel={secondaryLink.startsWith("http") ? "noopener noreferrer" : undefined}
+          className="block mt-1 transition-colors hover:underline"
+          style={{ color: colors.text }}
+        >
+          {secondaryContent}
+        </a>
+      );
+    }
+    
+    // Render as span (with link styling if secondaryLink exists but wrapper is <a>)
+    return (
+      <span 
+        className={`block mt-1 ${secondaryLink ? "underline" : ""}`}
+        style={{ color: secondaryLink ? colors.text : (textColor ? `${textColor}99` : "#737373") }}
+      >
+        {secondaryContent}
+      </span>
+    );
+  };
+
   return (
     <ContentWrapper
       {...wrapperProps}
-      className={`flex items-start gap-4 group ${variantClasses[variant] || variantClasses.default} ${link ? "cursor-pointer" : ""}`}
+      className={`flex items-start gap-4 group ${variantClasses[variant] || variantClasses.default} ${hasWrapperLink ? "cursor-pointer" : ""}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={link ? { scale: 1.01 } : undefined}
+      whileHover={hasWrapperLink ? { scale: 1.01 } : undefined}
       style={wrapperStyle}
     >
       <div 
         className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors"
         style={{ backgroundColor: colors.bg }}
       >
-        {isValidIcon(icon) ? (
-          <LucideIcon name={icon} className="w-5 h-5" style={{ color: colors.text }} />
-        ) : IconComponent ? (
-          <IconComponent className="w-5 h-5" style={{ color: colors.text }} />
-        ) : null}
+        {renderIcon()}
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="font-semibold mb-1" style={{ color: textColor || "#171717" }} data-field="title">{title}</h3>
         {mainContent && (
           <p className="whitespace-pre-line" style={{ color: textColor ? `${textColor}cc` : "#525252" }} data-field="content">{mainContent}</p>
         )}
-        {secondaryContent &&
-          (secondaryLink ? (
-            <a
-              href={secondaryLink}
-              className="block mt-1 transition-colors"
-              style={{ color: colors.text }}
-            >
-              {secondaryContent}
-            </a>
-          ) : (
-            <p className="text-sm mt-1" style={{ color: textColor ? `${textColor}99` : "#737373" }}>{secondaryContent}</p>
-          ))}
+        {renderSecondaryContent()}
         {linkLabel && (
-          <span className="font-medium text-sm mt-2 inline-flex items-center gap-1" style={{ color: colors.text }}>
+          <span className="font-medium text-sm mt-2 inline-flex items-center gap-1" style={{ color: colors.text }} data-field="linkLabel">
             {linkLabel}
             <ExternalLink className="w-3 h-3" />
           </span>
@@ -274,7 +293,7 @@ export function HoursTableBlock({ content }: BlockContentProps<HoursTableBlockCo
         <div className="flex items-center gap-3 mb-4">
           {showIcon && (
             <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${accentColor}20` }}>
-              <Clock className="w-5 h-5" style={{ color: accentColor }} />
+              <LucideIcon name="Clock" className="w-5 h-5" style={{ color: accentColor }} />
             </div>
           )}
           <h3 className="font-semibold" style={{ color: textColor || "#171717" }} data-field="title">{title}</h3>
@@ -289,8 +308,10 @@ export function HoursTableBlock({ content }: BlockContentProps<HoursTableBlockCo
               className="flex justify-between py-2 px-3 rounded-lg transition-colors"
               style={{
                 backgroundColor: isToday ? `${accentColor}15` : "transparent",
-                border: isToday ? `1px solid ${accentColor}40` : "none",
-                borderBottom: isToday ? undefined : "1px solid #f5f5f5",
+                borderTop: isToday ? `1px solid ${accentColor}40` : "none",
+                borderRight: isToday ? `1px solid ${accentColor}40` : "none",
+                borderBottom: isToday ? `1px solid ${accentColor}40` : "1px solid #f5f5f5",
+                borderLeft: isToday ? `1px solid ${accentColor}40` : "none",
               }}
               data-item-index={idx}
               data-child-type="hour"
@@ -314,10 +335,19 @@ export function HoursTableBlock({ content }: BlockContentProps<HoursTableBlockCo
 // SERVICES LIST BLOCK
 // ============================================
 
+// Service item can be a string (legacy) or an object with text and _styles
+interface ServiceItem {
+  text: string;
+  _styles?: ChildElementStyles;
+}
+
+// Raw service item as stored in content
+type RawServiceItem = string | { text?: string; title?: string; name?: string; _styles?: ChildElementStyles; [key: string]: unknown };
+
 interface ServicesListBlockContent {
   title?: string;
   subtitle?: string;
-  services?: (string | { title?: string; name?: string; text?: string; [key: string]: unknown })[];
+  services?: RawServiceItem[];
   columns?: number;
   variant?: "bullets" | "checks" | "cards" | "badges";
   iconColor?: string;
@@ -326,31 +356,43 @@ interface ServicesListBlockContent {
   showTitle?: boolean;
 }
 
-// Helper to extract string from service item (handles both string and object formats)
-function getServiceText(service: string | { title?: string; name?: string; text?: string; [key: string]: unknown }): string {
-  if (typeof service === "string") return service;
+// Helper to normalize service item to ServiceItem format
+function normalizeServiceItem(service: RawServiceItem): ServiceItem | null {
+  if (typeof service === "string") {
+    return { text: service };
+  }
   if (typeof service === "object" && service !== null) {
+    const obj = service as Record<string, unknown>;
+    const existingStyles = obj._styles as ChildElementStyles | undefined;
+    
     // Try common text properties
-    if (typeof service.title === "string") return service.title;
-    if (typeof service.name === "string") return service.name;
-    if (typeof service.text === "string") return service.text;
-    // If object has indexed characters (from styled text), reconstruct the string
-    const keys = Object.keys(service).filter(k => !isNaN(Number(k))).sort((a, b) => Number(a) - Number(b));
+    if (typeof obj.text === "string" && obj.text) {
+      return { text: obj.text, _styles: existingStyles };
+    }
+    if (typeof obj.title === "string" && obj.title) {
+      return { text: obj.title, _styles: existingStyles };
+    }
+    if (typeof obj.name === "string" && obj.name) {
+      return { text: obj.name, _styles: existingStyles };
+    }
+    // If object has indexed characters (from corrupted styled text), try to reconstruct
+    const keys = Object.keys(obj).filter(k => !isNaN(Number(k)) && k !== "_styles").sort((a, b) => Number(a) - Number(b));
     if (keys.length > 0) {
-      return keys.map(k => service[k]).join("");
+      const reconstructed = keys.map(k => String(obj[k] || "")).join("");
+      if (reconstructed) return { text: reconstructed, _styles: existingStyles };
     }
   }
-  return String(service || "");
+  return null;
 }
 
 export function ServicesListBlock({ content }: BlockContentProps<ServicesListBlockContent>) {
   const title = content.title;
   const subtitle = content.subtitle;
   const rawServices = content.services || [];
-  const services = rawServices.map(getServiceText).filter(Boolean);
+  const services = rawServices.map(normalizeServiceItem).filter((s): s is ServiceItem => s !== null && s.text.length > 0);
   const columns = content.columns || 2;
   const variant = content.variant || "bullets";
-  const iconColor = content.iconColor || "amber";
+  const iconColor = content.iconColor || "#f59e0b"; // amber default
   const backgroundColor = content.backgroundColor;
   const textColor = content.textColor;
   const showTitle = content.showTitle !== false;
@@ -363,12 +405,8 @@ export function ServicesListBlock({ content }: BlockContentProps<ServicesListBlo
     3: "@sm:grid-cols-2 @lg:grid-cols-3",
   };
 
-  // Color map for bullet icon
-  const colorMap: Record<string, string> = {
-    amber: "#f59e0b", blue: "#3b82f6", green: "#22c55e", red: "#ef4444",
-    purple: "#a855f7", pink: "#ec4899", indigo: "#6366f1", gray: "#6b7280",
-  };
-  const bulletColor = colorMap[iconColor] || colorMap.amber;
+  // Get bullet color from hex or named color
+  const bulletColor = namedColorMap[iconColor] || iconColor;
 
   const variantStyles = {
     bullets: {
@@ -414,23 +452,33 @@ export function ServicesListBlock({ content }: BlockContentProps<ServicesListBlo
       )}
       {showTitle && subtitle && <p className="mb-4 ml-5" style={{ color: textColor ? `${textColor}cc` : "#525252" }} data-field="subtitle">{subtitle}</p>}
       <div className={`grid gap-3 ${gridCols[columns] || gridCols[2]}`}>
-        {services.map((service, idx) => (
-          <motion.div
-            key={idx}
-            className={styles.item}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.03 }}
-            whileHover={{ x: variant === "badges" ? 0 : 3 }}
-            data-item-index={idx}
-            data-child-type="service"
-          >
-            {styles.icon}
-            <span className="font-medium transition-colors" style={{ color: textColor || "#262626" }}>
-              {service}
-            </span>
-          </motion.div>
-        ))}
+        {services.map((service, idx) => {
+          // Apply child element styles if present
+          const childStyles = getChildElementInlineStyles(service._styles);
+          const mergedStyle: React.CSSProperties = {
+            ...childStyles,
+            color: childStyles.color || textColor || "#262626",
+          };
+          
+          return (
+            <motion.div
+              key={idx}
+              className={styles.item}
+              style={childStyles}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.03 }}
+              whileHover={{ x: variant === "badges" ? 0 : 3 }}
+              data-item-index={idx}
+              data-child-type="service"
+            >
+              {styles.icon}
+              <span className="font-medium transition-colors" style={{ color: mergedStyle.color }} data-field="text">
+                {service.text}
+              </span>
+            </motion.div>
+          );
+        })}
       </div>
     </motion.div>
   );
@@ -448,14 +496,23 @@ interface CtaCardBlockContent {
     url: string;
     icon?: string;
     newTab?: boolean;
+    _styles?: ChildElementStyles;
   };
   secondaryButton?: {
     label: string;
     url: string;
     icon?: string;
     newTab?: boolean;
+    _styles?: ChildElementStyles;
   };
   variant?: "default" | "dark" | "gradient" | "outline";
+  style?: "default" | "dark" | "gradient" | "outline"; // Alias for variant
+  icon?: string;
+  showIcon?: boolean;
+  alignment?: "left" | "center" | "right";
+  backgroundColor?: string;
+  textColor?: string;
+  buttonColor?: string;
 }
 
 export function CtaCardBlock({ content }: BlockContentProps<CtaCardBlockContent>) {
@@ -463,7 +520,19 @@ export function CtaCardBlock({ content }: BlockContentProps<CtaCardBlockContent>
   const description = content.description;
   const primaryButton = content.primaryButton;
   const secondaryButton = content.secondaryButton;
-  const variant = content.variant || "default";
+  const variant = content.variant || content.style || "default";
+  const icon = content.icon || "Calendar";
+  const showIcon = content.showIcon !== false;
+  const alignment = content.alignment || "center";
+  const backgroundColor = content.backgroundColor;
+  const textColor = content.textColor;
+  const buttonColor = content.buttonColor;
+
+  const alignmentClasses = {
+    left: "text-left items-start",
+    center: "text-center items-center",
+    right: "text-right items-end",
+  };
 
   const variantClasses = {
     default: "bg-white rounded-2xl shadow-lg p-6 border border-neutral-100",
@@ -472,64 +541,67 @@ export function CtaCardBlock({ content }: BlockContentProps<CtaCardBlockContent>
     outline: "border-2 border-neutral-200 rounded-2xl p-6 hover:border-amber-300 transition-colors",
   };
 
-  const primaryBtnClasses = {
-    default: "bg-neutral-900 hover:bg-amber-700 text-white",
-    dark: "bg-amber-500 hover:bg-amber-400 text-black",
-    gradient: "bg-white hover:bg-neutral-100 text-amber-700",
-    outline: "bg-amber-500 hover:bg-amber-600 text-white",
-  };
-
-  const secondaryBtnClasses = {
-    default: "border-2 border-neutral-300 hover:border-neutral-400 text-neutral-800",
-    dark: "border-2 border-white/30 hover:border-white/60 text-white",
-    gradient: "border-2 border-white/50 hover:border-white text-white",
-    outline: "border-2 border-neutral-300 hover:border-amber-400 text-neutral-800",
-  };
-
-  const renderIcon = (iconName?: string) => {
+  const renderIcon = (iconName?: string, className = "w-5 h-5", style?: React.CSSProperties) => {
     if (!iconName) return null;
-    if (isValidIcon(iconName)) {
-      return <LucideIcon name={iconName} className="w-5 h-5" />;
-    }
-    const IconComp = iconMap[iconName];
-    return IconComp ? <IconComp className="w-5 h-5" /> : null;
+    return <LucideIcon name={iconName} className={className} style={style} fallback={<Star className={className} style={style} />} />;
   };
+
+  // Dynamic styles
+  const containerStyle: React.CSSProperties = {};
+  if (backgroundColor) containerStyle.backgroundColor = backgroundColor;
+
+  const titleStyle: React.CSSProperties = { color: textColor };
+  const descStyle: React.CSSProperties = { color: textColor ? `${textColor}cc` : undefined };
+  
+  // Merge child styles with button styles
+  const primaryChildStyles = getChildElementInlineStyles(primaryButton?._styles);
+  const secondaryChildStyles = getChildElementInlineStyles(secondaryButton?._styles);
+  
+  const primaryBtnStyle: React.CSSProperties = {
+    ...(buttonColor ? { backgroundColor: buttonColor, color: "#fff" } : {}),
+    ...primaryChildStyles,
+  };
+  const secondaryBtnStyle: React.CSSProperties = {
+    ...(buttonColor ? { borderColor: buttonColor, color: buttonColor } : {}),
+    ...secondaryChildStyles,
+  };
+
+  // Get accent color for icon
+  const iconColor = buttonColor || "#f59e0b"; // amber-500 default
 
   return (
     <motion.div
-      className={variantClasses[variant] || variantClasses.default}
+      className={`flex flex-col ${alignmentClasses[alignment]} ${variantClasses[variant] || variantClasses.default}`}
+      style={containerStyle}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
       {title && (
         <h3
           data-field="title"
-          className={`text-xl font-bold mb-3 flex items-center gap-2 ${
-            variant === "default" || variant === "outline" ? "text-neutral-900" : ""
-          }`}
+          className="text-xl font-bold mb-3 flex items-center gap-2"
+          style={titleStyle}
         >
-          <Calendar className="w-5 h-5 text-amber-500" />
+          {showIcon && renderIcon(icon, "w-5 h-5", { color: iconColor })}
           {title}
         </h3>
       )}
       {description && (
-        <p
-          data-field="description"
-          className={`mb-4 ${variant === "default" || variant === "outline" ? "text-neutral-600" : "opacity-90"}`}
-        >
+        <p data-field="description" className="mb-4" style={descStyle}>
           {description}
         </p>
       )}
-      <div className="space-y-3">
+      <div className={`space-y-3 w-full ${alignment === "center" ? "max-w-sm mx-auto" : ""}`}>
         {primaryButton && (
           <motion.a
             href={primaryButton.url}
             target={primaryButton.newTab ? "_blank" : undefined}
             rel={primaryButton.newTab ? "noopener noreferrer" : undefined}
             data-field="buttonText"
-            className={`w-full py-4 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-              primaryBtnClasses[variant] || primaryBtnClasses.default
-            }`}
+            data-item-index={0}
+            data-child-type="cta-button"
+            className="w-full py-4 px-6 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 bg-neutral-900 hover:opacity-90 text-white"
+            style={primaryBtnStyle}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -542,9 +614,10 @@ export function CtaCardBlock({ content }: BlockContentProps<CtaCardBlockContent>
             href={secondaryButton.url}
             target={secondaryButton.newTab ? "_blank" : undefined}
             rel={secondaryButton.newTab ? "noopener noreferrer" : undefined}
-            className={`w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-              secondaryBtnClasses[variant] || secondaryBtnClasses.default
-            }`}
+            data-item-index={1}
+            data-child-type="cta-button"
+            className="w-full py-4 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 border-2 border-neutral-300 hover:border-neutral-400"
+            style={secondaryBtnStyle}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -662,6 +735,7 @@ export function ReviewBadgeBlock({ content }: BlockContentProps<ReviewBadgeBlock
                 {...sourceProps}
                 className="font-medium text-sm underline-offset-4 hover:underline transition-all cursor-pointer"
                 style={{ color: starColor }}
+                data-field="source"
               >
                 {source}
               </SourceWrapper>
@@ -722,7 +796,7 @@ export function LocationCardBlock({ content }: BlockContentProps<LocationCardBlo
         <div className={`${variant === "compact" ? "" : "p-6"}`}>
           {title && (
             <h3 className="text-lg font-bold flex items-center gap-2 mb-3" style={{ color: textColor || "#171717" }} data-field="title">
-              {showIcon && <MapPin className="w-5 h-5" style={{ color: accentColor }} />}
+              {showIcon && <LucideIcon name="MapPin" className="w-5 h-5" style={{ color: accentColor }} />}
               {title}
             </h3>
           )}
@@ -757,7 +831,7 @@ export function LocationCardBlock({ content }: BlockContentProps<LocationCardBlo
             />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <MapPin className="w-12 h-12 mb-4" style={{ color: `${accentColor}80` }} />
+              <LucideIcon name="MapPin" className="w-12 h-12 mb-4" style={{ color: `${accentColor}80` }} />
               {address && (
                 <p className="text-center text-sm mb-4 whitespace-pre-line" style={{ color: textColor ? `${textColor}aa` : "#525252" }} data-field="address">
                   {address}
@@ -801,30 +875,21 @@ interface IconFeatureBlockContent {
 }
 
 export function IconFeatureBlock({ content }: BlockContentProps<IconFeatureBlockContent>) {
-  const icon = content.icon || "star";
+  const icon = content.icon || "Star";
   const title = content.title;
   const description = content.description;
   const link = content.link;
   const variant = content.variant || "default";
   const iconBackground = content.iconBackground !== false;
-  const iconColor = content.iconColor || "amber";
+  const iconColor = content.iconColor || "#f59e0b"; // amber default
   const backgroundColor = content.backgroundColor;
   const titleColor = content.titleColor;
   const descriptionColor = content.descriptionColor;
 
-  // Color map for icon colors
-  const colorMap: Record<string, { bg: string; bgHover: string; text: string }> = {
-    amber: { bg: "#fef3c7", bgHover: "#fde68a", text: "#d97706" },
-    blue: { bg: "#dbeafe", bgHover: "#bfdbfe", text: "#2563eb" },
-    green: { bg: "#dcfce7", bgHover: "#bbf7d0", text: "#16a34a" },
-    red: { bg: "#fee2e2", bgHover: "#fecaca", text: "#dc2626" },
-    purple: { bg: "#f3e8ff", bgHover: "#e9d5ff", text: "#9333ea" },
-    gray: { bg: "#f3f4f6", bgHover: "#e5e7eb", text: "#4b5563" },
-  };
-  const colors = colorMap[iconColor] || colorMap.amber;
+  // Get colors from hex or named color
+  const colors = getIconColors(iconColor);
 
-  // Use LucideIcon if valid, otherwise fallback to legacy iconMap
-  const IconComponent = isValidIcon(icon) ? null : (iconMap[icon] || Star);
+  // Icon rendering handled by LucideIcon directly
 
   const variantClasses = {
     default: "flex items-start gap-4",
@@ -862,11 +927,7 @@ export function IconFeatureBlock({ content }: BlockContentProps<IconFeatureBlock
         onMouseEnter={(e) => iconBackground && (e.currentTarget.style.backgroundColor = colors.bgHover)}
         onMouseLeave={(e) => iconBackground && (e.currentTarget.style.backgroundColor = colors.bg)}
       >
-        {isValidIcon(icon) ? (
-          <LucideIcon name={icon} className="w-6 h-6" style={{ color: colors.text }} />
-        ) : IconComponent ? (
-          <IconComponent className="w-6 h-6" />
-        ) : null}
+        <LucideIcon name={icon} className="w-6 h-6" style={{ color: colors.text }} fallback={<Star className="w-6 h-6" style={{ color: colors.text }} />} />
       </div>
       <div className={variant === "centered" ? "" : "flex-1"}>
         <h4 className="font-bold mb-1 transition-colors" style={{ color: titleColor || "#171717" }} data-field="title">

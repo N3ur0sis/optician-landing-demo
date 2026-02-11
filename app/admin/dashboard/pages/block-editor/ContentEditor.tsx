@@ -1353,7 +1353,7 @@ export default function ContentEditor({
                     className="input flex-1"
                     placeholder="Auto (selon le style)"
                   />
-                  {content.itemBgColor && (
+                  {Boolean(content.itemBgColor) && (
                     <button
                       onClick={() => updateContent("itemBgColor", undefined)}
                       className="px-2 text-gray-500 hover:text-red-500"
@@ -2886,20 +2886,11 @@ export default function ContentEditor({
               </select>
             </Field>
             <Field label="Couleur de l'icône">
-              <select
-                value={(content.iconColor as string) || "amber"}
-                onChange={(e) => updateContent("iconColor", e.target.value)}
-                className="input"
-              >
-                <option value="amber">Ambre</option>
-                <option value="blue">Bleu</option>
-                <option value="green">Vert</option>
-                <option value="red">Rouge</option>
-                <option value="purple">Violet</option>
-                <option value="pink">Rose</option>
-                <option value="indigo">Indigo</option>
-                <option value="gray">Gris</option>
-              </select>
+              <DebouncedColorInput
+                value={(content.iconColor as string) || "#f59e0b"}
+                onChange={(val) => updateContent("iconColor", val)}
+                className="w-full h-10"
+              />
             </Field>
             <Field label="Couleur de fond">
               <DebouncedColorInput
@@ -2980,18 +2971,11 @@ export default function ContentEditor({
           <div className="border-t border-gray-200 pt-4">
             <h4 className="font-medium text-gray-900 mb-3">Style</h4>
             <Field label="Couleur d'accent">
-              <select
-                value={(content.accentColor as string) || "amber"}
-                onChange={(e) => updateContent("accentColor", e.target.value)}
-                className="input"
-              >
-                <option value="amber">Ambre</option>
-                <option value="blue">Bleu</option>
-                <option value="green">Vert</option>
-                <option value="red">Rouge</option>
-                <option value="purple">Violet</option>
-                <option value="gray">Gris</option>
-              </select>
+              <DebouncedColorInput
+                value={(content.accentColor as string) || "#f59e0b"}
+                onChange={(val) => updateContent("accentColor", val)}
+                className="w-full h-10"
+              />
             </Field>
             <Field label="Couleur de fond">
               <DebouncedColorInput
@@ -3034,7 +3018,7 @@ export default function ContentEditor({
             />
           </Field>
           <ServicesListEditor
-            services={(content.services as string[]) || []}
+            services={(content.services as (string | { text: string; _styles?: Record<string, unknown> })[]) || []}
             onChange={(services) => updateContent("services", services)}
           />
 
@@ -3074,20 +3058,11 @@ export default function ContentEditor({
           <div className="border-t border-gray-200 pt-4">
             <h4 className="font-medium text-gray-900 mb-3">Style</h4>
             <Field label="Couleur des icônes">
-              <select
-                value={(content.iconColor as string) || "amber"}
-                onChange={(e) => updateContent("iconColor", e.target.value)}
-                className="input"
-              >
-                <option value="amber">Ambre</option>
-                <option value="blue">Bleu</option>
-                <option value="green">Vert</option>
-                <option value="red">Rouge</option>
-                <option value="purple">Violet</option>
-                <option value="pink">Rose</option>
-                <option value="indigo">Indigo</option>
-                <option value="gray">Gris</option>
-              </select>
+              <DebouncedColorInput
+                value={(content.iconColor as string) || "#f59e0b"}
+                onChange={(val) => updateContent("iconColor", val)}
+                className="w-full h-10"
+              />
             </Field>
             <Field label="Couleur de fond">
               <DebouncedColorInput
@@ -3137,6 +3112,29 @@ export default function ContentEditor({
               placeholder="Description du CTA"
             />
           </Field>
+          
+          {/* Title Icon */}
+          <div className="border-t border-gray-200 pt-4">
+            <label className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                checked={(content.showIcon as boolean) !== false}
+                onChange={(e) => updateContent("showIcon", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">Afficher une icône dans le titre</span>
+            </label>
+            {(content.showIcon as boolean) !== false && (
+              <Field label="Icône du titre">
+                <IconPicker
+                  value={(content.icon as string) || "Calendar"}
+                  onChange={(iconName) => updateContent("icon", iconName)}
+                  placeholder="Choisir une icône"
+                />
+              </Field>
+            )}
+          </div>
+          
           <div className="p-3 bg-gray-50 rounded-lg space-y-2">
             <span className="text-xs font-medium text-gray-700">
               Bouton principal
@@ -3171,6 +3169,18 @@ export default function ContentEditor({
               className="input"
               placeholder="URL"
             />
+            <Field label="Icône du bouton">
+              <IconPicker
+                value={((content.primaryButton as Record<string, unknown>)?.icon as string) || ""}
+                onChange={(iconName) =>
+                  updateContent("primaryButton", {
+                    ...((content.primaryButton as Record<string, unknown>) || {}),
+                    icon: iconName,
+                  })
+                }
+                placeholder="Aucune icône"
+              />
+            </Field>
           </div>
           <div className="p-3 bg-gray-50 rounded-lg space-y-2">
             <span className="text-xs font-medium text-gray-700">
@@ -3208,6 +3218,18 @@ export default function ContentEditor({
               className="input"
               placeholder="URL"
             />
+            <Field label="Icône du bouton">
+              <IconPicker
+                value={((content.secondaryButton as Record<string, unknown>)?.icon as string) || ""}
+                onChange={(iconName) =>
+                  updateContent("secondaryButton", {
+                    ...((content.secondaryButton as Record<string, unknown>) || {}),
+                    icon: iconName,
+                  })
+                }
+                placeholder="Aucune icône"
+              />
+            </Field>
           </div>
 
           <div className="pt-6 mt-4">
@@ -3215,8 +3237,8 @@ export default function ContentEditor({
 
             <Field label="Style visuel">
               <select
-                value={(content.style as string) || "default"}
-                onChange={(e) => updateContent("style", e.target.value)}
+                value={(content.variant as string) || (content.style as string) || "default"}
+                onChange={(e) => updateContent("variant", e.target.value)}
                 className="input"
               >
                 {CTA_STYLE_OPTIONS.map((s) => (
@@ -3247,7 +3269,7 @@ export default function ContentEditor({
 
             <Field label="Couleur de fond">
               <DebouncedColorInput
-                value={(content.backgroundColor as string) || "#1f2937"}
+                value={(content.backgroundColor as string) || ""}
                 onChange={(val) => updateContent("backgroundColor", val)}
                 className="w-full h-10"
               />
@@ -3255,7 +3277,7 @@ export default function ContentEditor({
 
             <Field label="Couleur du bouton principal">
               <DebouncedColorInput
-                value={(content.buttonColor as string) || "#D4A574"}
+                value={(content.buttonColor as string) || ""}
                 onChange={(val) => updateContent("buttonColor", val)}
                 className="w-full h-10"
               />
@@ -3263,23 +3285,11 @@ export default function ContentEditor({
 
             <Field label="Couleur du texte">
               <DebouncedColorInput
-                value={(content.textColor as string) || "#ffffff"}
+                value={(content.textColor as string) || ""}
                 onChange={(val) => updateContent("textColor", val)}
                 className="w-full h-10"
               />
             </Field>
-          </div>
-
-          <div className="space-y-2">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={(content.showIcon as boolean) || false}
-                onChange={(e) => updateContent("showIcon", e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <span className="text-sm text-gray-700">Afficher une icône</span>
-            </label>
           </div>
         </div>
       );
@@ -3474,18 +3484,11 @@ export default function ContentEditor({
           <div className="border-t border-gray-200 pt-4">
             <h4 className="font-medium text-gray-900 mb-3">Style</h4>
             <Field label="Couleur d'accent">
-              <select
-                value={(content.accentColor as string) || "amber"}
-                onChange={(e) => updateContent("accentColor", e.target.value)}
-                className="input"
-              >
-                <option value="amber">Ambre</option>
-                <option value="blue">Bleu</option>
-                <option value="green">Vert</option>
-                <option value="red">Rouge</option>
-                <option value="purple">Violet</option>
-                <option value="gray">Gris</option>
-              </select>
+              <DebouncedColorInput
+                value={(content.accentColor as string) || "#f59e0b"}
+                onChange={(val) => updateContent("accentColor", val)}
+                className="w-full h-10"
+              />
             </Field>
             <Field label="Couleur de fond">
               <DebouncedColorInput
@@ -3560,20 +3563,11 @@ export default function ContentEditor({
               </select>
             </Field>
             <Field label="Couleur de l'icône">
-              <select
-                value={(content.iconColor as string) || "amber"}
-                onChange={(e) => updateContent("iconColor", e.target.value)}
-                className="input"
-              >
-                <option value="amber">Ambre</option>
-                <option value="blue">Bleu</option>
-                <option value="green">Vert</option>
-                <option value="red">Rouge</option>
-                <option value="purple">Violet</option>
-                <option value="pink">Rose</option>
-                <option value="indigo">Indigo</option>
-                <option value="gray">Gris</option>
-              </select>
+              <DebouncedColorInput
+                value={(content.iconColor as string) || "#f59e0b"}
+                onChange={(val) => updateContent("iconColor", val)}
+                className="w-full h-10"
+              />
             </Field>
             <label className="flex items-center gap-2 mt-2">
               <input
