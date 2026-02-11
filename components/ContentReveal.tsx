@@ -62,7 +62,9 @@ const ContentReveal = ({
   useEffect(() => {
     const fetchTiles = async () => {
       try {
-        const response = await fetch("/api/grid");
+        const response = await fetch("/api/grid", {
+          cache: "no-store",
+        });
         if (response.ok) {
           const gridTiles: GridTile[] = await response.json();
 

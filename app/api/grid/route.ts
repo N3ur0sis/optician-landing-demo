@@ -10,7 +10,13 @@ export async function GET() {
       orderBy: [{ order: "asc" }],
     });
 
-    return NextResponse.json(tiles);
+    return NextResponse.json(tiles, {
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    });
   } catch (error) {
     console.error("Error fetching grid tiles:", error);
     return NextResponse.json(
