@@ -21,6 +21,8 @@ interface InlineEditableBlockProps {
     index: number,
     arrayField: string
   ) => void;
+  styleMode?: boolean;
+  onStyleModeChange?: (active: boolean) => void;
 }
 
 // Type for inline handlers stored on elements
@@ -298,11 +300,27 @@ function InlineEditableBlock({
   isEditing, // Block is selected for inline editing
   onUpdate,
   onChildClick,
+  styleMode: externalStyleMode,
+  onStyleModeChange,
 }: InlineEditableBlockProps) {
   const { isEditing: isInEditMode } = usePageBuilder(); // Global edit mode
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeField, setActiveField] = useState<string | null>(null);
+  const [internalStyleMode, setInternalStyleMode] = useState(false);
   const pendingChangesRef = useRef<Map<string, string>>(new Map());
+
+  // Combined style mode: external prop takes priority, otherwise use internal state
+  const isStyleMode = externalStyleMode !== undefined ? externalStyleMode : internalStyleMode;
+  
+  // Toggle style mode
+  const toggleStyleMode = useCallback(() => {
+    const newValue = !isStyleMode;
+    if (onStyleModeChange) {
+      onStyleModeChange(newValue);
+    } else {
+      setInternalStyleMode(newValue);
+    }
+  }, [isStyleMode, onStyleModeChange]);
 
   // Save all pending changes
   const saveChanges = useCallback(() => {
@@ -489,15 +507,15 @@ function InlineEditableBlock({
     };
   }, [saveChanges]);
 
-  // Handle Alt+Click on child elements to open style editor
+  // Handle Alt+Click OR style mode click on child elements to open style editor
   useEffect(() => {
     if (!containerRef.current || !isEditing || !onChildClick) return;
 
     const container = containerRef.current;
 
     const handleClick = (e: MouseEvent) => {
-      // Only handle Alt+Click for style editing
-      if (!e.altKey) return;
+      // Handle both Alt+Click and style mode click
+      if (!e.altKey && !isStyleMode) return;
 
       // Find closest element with data-child-type
       const target = e.target as HTMLElement;
@@ -528,14 +546,117 @@ function InlineEditableBlock({
 
     container.addEventListener('click', handleClick, true);
     return () => container.removeEventListener('click', handleClick, true);
-  }, [block.type, isEditing, onChildClick]);
+  }, [block.type, isEditing, onChildClick, isStyleMode]);
+
+  // ALT key listener - toggle style mode on/off with single press
+  useEffect(() => {
+    if (!isEditing || !onChildClick) return;
+
+    let altKeyHeld = false;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Alt' && !e.repeat && !altKeyHeld) {
+        altKeyHeld = true;
+        // Toggle style mode on ALT press
+        toggleStyleMode();
+        e.preventDefault(); // Prevent browser menu
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Alt') {
+        altKeyHeld = false;
+      }
+    };
+
+    // Also handle window blur (e.g., user alt-tabs away) - disable style mode
+    const handleBlur = () => {
+      if (isStyleMode && onStyleModeChange) {
+        onStyleModeChange(false);
+      } else if (isStyleMode) {
+        setInternalStyleMode(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [isEditing, onChildClick, toggleStyleMode, isStyleMode, onStyleModeChange]);
+
+  // Add CSS for style mode highlighting
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const styleId = 'alt-mode-highlight-styles';
+    let styleEl = document.getElementById(styleId) as HTMLStyleElement;
+    
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      document.head.appendChild(styleEl);
+    }
+
+    if (isStyleMode) {
+      styleEl.textContent = `
+        [data-child-type] {
+          position: relative;
+          cursor: pointer !important;
+          transition: all 0.15s ease !important;
+        }
+        [data-child-type]::after {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border: 2px dashed rgba(59, 130, 246, 0.4);
+          border-radius: 4px;
+          pointer-events: none;
+          opacity: 1;
+          transition: all 0.15s ease;
+        }
+        [data-child-type]:hover::after {
+          border-color: rgb(59, 130, 246);
+          border-style: solid;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+        [data-child-type]:hover {
+          transform: scale(1.01);
+        }
+      `;
+    } else {
+      styleEl.textContent = '';
+    }
+
+    return () => {
+      // Don't remove on unmount, just clear content
+    };
+  }, [isEditing, isStyleMode]);
 
   return (
     <div 
       ref={containerRef} 
-      className="relative group"
+      className={`relative group ${isStyleMode ? 'style-mode-active' : ''}`}
     >
       <BlockRenderer block={block} />
+
+      {/* Style mode indicator - fixed at top, clickable to exit */}
+      {isEditing && isStyleMode && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+          <button
+            onClick={toggleStyleMode}
+            className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transition-colors cursor-pointer"
+          >
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            <span className="font-medium">Mode Style Actif</span>
+            <span className="text-blue-200 text-xs">Cliquez pour quitter</span>
+          </button>
+        </div>
+      )}
 
       {/* Active field indicator */}
       {isEditing && activeField && (
@@ -546,13 +667,11 @@ function InlineEditableBlock({
         </div>
       )}
 
-      {/* Edit hints */}
-      {isEditing && !activeField && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          <div className="bg-black/80 text-white text-xs px-3 py-1.5 rounded-full whitespace-nowrap shadow-lg backdrop-blur-sm flex items-center gap-2">
-            <span>✎ Cliquez sur le texte pour l&apos;éditer</span>
-            <span className="text-white/60">|</span>
-            <span className="text-blue-300">Alt+Clic pour styler un élément</span>
+      {/* Edit hints - centered on block */}
+      {isEditing && !activeField && !isStyleMode && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <div className="bg-black/80 text-white text-xs px-3 py-1.5 rounded-full whitespace-nowrap shadow-lg backdrop-blur-sm">
+            ✎ Cliquez pour éditer · Alt+Clic pour styler
           </div>
         </div>
       )}

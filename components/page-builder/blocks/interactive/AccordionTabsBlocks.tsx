@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { usePageBuilder } from "@/components/page-builder/PageBuilderContext";
 import { LucideIcon } from "@/components/ui/icon-picker";
-import { BlockContentProps } from "../types";
+import { BlockContentProps, ChildElementStyles, getChildElementInlineStyles } from "../types";
 
 // ============================================
 // Accordion Block
@@ -15,6 +15,7 @@ interface AccordionItem {
   title: string;
   content: string;
   defaultOpen?: boolean;
+  _styles?: ChildElementStyles;
 }
 
 interface AccordionContent {
@@ -69,12 +70,15 @@ export function AccordionBlock({
 
   return (
     <div className={style === "default" ? "divide-y divide-white/10" : ""}>
-      {items.map((item, index) => (
+      {items.map((item, index) => {
+        const childStyles = getChildElementInlineStyles(item._styles);
+        return (
         <div
           key={index}
           data-item-index={index}
           data-child-type="accordion-item"
           className={getStyleClasses()}
+          style={childStyles}
         >
           <button
             onClick={isEditing ? undefined : () => toggleItem(index)}
@@ -110,7 +114,8 @@ export function AccordionBlock({
             )}
           </AnimatePresence>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -123,6 +128,7 @@ interface TabItem {
   label: string;
   content: string;
   icon?: string;
+  _styles?: ChildElementStyles;
 }
 
 interface TabsContent {
@@ -196,26 +202,30 @@ export function TabsBlock({ content }: BlockContentProps<TabsContent>) {
         className={`flex gap-2 ${styles.container} ${isVertical ? "w-48 shrink-0" : ""}`}
         style={tabBackground ? { backgroundColor: tabBackground } : undefined}
       >
-        {tabs.map((tab, index) => (
+        {tabs.map((tab, index) => {
+          const childStyles = getChildElementInlineStyles(tab._styles);
+          return (
           <button
             key={index}
             onClick={isEditing ? undefined : () => setActiveTab(index)}
             data-item-index={index}
             data-child-type="tab"
             className={`${styles.tab} flex items-center gap-2 ${isVertical ? "w-full" : ""} ${isEditing ? 'cursor-default' : ''}`}
-            style={
-              activeTab === index
+            style={{
+              ...(activeTab === index
                 ? {
                     ...styles.activeTab,
                     ...(activeTabColor ? { color: activeTabColor } : {}),
                   }
-                : undefined
-            }
+                : {}),
+              ...childStyles,
+            }}
           >
             {tab.icon && <LucideIcon name={tab.icon} className="w-4 h-4" />}
             <span data-field="label">{tab.label}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
       <div className={isVertical ? "flex-1 py-2" : "py-6"}>
         {tabs[activeTab] && (

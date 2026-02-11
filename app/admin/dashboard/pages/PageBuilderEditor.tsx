@@ -32,6 +32,7 @@ import {
   Ruler,
   Info,
   AlertCircle,
+  Palette,
 } from "lucide-react";
 import {
   Page,
@@ -152,6 +153,9 @@ export default function PageBuilderEditor({
 
   // Child element editor for styling child elements (cards, items, etc.)
   const childElementEditor = useChildElementEditor();
+  
+  // Style mode - tracks which block has style mode active
+  const [styleModeBlockId, setStyleModeBlockId] = useState<string | null>(null);
 
   // Undo/Redo history - using refs to avoid dependency issues
   const historyRef = useRef<PageBlock[][]>([initialPage.blocks || []]);
@@ -1272,6 +1276,24 @@ export default function PageBuilderEditor({
                                   <AlignRight className="w-3.5 h-3.5" />
                                 </button>
                               </div>
+
+                              {/* Style Mode Toggle */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setStyleModeBlockId(
+                                    styleModeBlockId === block.id ? null : block.id
+                                  );
+                                }}
+                                className={`p-1.5 rounded transition-colors border-l border-gray-200 ml-1 ${
+                                  styleModeBlockId === block.id
+                                    ? "bg-blue-500 text-white"
+                                    : "hover:bg-gray-100 text-gray-700"
+                                }`}
+                                title="Mode Style (Alt+Clic)"
+                              >
+                                <Palette className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </div>
                         </>
@@ -1296,6 +1318,10 @@ export default function PageBuilderEditor({
                             arrayField
                           );
                         }}
+                        styleMode={styleModeBlockId === block.id}
+                        onStyleModeChange={(active) =>
+                          setStyleModeBlockId(active ? block.id : null)
+                        }
                       />
                     </div>
                   );

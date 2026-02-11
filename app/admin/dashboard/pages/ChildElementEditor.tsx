@@ -146,20 +146,22 @@ export default function ChildElementEditor({
     }
   }, [isOpen, position]);
 
-  // Selection outline on target element
+  // Selection outline on target element (blue for UX consistency)
   useEffect(() => {
     if (!isOpen) return;
     
     const el = document.querySelector(`[data-item-index="${elementIndex}"][data-child-type="${elementType}"]`) as HTMLElement;
     if (el) {
-      el.style.outline = "2px solid #000";
+      el.style.outline = "2px solid rgb(59, 130, 246)";
       el.style.outlineOffset = "2px";
+      el.style.boxShadow = "0 0 0 4px rgba(59, 130, 246, 0.15)";
     }
 
     return () => {
       if (el) {
         el.style.outline = "";
         el.style.outlineOffset = "";
+        el.style.boxShadow = "";
       }
     };
   }, [isOpen, elementIndex, elementType]);
@@ -266,7 +268,7 @@ export default function ChildElementEditor({
           </div>
 
           {/* Content - Simplified Single View */}
-          <div className="p-3 max-h-[350px] overflow-y-auto space-y-4">
+          <div className="p-3 max-h-[450px] overflow-y-auto space-y-4">
             {/* Background Color */}
             <ColorInput
               label="Fond"
@@ -357,6 +359,77 @@ export default function ChildElementEditor({
                     onClick={() => updateStyle("fontSize", localStyles.fontSize === opt.value ? "" : opt.value)}
                   />
                 ))}
+              </div>
+            </div>
+
+            {/* Font Weight */}
+            <div>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Épaisseur</label>
+              <div className="grid grid-cols-4 gap-1">
+                {[
+                  { value: "400", label: "Normal" },
+                  { value: "500", label: "Medium" },
+                  { value: "600", label: "Semi" },
+                  { value: "700", label: "Bold" },
+                ].map((opt) => (
+                  <StyleOption
+                    key={opt.value}
+                    label={opt.label}
+                    selected={localStyles.fontWeight === opt.value}
+                    onClick={() => updateStyle("fontWeight", localStyles.fontWeight === opt.value ? "" : opt.value)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Opacity */}
+            <div>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Opacité</label>
+              <div className="grid grid-cols-5 gap-1">
+                {[
+                  { value: "0.25", label: "25%" },
+                  { value: "0.5", label: "50%" },
+                  { value: "0.75", label: "75%" },
+                  { value: "0.9", label: "90%" },
+                  { value: "1", label: "100%" },
+                ].map((opt) => (
+                  <StyleOption
+                    key={opt.value}
+                    label={opt.label}
+                    selected={localStyles.opacity === opt.value}
+                    onClick={() => updateStyle("opacity", localStyles.opacity === opt.value ? "" : opt.value)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Border */}
+            <div>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Bordure</label>
+              <div className="flex gap-2">
+                <div className="flex-1 grid grid-cols-4 gap-1">
+                  {[
+                    { value: "0", label: "0" },
+                    { value: "1px", label: "1" },
+                    { value: "2px", label: "2" },
+                    { value: "4px", label: "4" },
+                  ].map((opt) => (
+                    <StyleOption
+                      key={opt.value}
+                      label={opt.label}
+                      selected={localStyles.borderWidth === opt.value}
+                      onClick={() => updateStyle("borderWidth", localStyles.borderWidth === opt.value ? "" : opt.value)}
+                    />
+                  ))}
+                </div>
+                {localStyles.borderWidth && (
+                  <input
+                    type="color"
+                    value={localStyles.borderColor || "#000000"}
+                    onChange={(e) => updateStyle("borderColor", e.target.value)}
+                    className="w-8 h-8 rounded border border-gray-200 cursor-pointer shrink-0"
+                  />
+                )}
               </div>
             </div>
           </div>

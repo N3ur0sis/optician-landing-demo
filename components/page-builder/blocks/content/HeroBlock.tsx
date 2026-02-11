@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePageBuilder } from "@/components/page-builder/PageBuilderContext";
-import { BlockContentProps, HEIGHT_MAP, TEXT_ALIGN_MAP, FLEX_ALIGN_MAP } from "../types";
+import { BlockContentProps, HEIGHT_MAP, TEXT_ALIGN_MAP, FLEX_ALIGN_MAP, ChildElementStyles, getChildElementInlineStyles } from "../types";
 
 interface HeroButton {
   text: string;
   url: string;
   variant?: "primary" | "secondary";
+  _styles?: ChildElementStyles;
 }
 
 interface HeroContent {
@@ -131,8 +132,9 @@ export function HeroBlock({ content }: BlockContentProps<HeroContent>) {
         )}
         {buttonsToRender.length > 0 && (
           <div className={`flex flex-wrap gap-4 mt-8 ${layout === "centered" || layout === "center" ? "justify-center" : ""}`}>
-            {buttonsToRender.map((button, index) => (
-              isEditing ? (
+            {buttonsToRender.map((button, index) => {
+              const childStyles = getChildElementInlineStyles(button._styles);
+              return isEditing ? (
                 <span
                   key={index}
                   data-item-index={index}
@@ -143,6 +145,7 @@ export function HeroBlock({ content }: BlockContentProps<HeroContent>) {
                       ? "bg-white/10 backdrop-blur-sm"
                       : "bg-white text-black"
                   }`}
+                  style={childStyles}
                 >
                   {button.text}
                 </span>
@@ -158,11 +161,12 @@ export function HeroBlock({ content }: BlockContentProps<HeroContent>) {
                       ? "bg-white/10 hover:bg-white/20 backdrop-blur-sm"
                       : "bg-white text-black hover:bg-white/90"
                   }`}
+                  style={childStyles}
                 >
                   {button.text}
                 </Link>
-              )
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
