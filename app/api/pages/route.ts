@@ -1,6 +1,24 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { hasPermission, parsePermissions } from '@/types/permissions';
+
+// Helper to check pages permission
+async function checkPagesPermission() {
+  const session = await auth();
+  if (!session) {
+    return { authorized: false, error: "Unauthorized" };
+  }
+  
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "pages")) {
+    return { authorized: false, error: "Permission denied" };
+  }
+  
+  return { authorized: true, session };
+}
 
 // GET all pages (with optional filtering)
 export async function GET(request: Request) {
@@ -49,9 +67,9 @@ export async function GET(request: Request) {
 // POST create a new page
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const body = await request.json();
@@ -78,23 +96,44 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if slug already exists
-    const existingPage = await prisma.page.findUnique({
-      where: { slug },
+    // Normalize slug
+    const normalizedSlug = slug.replace(/^\//, '').toLowerCase();
+    
+    // Block creation of homepage (protected page)
+    if (normalizedSlug === '' || normalizedSlug === '/' || normalizedSlug === 'accueil' || normalizedSlug === 'home') {
+      return NextResponse.json(
+        { error: 'La page d\'accueil existe déjà et ne peut pas être recréée' }, 
+        { status: 400 }
+      );
+    }
+
+    // Check if slug already exists (check both with and without leading slash)
+    // Exclude soft-deleted pages from conflict check
+    const existingPage = await prisma.page.findFirst({
+      where: {
+        deletedAt: null,
+        OR: [
+          { slug: normalizedSlug },
+          { slug: `/${normalizedSlug}` },
+        ],
+      },
     });
 
     if (existingPage) {
       return NextResponse.json(
-        { error: 'A page with this slug already exists' }, 
+        { error: 'Une page avec ce slug existe déjà' }, 
         { status: 400 }
       );
     }
+
+    // Final slug format (with leading slash for consistency)
+    const finalSlug = normalizedSlug;
 
     // Create page with blocks
     const page = await prisma.page.create({
       data: {
         title,
-        slug: slug.startsWith('/') ? slug : `/${slug}`,
+        slug: finalSlug,
         metaTitle,
         metaDescription,
         template,

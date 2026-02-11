@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, Reorder } from "framer-motion";
 import {
   Plus,
-  Menu,
   ChevronRight,
   ChevronDown,
   GripVertical,
@@ -14,238 +13,178 @@ import {
   EyeOff,
   ExternalLink,
   Link2,
-  Settings2,
   Palette,
-  LayoutGrid,
   Save,
   X,
   FileText,
-  Home,
   Star,
-  Copy,
-  MoreHorizontal,
-} from 'lucide-react';
+  AlertCircle,
+} from "lucide-react";
 
-// Types
-interface NavigationMenu {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  type: string;
-  position: string;
-  layout: string;
-  alignment: string;
-  animation: string;
-  animationDuration: number;
-  backgroundColor?: string;
-  textColor?: string;
-  hoverColor?: string;
-  activeColor?: string;
-  borderColor?: string;
-  itemSpacing: number;
-  padding?: string;
-  dropdownAnimation: string;
-  dropdownDelay: number;
-  customCSS?: string;
-  cssClasses?: string;
-  mobileBreakpoint: number;
-  mobileStyle: string;
-  published: boolean;
-  items: NavigationItem[];
-}
+import {
+  NavigationMenu,
+  NavigationItem,
+  NavigationPage,
+  MenuStyleConfig,
+  MENU_ALIGNMENTS,
+  MOBILE_STYLES,
+  DROPDOWN_ANIMATIONS,
+  DISPLAY_MODES,
+  DEFAULT_MENU,
+  DEFAULT_ITEM,
+  buildNestedItems,
+} from "@/types/navigation";
 
-interface NavigationItem {
-  id: string;
-  label: string;
-  href?: string;
-  parentId?: string;
-  menuId?: string;
-  order: number;
-  depth: number;
-  pageSlug?: string;
-  openInNewTab: boolean;
-  icon?: string;
-  iconPosition: string;
-  cssClass?: string;
-  style: Record<string, unknown>;
-  dropdownStyle: string;
-  published: boolean;
-  highlighted: boolean;
-  children?: NavigationItem[];
-}
-
-interface Page {
-  id: string;
-  slug: string;
-  title: string;
-  published: boolean;
-  navLabel?: string;
-}
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 export default function NavigationManagerClient() {
-  const [menus, setMenus] = useState<NavigationMenu[]>([]);
-  const [selectedMenu, setSelectedMenu] = useState<NavigationMenu | null>(null);
-  const [pages, setPages] = useState<Page[]>([]);
+  const [menu, setMenu] = useState<NavigationMenu | null>(null);
+  const [pages, setPages] = useState<NavigationPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   // Modal states
-  const [showMenuModal, setShowMenuModal] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
   const [showStyleModal, setShowStyleModal] = useState(false);
-  const [editingMenu, setEditingMenu] = useState<NavigationMenu | null>(null);
   const [editingItem, setEditingItem] = useState<NavigationItem | null>(null);
   const [parentItemId, setParentItemId] = useState<string | null>(null);
-  
+
   // Expanded items for tree view
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  // Fetch menus
-  const fetchMenus = useCallback(async () => {
+  // Fetch menu (singleton - only one menu "header")
+  const fetchMenu = useCallback(async () => {
     try {
-      const response = await fetch('/api/navigation/menus?includeItems=true');
+      const response = await fetch("/api/navigation/menus/header?includeItems=true");
       if (response.ok) {
         const data = await response.json();
-        setMenus(data);
-        if (data.length > 0 && !selectedMenu) {
-          setSelectedMenu(data[0]);
-        } else if (selectedMenu) {
-          // Refresh selected menu
-          const updated = data.find((m: NavigationMenu) => m.id === selectedMenu.id);
-          if (updated) setSelectedMenu(updated);
+        setMenu(data);
+      } else if (response.status === 404) {
+        // Create default menu if not exists
+        const createResponse = await fetch("/api/navigation/menus", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(DEFAULT_MENU),
+        });
+        if (createResponse.ok) {
+          const newMenu = await createResponse.json();
+          setMenu({ ...newMenu, items: [] });
         }
       }
     } catch (error) {
-      console.error('Error fetching menus:', error);
+      console.error("Error fetching menu:", error);
     } finally {
       setLoading(false);
     }
-  }, [selectedMenu]);
+  }, []);
 
   // Fetch pages for linking
   const fetchPages = useCallback(async () => {
     try {
-      const response = await fetch('/api/navigation/pages');
+      const response = await fetch("/api/navigation/pages");
       if (response.ok) {
         const data = await response.json();
         setPages(data);
       }
     } catch (error) {
-      console.error('Error fetching pages:', error);
+      console.error("Error fetching pages:", error);
     }
   }, []);
 
+  // Initial load
   useEffect(() => {
-    fetchMenus();
+    fetchMenu();
     fetchPages();
-  }, [fetchMenus, fetchPages]);
+  }, [fetchMenu, fetchPages]);
 
-  // Create/Update Menu
-  const handleSaveMenu = async (menuData: Partial<NavigationMenu>) => {
+  // Save menu style
+  const handleSaveStyle = async (styleData: MenuStyleConfig): Promise<boolean> => {
+    if (!menu) return false;
+
     setSaving(true);
     try {
-      const url = editingMenu 
-        ? `/api/navigation/menus/${editingMenu.slug}`
-        : '/api/navigation/menus';
-      
-      const response = await fetch(url, {
-        method: editingMenu ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(menuData),
+      const response = await fetch(`/api/navigation/menus/${menu.slug}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(styleData),
       });
 
       if (response.ok) {
-        await fetchMenus();
-        setShowMenuModal(false);
-        setEditingMenu(null);
+        await fetchMenu();
+        return true;
       }
+      return false;
     } catch (error) {
-      console.error('Error saving menu:', error);
+      console.error("Error saving style:", error);
+      return false;
     } finally {
       setSaving(false);
     }
   };
 
-  // Delete Menu
-  const handleDeleteMenu = async (slug: string) => {
-    if (!confirm('Supprimer ce menu et tous ses éléments ?')) return;
-    
-    try {
-      const response = await fetch(`/api/navigation/menus/${slug}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        if (selectedMenu?.slug === slug) {
-          setSelectedMenu(null);
-        }
-        await fetchMenus();
-      }
-    } catch (error) {
-      console.error('Error deleting menu:', error);
-    }
-  };
-
-  // Create/Update Item
+  // Save item
   const handleSaveItem = async (itemData: Partial<NavigationItem>) => {
+    if (!menu) return;
+
     setSaving(true);
     try {
-      const url = editingItem 
+      const url = editingItem
         ? `/api/navigation/items/${editingItem.id}`
-        : '/api/navigation/items';
-      
+        : "/api/navigation/items";
+
       const response = await fetch(url, {
-        method: editingItem ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: editingItem ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...itemData,
-          menuId: selectedMenu?.id,
+          menuId: menu.id,
           parentId: parentItemId,
         }),
       });
 
       if (response.ok) {
-        await fetchMenus();
+        await fetchMenu();
         setShowItemModal(false);
         setEditingItem(null);
         setParentItemId(null);
       }
     } catch (error) {
-      console.error('Error saving item:', error);
+      console.error("Error saving item:", error);
     } finally {
       setSaving(false);
     }
   };
 
-  // Delete Item
+  // Delete item
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('Supprimer cet élément ?')) return;
-    
+    if (!confirm("Supprimer cet élément et ses sous-éléments ?")) return;
+
     try {
       const response = await fetch(`/api/navigation/items/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (response.ok) {
-        await fetchMenus();
+        await fetchMenu();
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
+      console.error("Error deleting item:", error);
     }
   };
 
   // Toggle item visibility
-  const handleToggleItemPublished = async (item: NavigationItem) => {
+  const handleTogglePublished = async (item: NavigationItem) => {
     try {
       await fetch(`/api/navigation/items/${item.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ published: !item.published }),
       });
-      await fetchMenus();
+      await fetchMenu();
     } catch (error) {
-      console.error('Error toggling item:', error);
+      console.error("Error toggling item:", error);
     }
   };
 
@@ -258,31 +197,20 @@ export default function NavigationManagerClient() {
     }));
 
     try {
-      await fetch('/api/navigation/items', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/navigation/items", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items: updates }),
       });
-      await fetchMenus();
+      await fetchMenu();
     } catch (error) {
-      console.error('Error reordering items:', error);
+      console.error("Error reordering items:", error);
     }
-  };
-
-  // Build nested items structure
-  const buildNestedItems = (items: NavigationItem[], parentId: string | null = null): NavigationItem[] => {
-    return items
-      .filter(item => item.parentId === parentId)
-      .sort((a, b) => a.order - b.order)
-      .map(item => ({
-        ...item,
-        children: buildNestedItems(items, item.id),
-      }));
   };
 
   // Toggle expanded state
   const toggleExpanded = (itemId: string) => {
-    setExpandedItems(prev => {
+    setExpandedItems((prev) => {
       const next = new Set(prev);
       if (next.has(itemId)) {
         next.delete(itemId);
@@ -296,208 +224,119 @@ export default function NavigationManagerClient() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="animate-pulse space-y-6">
             <div className="h-10 bg-gray-200 rounded w-1/4" />
-            <div className="grid grid-cols-4 gap-6">
-              <div className="h-96 bg-gray-200 rounded-xl" />
-              <div className="col-span-3 h-96 bg-gray-200 rounded-xl" />
-            </div>
+            <div className="h-96 bg-gray-200 rounded-xl" />
           </div>
         </div>
       </div>
     );
   }
 
+  const nestedItems = menu ? buildNestedItems(menu.items, null, true) : [];
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Navigation</h1>
-            <p className="text-gray-600 mt-1">Gérez les menus et la navigation de votre site</p>
+            <p className="text-gray-600 mt-1">
+              Gérez le menu principal de votre site
+            </p>
           </div>
-          <button
-            onClick={() => {
-              setEditingMenu(null);
-              setShowMenuModal(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Nouveau menu
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowStyleModal(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700 transition-colors"
+            >
+              <Palette className="w-4 h-4" />
+              Style
+            </button>
+            <button
+              onClick={() => {
+                setEditingItem(null);
+                setParentItemId(null);
+                setShowItemModal(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Ajouter un lien
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-6">
-          {/* Menus List */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Menu className="w-4 h-4" />
-                Menus
-              </h2>
-            </div>
-            <div className="p-2">
-              {menus.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
-                  <LayoutGrid className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Aucun menu créé</p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {menus.map((menu) => (
-                    <div
-                      key={menu.id}
-                      onClick={() => setSelectedMenu(menu)}
-                      className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                        selectedMenu?.id === menu.id
-                          ? 'bg-black text-white'
-                          : 'hover:bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="truncate font-medium">{menu.name}</span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${
-                          selectedMenu?.id === menu.id
-                            ? 'bg-white/20 text-white'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}>
-                          {menu.items?.length || 0}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingMenu(menu);
-                            setShowMenuModal(true);
-                          }}
-                          className={`p-1 rounded hover:bg-white/20 ${
-                            selectedMenu?.id === menu.id ? 'text-white' : 'text-gray-600'
-                          }`}
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteMenu(menu.slug);
-                          }}
-                          className={`p-1 rounded hover:bg-red-500/20 ${
-                            selectedMenu?.id === menu.id ? 'text-white' : 'text-gray-600'
-                          }`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+        {/* Menu Items */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="p-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h2 className="font-semibold text-gray-900">Menu Principal</h2>
+                <span className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded">
+                  {menu?.items?.length || 0} éléments
+                </span>
+              </div>
+              {menu && (
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <span>Alignement: {MENU_ALIGNMENTS[menu.alignment]}</span>
+                  <span>Mobile: {MOBILE_STYLES[menu.mobileStyle]}</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Menu Items Editor */}
-          <div className="col-span-3 bg-white rounded-xl border border-gray-200 overflow-hidden">
-            {selectedMenu ? (
-              <>
-                {/* Menu Header */}
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                  <div>
-                    <h2 className="font-semibold text-gray-900">{selectedMenu.name}</h2>
-                    <p className="text-sm text-gray-500">
-                      {selectedMenu.type} • {selectedMenu.layout} • {selectedMenu.items?.length || 0} éléments
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setShowStyleModal(true)}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700"
-                    >
-                      <Palette className="w-4 h-4" />
-                      Style
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingItem(null);
-                        setParentItemId(null);
-                        setShowItemModal(true);
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm bg-black text-white rounded-lg hover:bg-gray-800"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Ajouter
-                    </button>
-                  </div>
-                </div>
-
-                {/* Items Tree */}
-                <div className="p-4">
-                  {!selectedMenu.items || selectedMenu.items.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <Link2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p className="font-medium">Aucun élément dans ce menu</p>
-                      <p className="text-sm mt-1">Ajoutez des liens, pages ou sous-menus</p>
-                      <button
-                        onClick={() => {
-                          setEditingItem(null);
-                          setParentItemId(null);
-                          setShowItemModal(true);
-                        }}
-                        className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Ajouter un élément
-                      </button>
-                    </div>
-                  ) : (
-                    <NavigationTree
-                      items={buildNestedItems(selectedMenu.items)}
-                      expandedItems={expandedItems}
-                      onToggleExpand={toggleExpanded}
-                      onEdit={(item) => {
-                        setEditingItem(item);
-                        setParentItemId(item.parentId || null);
-                        setShowItemModal(true);
-                      }}
-                      onAddChild={(parentId) => {
-                        setEditingItem(null);
-                        setParentItemId(parentId);
-                        setShowItemModal(true);
-                      }}
-                      onDelete={handleDeleteItem}
-                      onTogglePublished={handleToggleItemPublished}
-                      onReorder={handleReorderItems}
-                    />
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-96 text-gray-500">
-                <div className="text-center">
-                  <Menu className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p className="font-medium">Sélectionnez un menu</p>
-                  <p className="text-sm mt-1">ou créez-en un nouveau</p>
-                </div>
+          <div className="p-4">
+            {nestedItems.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Link2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="font-medium">Aucun élément dans le menu</p>
+                <p className="text-sm mt-1">Ajoutez des liens vers vos pages</p>
+                <button
+                  onClick={() => {
+                    setEditingItem(null);
+                    setParentItemId(null);
+                    setShowItemModal(true);
+                  }}
+                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
+                >
+                  <Plus className="w-4 h-4" />
+                  Ajouter un lien
+                </button>
               </div>
+            ) : (
+              <NavigationTree
+                items={nestedItems}
+                expandedItems={expandedItems}
+                onToggleExpand={toggleExpanded}
+                onEdit={(item) => {
+                  setEditingItem(item);
+                  setParentItemId(item.parentId || null);
+                  setShowItemModal(true);
+                }}
+                onAddChild={(parentId) => {
+                  setEditingItem(null);
+                  setParentItemId(parentId);
+                  setShowItemModal(true);
+                }}
+                onDelete={handleDeleteItem}
+                onTogglePublished={handleTogglePublished}
+                onReorder={handleReorderItems}
+              />
             )}
           </div>
         </div>
-      </div>
 
-      {/* Menu Modal */}
-      <MenuModal
-        isOpen={showMenuModal}
-        onClose={() => {
-          setShowMenuModal(false);
-          setEditingMenu(null);
-        }}
-        menu={editingMenu}
-        onSave={handleSaveMenu}
-        saving={saving}
-      />
+        {/* Help text */}
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+          <p className="text-sm text-blue-800">
+            <strong>Astuce :</strong> Glissez-déposez les éléments pour les réorganiser. 
+            Utilisez le bouton "+" sur un élément pour créer un sous-menu (dropdown).
+          </p>
+        </div>
+      </div>
 
       {/* Item Modal */}
       <ItemModal
@@ -509,17 +348,18 @@ export default function NavigationManagerClient() {
         }}
         item={editingItem}
         pages={pages}
+        isSubItem={parentItemId !== null}
         onSave={handleSaveItem}
         saving={saving}
       />
 
       {/* Style Modal */}
-      {selectedMenu && (
+      {menu && (
         <StyleModal
           isOpen={showStyleModal}
           onClose={() => setShowStyleModal(false)}
-          menu={selectedMenu}
-          onSave={handleSaveMenu}
+          menu={menu}
+          onSave={handleSaveStyle}
           saving={saving}
         />
       )}
@@ -527,7 +367,10 @@ export default function NavigationManagerClient() {
   );
 }
 
-// Navigation Tree Component
+// ============================================
+// NAVIGATION TREE COMPONENT
+// ============================================
+
 interface NavigationTreeProps {
   items: NavigationItem[];
   expandedItems: Set<string>;
@@ -558,25 +401,32 @@ function NavigationTree({
       axis="y"
       values={items}
       onReorder={(newOrder) => onReorder(newOrder, parentId)}
-      className="space-y-1"
+      className="space-y-2"
+      layoutScroll
     >
       {items.map((item) => (
-        <Reorder.Item key={item.id} value={item}>
+        <Reorder.Item
+          key={item.id}
+          value={item}
+          layout
+          transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+          whileDrag={{ scale: 1.02, boxShadow: '0 8px 20px rgba(0,0,0,0.15)', zIndex: 50 }}
+        >
           <div
-            className={`group border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors ${
-              !item.published ? 'opacity-60' : ''
+            className={`group border rounded-lg bg-white transition-colors ${
+              !item.published ? "opacity-50 border-gray-200" : "border-gray-200 hover:border-gray-300"
             }`}
             style={{ marginLeft: depth * 24 }}
           >
             <div className="flex items-center gap-2 p-3">
               {/* Drag Handle */}
-              <GripVertical className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing" />
-              
+              <GripVertical className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing shrink-0" />
+
               {/* Expand/Collapse */}
               {item.children && item.children.length > 0 ? (
                 <button
                   onClick={() => onToggleExpand(item.id)}
-                  className="p-1 hover:bg-gray-100 rounded"
+                  className="p-1 hover:bg-gray-100 rounded shrink-0"
                 >
                   {expandedItems.has(item.id) ? (
                     <ChevronDown className="w-4 h-4 text-gray-600" />
@@ -585,25 +435,27 @@ function NavigationTree({
                   )}
                 </button>
               ) : (
-                <div className="w-6" />
+                <div className="w-6 shrink-0" />
               )}
 
               {/* Item Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-900 truncate">{item.label}</span>
+                  <span className="font-medium text-gray-900 truncate">
+                    {item.label}
+                  </span>
                   {item.highlighted && (
-                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500 shrink-0" />
                   )}
                   {item.openInNewTab && (
-                    <ExternalLink className="w-3.5 h-3.5 text-gray-400" />
+                    <ExternalLink className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   {item.pageSlug ? (
                     <span className="flex items-center gap-1">
                       <FileText className="w-3 h-3" />
-                      Page: {item.pageSlug}
+                      /{item.pageSlug}
                     </span>
                   ) : item.href ? (
                     <span className="flex items-center gap-1">
@@ -611,13 +463,13 @@ function NavigationTree({
                       {item.href}
                     </span>
                   ) : (
-                    <span className="text-gray-400">Sous-menu uniquement</span>
+                    <span className="text-gray-400">Menu dropdown</span>
                   )}
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                 <button
                   onClick={() => onAddChild(item.id)}
                   className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
@@ -628,7 +480,7 @@ function NavigationTree({
                 <button
                   onClick={() => onTogglePublished(item)}
                   className="p-1.5 hover:bg-gray-100 rounded text-gray-600"
-                  title={item.published ? 'Masquer' : 'Afficher'}
+                  title={item.published ? "Masquer" : "Afficher"}
                 >
                   {item.published ? (
                     <Eye className="w-4 h-4" />
@@ -656,7 +508,7 @@ function NavigationTree({
 
           {/* Children */}
           {item.children && item.children.length > 0 && expandedItems.has(item.id) && (
-            <div className="mt-1">
+            <div className="mt-2">
               <NavigationTree
                 items={item.children}
                 expandedItems={expandedItems}
@@ -677,247 +529,27 @@ function NavigationTree({
   );
 }
 
-// Menu Modal Component
-interface MenuModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  menu: NavigationMenu | null;
-  onSave: (data: Partial<NavigationMenu>) => void;
-  saving: boolean;
-}
+// ============================================
+// ITEM MODAL
+// ============================================
 
-function MenuModal({ isOpen, onClose, menu, onSave, saving }: MenuModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    type: 'header',
-    position: 'top',
-    layout: 'horizontal',
-    alignment: 'center',
-    mobileStyle: 'hamburger',
-    published: true,
-  });
-
-  useEffect(() => {
-    if (menu) {
-      setFormData({
-        name: menu.name,
-        slug: menu.slug,
-        description: menu.description || '',
-        type: menu.type,
-        position: menu.position,
-        layout: menu.layout,
-        alignment: menu.alignment,
-        mobileStyle: menu.mobileStyle,
-        published: menu.published,
-      });
-    } else {
-      setFormData({
-        name: '',
-        slug: '',
-        description: '',
-        type: 'header',
-        position: 'top',
-        layout: 'horizontal',
-        alignment: 'center',
-        mobileStyle: 'hamburger',
-        published: true,
-      });
-    }
-  }, [menu, isOpen]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-xl shadow-xl w-full max-w-lg m-4"
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            {menu ? 'Modifier le menu' : 'Nouveau menu'}
-          </h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-                placeholder="Menu principal"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-              <input
-                type="text"
-                value={formData.slug}
-                onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-                placeholder="header"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-              placeholder="Description optionnelle"
-              rows={2}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-              >
-                <option value="header">Header</option>
-                <option value="footer">Footer</option>
-                <option value="sidebar">Sidebar</option>
-                <option value="mobile">Mobile</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Position</label>
-              <select
-                value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-              >
-                <option value="top">Haut</option>
-                <option value="bottom">Bas</option>
-                <option value="left">Gauche</option>
-                <option value="right">Droite</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Layout</label>
-              <select
-                value={formData.layout}
-                onChange={(e) => setFormData({ ...formData, layout: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-              >
-                <option value="horizontal">Horizontal</option>
-                <option value="vertical">Vertical</option>
-                <option value="grid">Grille</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Alignement</label>
-              <select
-                value={formData.alignment}
-                onChange={(e) => setFormData({ ...formData, alignment: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-              >
-                <option value="left">Gauche</option>
-                <option value="center">Centre</option>
-                <option value="right">Droite</option>
-                <option value="space-between">Réparti</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Style mobile</label>
-            <select
-              value={formData.mobileStyle}
-              onChange={(e) => setFormData({ ...formData, mobileStyle: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-            >
-              <option value="hamburger">Menu hamburger</option>
-              <option value="slide">Slide</option>
-              <option value="accordion">Accordéon</option>
-            </select>
-          </div>
-
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={formData.published}
-              onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
-              className="rounded border-gray-300"
-            />
-            <span className="text-sm text-gray-700">Publié</span>
-          </label>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
-            >
-              {saving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Enregistrement...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  {menu ? 'Enregistrer' : 'Créer'}
-                </>
-              )}
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </div>
-  );
-}
-
-// Item Modal Component
 interface ItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: NavigationItem | null;
-  pages: Page[];
+  pages: NavigationPage[];
+  isSubItem: boolean;
   onSave: (data: Partial<NavigationItem>) => void;
   saving: boolean;
 }
 
-function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalProps) {
+function ItemModal({ isOpen, onClose, item, pages, isSubItem, onSave, saving }: ItemModalProps) {
   const [formData, setFormData] = useState({
-    label: '',
-    href: '',
-    pageSlug: '',
-    linkType: 'custom' as 'custom' | 'page',
+    label: "",
+    href: "",
+    pageSlug: "",
+    linkType: "page" as "custom" | "page" | "none",
     openInNewTab: false,
-    icon: '',
-    iconPosition: 'left',
     highlighted: false,
     published: true,
   });
@@ -926,24 +558,20 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
     if (item) {
       setFormData({
         label: item.label,
-        href: item.href || '',
-        pageSlug: item.pageSlug || '',
-        linkType: item.pageSlug ? 'page' : 'custom',
+        href: item.href || "",
+        pageSlug: item.pageSlug || "",
+        linkType: item.pageSlug ? "page" : item.href ? "custom" : "none",
         openInNewTab: item.openInNewTab,
-        icon: item.icon || '',
-        iconPosition: item.iconPosition,
         highlighted: item.highlighted,
         published: item.published,
       });
     } else {
       setFormData({
-        label: '',
-        href: '',
-        pageSlug: '',
-        linkType: 'custom',
+        label: "",
+        href: "",
+        pageSlug: "",
+        linkType: "page",
         openInNewTab: false,
-        icon: '',
-        iconPosition: 'left',
         highlighted: false,
         published: true,
       });
@@ -952,21 +580,27 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const data: Partial<NavigationItem> = {
       label: formData.label,
       openInNewTab: formData.openInNewTab,
-      icon: formData.icon || undefined,
-      iconPosition: formData.iconPosition,
       highlighted: formData.highlighted,
       published: formData.published,
+      ...DEFAULT_ITEM,
     };
 
-    if (formData.linkType === 'page') {
+    if (formData.linkType === "page" && formData.pageSlug) {
+      // Store the pageSlug as-is (may or may not have leading /)
       data.pageSlug = formData.pageSlug;
-      data.href = `/${formData.pageSlug}`;
+      // Build href - ensure single leading slash
+      const cleanSlug = formData.pageSlug.replace(/^\/+/, '');
+      data.href = cleanSlug === "home" || cleanSlug === "" ? "/" : `/${cleanSlug}`;
+    } else if (formData.linkType === "custom" && formData.href) {
+      data.href = formData.href;
+      data.pageSlug = undefined;
     } else {
-      data.href = formData.href || undefined;
+      // No link - dropdown parent only (never clickable)
+      data.href = undefined;
       data.pageSlug = undefined;
     }
 
@@ -980,11 +614,11 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-xl shadow-xl w-full max-w-lg m-4"
+        className="bg-white rounded-xl shadow-xl w-full max-w-md m-4"
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
-            {item ? 'Modifier l\'élément' : 'Nouvel élément'}
+            {item ? "Modifier" : isSubItem ? "Nouveau sous-élément" : "Nouveau lien"}
           </h2>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
             <X className="w-5 h-5 text-gray-600" />
@@ -992,45 +626,54 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {/* Label */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Libellé
+            </label>
             <input
               type="text"
               value={formData.label}
               onChange={(e) => setFormData({ ...formData, label: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-              placeholder="Accueil"
+              placeholder="Accueil, Services, Contact..."
               required
             />
           </div>
 
+          {/* Link Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type de lien</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={formData.linkType === 'page'}
-                  onChange={() => setFormData({ ...formData, linkType: 'page' })}
-                  className="text-black"
-                />
-                <span className="text-sm text-gray-700">Page du site</span>
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={formData.linkType === 'custom'}
-                  onChange={() => setFormData({ ...formData, linkType: 'custom' })}
-                  className="text-black"
-                />
-                <span className="text-sm text-gray-700">URL personnalisée</span>
-              </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type de lien
+            </label>
+            <div className="flex gap-2">
+              {[
+                { value: "page", label: "Page du site" },
+                { value: "custom", label: "URL externe" },
+                { value: "none", label: "Menu parent" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, linkType: opt.value as "page" | "custom" | "none" })}
+                  className={`flex-1 px-3 py-2 text-sm rounded-lg border transition-colors ${
+                    formData.linkType === opt.value
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {formData.linkType === 'page' ? (
+          {/* Page selector */}
+          {formData.linkType === "page" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Page</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Page
+              </label>
               <select
                 value={formData.pageSlug}
                 onChange={(e) => setFormData({ ...formData, pageSlug: e.target.value })}
@@ -1039,70 +682,50 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
                 <option value="">Sélectionner une page...</option>
                 {pages.map((page) => (
                   <option key={page.id} value={page.slug}>
-                    {page.title} ({page.slug})
+                    {page.title}
                   </option>
                 ))}
               </select>
             </div>
-          ) : (
+          )}
+
+          {/* Custom URL */}
+          {formData.linkType === "custom" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                URL
+              </label>
               <input
                 type="text"
                 value={formData.href}
                 onChange={(e) => setFormData({ ...formData, href: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-                placeholder="https://... ou /page"
+                placeholder="https://exemple.com ou /page"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Laissez vide pour un élément parent sans lien (sous-menu uniquement)
-              </p>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Icône (optionnel)</label>
-              <input
-                type="text"
-                value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-                placeholder="home, menu, star..."
-              />
+          {/* No link info */}
+          {formData.linkType === "none" && (
+            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+              Cet élément servira uniquement de parent pour un menu dropdown. 
+              Ajoutez des sous-éléments après la création.
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Position icône</label>
-              <select
-                value={formData.iconPosition}
-                onChange={(e) => setFormData({ ...formData, iconPosition: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900"
-              >
-                <option value="left">Gauche</option>
-                <option value="right">Droite</option>
-              </select>
-            </div>
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.openInNewTab}
-                onChange={(e) => setFormData({ ...formData, openInNewTab: e.target.checked })}
-                className="rounded border-gray-300"
-              />
-              <span className="text-sm text-gray-700">Ouvrir dans un nouvel onglet</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.highlighted}
-                onChange={(e) => setFormData({ ...formData, highlighted: e.target.checked })}
-                className="rounded border-gray-300"
-              />
-              <span className="text-sm text-gray-700">Mettre en évidence (style CTA)</span>
-            </label>
+          {/* Options */}
+          <div className="space-y-2 pt-2">
+            {formData.linkType !== "none" && (
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.openInNewTab}
+                  onChange={(e) => setFormData({ ...formData, openInNewTab: e.target.checked })}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm text-gray-700">Ouvrir dans un nouvel onglet</span>
+              </label>
+            )}
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -1114,18 +737,19 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
             </label>
           </div>
 
+          {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             >
               Annuler
             </button>
             <button
               type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+              disabled={saving || !formData.label}
+              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
             >
               {saving ? (
                 <>
@@ -1135,7 +759,7 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  {item ? 'Enregistrer' : 'Ajouter'}
+                  {item ? "Enregistrer" : "Ajouter"}
                 </>
               )}
             </button>
@@ -1146,54 +770,205 @@ function ItemModal({ isOpen, onClose, item, pages, onSave, saving }: ItemModalPr
   );
 }
 
-// Style Modal Component
+// ============================================
+// PREVIEW COMPONENTS WITH HOVER STATE
+// ============================================
+
+interface PreviewItemProps {
+  label: string;
+  isActive: boolean;
+  textColor: string;
+  hoverColor: string;
+  activeColor: string;
+  fontSize: number;
+}
+
+function PreviewItem({ label, isActive, textColor, hoverColor, activeColor, fontSize }: PreviewItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <span
+      className="font-medium transition-colors cursor-pointer"
+      style={{ 
+        color: isActive ? activeColor : isHovered ? hoverColor : textColor,
+        fontSize,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {label}
+    </span>
+  );
+}
+
+interface NavbarPreviewProps {
+  formData: MenuStyleConfig;
+  menuItems: NavigationItem[];
+}
+
+function NavbarPreview({ formData, menuItems }: NavbarPreviewProps) {
+  const items = menuItems.length > 0 
+    ? menuItems.map(item => item.label)
+    : ["Accueil", "Services", "Contact"];
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Aperçu (survolez pour voir l&apos;effet)</label>
+      <div
+        className="rounded-lg flex items-center px-4"
+        style={{ 
+          backgroundColor: formData.backgroundColor || "#ffffff",
+          height: formData.navbarHeight || 64,
+          justifyContent: formData.alignment === 'left' ? 'flex-start' : 
+                          formData.alignment === 'right' ? 'flex-end' : 
+                          formData.alignment === 'space-between' ? 'space-between' : 'center',
+          gap: formData.itemSpacing || 24,
+        }}
+      >
+        {items.map((label, i) => (
+          <PreviewItem
+            key={i}
+            label={label}
+            isActive={i === 0}
+            textColor={formData.textColor || "#000000"}
+            hoverColor={formData.hoverColor || "#666666"}
+            activeColor={formData.activeColor || "#000000"}
+            fontSize={formData.fontSize || 14}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface MobilePreviewProps {
+  formData: MenuStyleConfig;
+  menuItems: NavigationItem[];
+}
+
+function MobilePreview({ formData, menuItems }: MobilePreviewProps) {
+  const items = menuItems.length > 0 
+    ? menuItems.map(item => item.label)
+    : ["Accueil", "Services", "Contact"];
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Aperçu (survolez pour voir l&apos;effet)</label>
+      <div
+        className="rounded-lg p-4 space-y-3"
+        style={{ backgroundColor: formData.mobileMenuBg || "rgba(0,0,0,0.95)" }}
+      >
+        {items.map((label, i) => (
+          <MobilePreviewItem
+            key={i}
+            label={label}
+            isActive={i === 0}
+            textColor={formData.mobileMenuText || "#ffffff"}
+            hoverColor={formData.mobileMenuHover || "#999999"}
+            accentColor={formData.mobileMenuAccent || "#f59e0b"}
+            fontSize={formData.mobileFontSize || 18}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface MobilePreviewItemProps {
+  label: string;
+  isActive: boolean;
+  textColor: string;
+  hoverColor: string;
+  accentColor: string;
+  fontSize: number;
+}
+
+function MobilePreviewItem({ label, isActive, textColor, hoverColor, accentColor, fontSize }: MobilePreviewItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <div
+      className="font-medium border-b pb-2 cursor-pointer transition-colors"
+      style={{
+        color: isActive ? accentColor : isHovered ? hoverColor : textColor,
+        borderColor: `${textColor}20`,
+        fontSize,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {label}
+    </div>
+  );
+}
+
+// ============================================
+// STYLE MODAL
+// ============================================
+
 interface StyleModalProps {
   isOpen: boolean;
   onClose: () => void;
   menu: NavigationMenu;
-  onSave: (data: Partial<NavigationMenu>) => void;
+  onSave: (data: MenuStyleConfig) => Promise<boolean>;
   saving: boolean;
 }
 
 function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) {
-  const [formData, setFormData] = useState({
-    backgroundColor: '',
-    textColor: '',
-    hoverColor: '',
-    activeColor: '',
-    borderColor: '',
-    itemSpacing: 24,
-    padding: '',
-    animation: 'none',
-    animationDuration: 200,
-    dropdownAnimation: 'fadeDown',
-    dropdownDelay: 0,
-    customCSS: '',
-    cssClasses: '',
-  });
+  const [activeTab, setActiveTab] = useState<"navbar" | "mobile">("navbar");
+  
+  const getInitialFormData = useCallback((): MenuStyleConfig => ({
+    // Navbar
+    navbarHeight: menu.navbarHeight || 64,
+    backgroundColor: menu.backgroundColor || "#ffffff",
+    textColor: menu.textColor || "#000000",
+    hoverColor: menu.hoverColor || "#666666",
+    activeColor: menu.activeColor || "#000000",
+    itemSpacing: menu.itemSpacing,
+    fontSize: menu.fontSize || 14,
+    // Mobile menu
+    mobileMenuBg: menu.mobileMenuBg || "rgba(0,0,0,0.95)",
+    mobileMenuText: menu.mobileMenuText || "#ffffff",
+    mobileMenuHover: menu.mobileMenuHover || "#999999",
+    mobileMenuAccent: menu.mobileMenuAccent || "#f59e0b",
+    mobileFontSize: menu.mobileFontSize || 18,
+    // Display
+    displayMode: menu.displayMode || "hamburger-only",
+    alignment: menu.alignment || "center",
+    mobileStyle: menu.mobileStyle || "hamburger",
+    // Behavior
+    shadowOnScroll: menu.shadowOnScroll ?? true,
+    shrinkOnScroll: menu.shrinkOnScroll ?? true,
+    scrollOpacity: menu.scrollOpacity ?? 100,
+    hideOnScrollDown: menu.hideOnScrollDown ?? false,
+    // Animation
+    dropdownAnimation: menu.dropdownAnimation,
+    dropdownDelay: menu.dropdownDelay,
+  }), [menu]);
+
+  const [formData, setFormData] = useState<MenuStyleConfig>(getInitialFormData());
+  const [initialFormData, setInitialFormData] = useState<MenuStyleConfig>(getInitialFormData());
+
+  // Check if there are unsaved changes
+  const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
+
+  const handleColorChange = (field: keyof MenuStyleConfig, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   useEffect(() => {
-    setFormData({
-      backgroundColor: menu.backgroundColor || '',
-      textColor: menu.textColor || '',
-      hoverColor: menu.hoverColor || '',
-      activeColor: menu.activeColor || '',
-      borderColor: menu.borderColor || '',
-      itemSpacing: menu.itemSpacing,
-      padding: menu.padding || '',
-      animation: menu.animation,
-      animationDuration: menu.animationDuration,
-      dropdownAnimation: menu.dropdownAnimation,
-      dropdownDelay: menu.dropdownDelay,
-      customCSS: menu.customCSS || '',
-      cssClasses: menu.cssClasses || '',
-    });
-  }, [menu, isOpen]);
+    const data = getInitialFormData();
+    setFormData(data);
+    setInitialFormData(data);
+  }, [menu, isOpen, getInitialFormData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
-    onClose();
+    const success = await onSave(formData);
+    if (success) {
+      // Reset initialFormData to current formData after successful save
+      setInitialFormData(formData);
+    }
   };
 
   if (!isOpen) return null;
@@ -1203,204 +978,317 @@ function StyleModal({ isOpen, onClose, menu, onSave, saving }: StyleModalProps) 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-xl shadow-xl w-full max-w-2xl m-4 max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white rounded-xl shadow-xl w-full max-w-xl m-4 max-h-[90vh] overflow-hidden flex flex-col"
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Style du menu - {menu.name}
-          </h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X className="w-5 h-5 text-gray-600" />
-          </button>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-gray-900">Style de la navigation</h2>
+            {hasChanges && (
+              <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full text-xs font-medium">
+                <AlertCircle className="h-3.5 w-3.5" />
+                Modifié
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const form = document.getElementById('style-form') as HTMLFormElement;
+                if (form) form.requestSubmit();
+              }}
+              disabled={saving || !hasChanges}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                hasChanges
+                  ? "bg-black text-white hover:bg-gray-800"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              {saving ? (
+                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              Appliquer
+            </button>
+            <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded">
+              <X className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-6 overflow-y-auto flex-1">
-          {/* Colors */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Couleurs</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Fond</label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={formData.backgroundColor || '#ffffff'}
-                    onChange={(e) => setFormData({ ...formData, backgroundColor: e.target.value })}
-                    className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.backgroundColor}
-                    onChange={(e) => setFormData({ ...formData, backgroundColor: e.target.value })}
-                    className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
-                    placeholder="#ffffff"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Texte</label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={formData.textColor || '#000000'}
-                    onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
-                    className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.textColor}
-                    onChange={(e) => setFormData({ ...formData, textColor: e.target.value })}
-                    className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
-                    placeholder="#000000"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Survol</label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={formData.hoverColor || '#666666'}
-                    onChange={(e) => setFormData({ ...formData, hoverColor: e.target.value })}
-                    className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.hoverColor}
-                    onChange={(e) => setFormData({ ...formData, hoverColor: e.target.value })}
-                    className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded text-gray-900"
-                    placeholder="#666666"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Spacing */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Espacement</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Espace entre items (px)</label>
-                <input
-                  type="number"
-                  value={formData.itemSpacing}
-                  onChange={(e) => setFormData({ ...formData, itemSpacing: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                  min="0"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Padding (CSS)</label>
-                <input
-                  type="text"
-                  value={formData.padding}
-                  onChange={(e) => setFormData({ ...formData, padding: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                  placeholder="16px 24px"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Animations */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Animations</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Animation menu</label>
-                <select
-                  value={formData.animation}
-                  onChange={(e) => setFormData({ ...formData, animation: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                >
-                  <option value="none">Aucune</option>
-                  <option value="fade">Fondu</option>
-                  <option value="slide">Glissement</option>
-                  <option value="scale">Échelle</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Durée (ms)</label>
-                <input
-                  type="number"
-                  value={formData.animationDuration}
-                  onChange={(e) => setFormData({ ...formData, animationDuration: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                  min="0"
-                  step="50"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Animation dropdown</label>
-                <select
-                  value={formData.dropdownAnimation}
-                  onChange={(e) => setFormData({ ...formData, dropdownAnimation: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                >
-                  <option value="none">Aucune</option>
-                  <option value="fadeDown">Fondu vers le bas</option>
-                  <option value="slideDown">Glissement vers le bas</option>
-                  <option value="scale">Échelle</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs text-gray-600 mb-1">Délai dropdown (ms)</label>
-                <input
-                  type="number"
-                  value={formData.dropdownDelay}
-                  onChange={(e) => setFormData({ ...formData, dropdownDelay: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                  min="0"
-                  step="50"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Custom CSS */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">CSS personnalisé</h3>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Classes CSS additionnelles</label>
-              <input
-                type="text"
-                value={formData.cssClasses}
-                onChange={(e) => setFormData({ ...formData, cssClasses: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 mb-3"
-                placeholder="my-custom-class another-class"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">CSS personnalisé</label>
-              <textarea
-                value={formData.customCSS}
-                onChange={(e) => setFormData({ ...formData, customCSS: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 font-mono text-sm"
-                rows={4}
-                placeholder=".nav-item { font-weight: 600; }"
-              />
-            </div>
-          </div>
-        </form>
-
-        <div className="flex justify-end gap-3 p-4 border-t border-gray-200">
+        {/* Tabs */}
+        <div className="flex border-b border-gray-200 shrink-0">
           <button
             type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            onClick={() => setActiveTab("navbar")}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+              activeTab === "navbar"
+                ? "text-black border-b-2 border-black"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
           >
-            Annuler
+            Barre de navigation
           </button>
           <button
-            onClick={handleSubmit}
-            disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+            type="button"
+            onClick={() => setActiveTab("mobile")}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+              activeTab === "mobile"
+                ? "text-black border-b-2 border-black"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
           >
-            <Save className="w-4 h-4" />
-            Appliquer
+            Menu hamburger
           </button>
         </div>
+
+        <form id="style-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+          <div className="p-4 space-y-5">
+            {activeTab === "navbar" && (
+              <>
+                {/* Mode d'affichage */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Mode d&apos;affichage</label>
+                    <select
+                      value={formData.displayMode || "hamburger-only"}
+                      onChange={(e) => setFormData({ ...formData, displayMode: e.target.value as MenuStyleConfig["displayMode"] })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                    >
+                      {Object.entries(DISPLAY_MODES).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Alignement du menu</label>
+                    <select
+                      value={formData.alignment || "center"}
+                      onChange={(e) => setFormData({ ...formData, alignment: e.target.value as MenuStyleConfig["alignment"] })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                    >
+                      {Object.entries(MENU_ALIGNMENTS).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Dimensions */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Hauteur (px)</label>
+                    <input
+                      type="number"
+                      value={formData.navbarHeight}
+                      onChange={(e) => setFormData({ ...formData, navbarHeight: parseInt(e.target.value) || 64 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                      min="40"
+                      max="120"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Espacement items (px)</label>
+                    <input
+                      type="number"
+                      value={formData.itemSpacing}
+                      onChange={(e) => setFormData({ ...formData, itemSpacing: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                      min="0"
+                      max="100"
+                    />
+                  </div>
+                </div>
+
+                {/* Taille de police */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Taille du texte: {formData.fontSize || 14}px
+                  </label>
+                  <input
+                    type="range"
+                    value={formData.fontSize || 14}
+                    onChange={(e) => setFormData({ ...formData, fontSize: parseInt(e.target.value) })}
+                    className="w-full"
+                    min="10"
+                    max="20"
+                    step="1"
+                  />
+                  <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>10px</span>
+                    <span>20px</span>
+                  </div>
+                </div>
+
+                {/* Couleurs navbar */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Couleurs</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { key: "backgroundColor", label: "Fond" },
+                      { key: "textColor", label: "Texte" },
+                      { key: "hoverColor", label: "Survol" },
+                      { key: "activeColor", label: "Actif" },
+                    ].map(({ key, label }) => (
+                      <div key={key} className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={(formData[key as keyof MenuStyleConfig] as string) || "#000000"}
+                          onChange={(e) => handleColorChange(key as keyof MenuStyleConfig, e.target.value)}
+                          className="w-8 h-8 rounded border border-gray-200 cursor-pointer shrink-0"
+                        />
+                        <span className="text-sm text-gray-600">{label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Comportement au scroll */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Comportement au scroll</label>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.shadowOnScroll ?? true}
+                        onChange={(e) => setFormData({ ...formData, shadowOnScroll: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span className="text-sm text-gray-700">Ombre au scroll</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.shrinkOnScroll ?? true}
+                        onChange={(e) => setFormData({ ...formData, shrinkOnScroll: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span className="text-sm text-gray-700">Réduire la hauteur au scroll</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.hideOnScrollDown ?? false}
+                        onChange={(e) => setFormData({ ...formData, hideOnScrollDown: e.target.checked })}
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      <span className="text-sm text-gray-700">Masquer au scroll vers le bas</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Opacité au scroll */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Opacité au scroll: {formData.scrollOpacity ?? 100}%
+                  </label>
+                  <input
+                    type="range"
+                    value={formData.scrollOpacity ?? 100}
+                    onChange={(e) => setFormData({ ...formData, scrollOpacity: parseInt(e.target.value) })}
+                    className="w-full"
+                    min="0"
+                    max="100"
+                    step="5"
+                  />
+                  <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>Transparent</span>
+                    <span>Opaque</span>
+                  </div>
+                </div>
+
+                {/* Aperçu navbar */}
+                <NavbarPreview 
+                  formData={formData} 
+                  menuItems={menu.items?.filter(item => item.published).slice(0, 5) || []}
+                />
+              </>
+            )}
+
+            {activeTab === "mobile" && (
+              <>
+                {/* Couleurs menu mobile */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Couleurs du menu</label>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={formData.mobileMenuBg?.startsWith("rgba") ? "#000000" : (formData.mobileMenuBg || "#000000")}
+                        onChange={(e) => setFormData({ ...formData, mobileMenuBg: e.target.value })}
+                        className="w-10 h-10 rounded border border-gray-200 cursor-pointer shrink-0"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-700">Fond du menu</span>
+                        <input
+                          type="text"
+                          value={formData.mobileMenuBg || ""}
+                          onChange={(e) => setFormData({ ...formData, mobileMenuBg: e.target.value })}
+                          className="w-full mt-1 px-2 py-1 text-xs border border-gray-300 rounded text-gray-900 font-mono"
+                          placeholder="rgba(0,0,0,0.95) ou #000000"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={(formData.mobileMenuText || "#ffffff")}
+                        onChange={(e) => setFormData({ ...formData, mobileMenuText: e.target.value })}
+                        className="w-10 h-10 rounded border border-gray-200 cursor-pointer shrink-0"
+                      />
+                      <span className="text-sm text-gray-700">Couleur du texte</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={(formData.mobileMenuHover || "#999999")}
+                        onChange={(e) => setFormData({ ...formData, mobileMenuHover: e.target.value })}
+                        className="w-10 h-10 rounded border border-gray-200 cursor-pointer shrink-0"
+                      />
+                      <span className="text-sm text-gray-700">Couleur de survol</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={(formData.mobileMenuAccent || "#f59e0b")}
+                        onChange={(e) => setFormData({ ...formData, mobileMenuAccent: e.target.value })}
+                        className="w-10 h-10 rounded border border-gray-200 cursor-pointer shrink-0"
+                      />
+                      <span className="text-sm text-gray-700">Couleur d&apos;accent (éléments actifs)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Taille de police mobile */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Taille du texte: {formData.mobileFontSize || 18}px
+                  </label>
+                  <input
+                    type="range"
+                    value={formData.mobileFontSize || 18}
+                    onChange={(e) => setFormData({ ...formData, mobileFontSize: parseInt(e.target.value) })}
+                    className="w-full"
+                    min="14"
+                    max="28"
+                    step="1"
+                  />
+                  <div className="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>14px</span>
+                    <span>28px</span>
+                  </div>
+                </div>
+
+                {/* Aperçu menu mobile */}
+                <MobilePreview 
+                  formData={formData} 
+                  menuItems={menu.items?.filter(item => item.published).slice(0, 4) || []}
+                />
+              </>
+            )}
+          </div>
+        </form>
       </motion.div>
     </div>
   );

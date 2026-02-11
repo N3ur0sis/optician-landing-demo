@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { hasPermission, parsePermissions } from '@/types/permissions';
+
+// Helper to check pages permission
+async function checkPagesPermission() {
+  const session = await auth();
+  if (!session?.user) {
+    return { authorized: false, error: "Unauthorized", status: 401 };
+  }
+  const role = session.user.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user.permissions);
+  if (!hasPermission(role, permissions, "pages")) {
+    return { authorized: false, error: "Permission denied", status: 403 };
+  }
+  return { authorized: true, session, status: 200 };
+}
 
 interface RouteParams {
   params: Promise<{ slug: string; blockId: string }>;
@@ -29,9 +44,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 // PUT update a block
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: check.status });
     }
 
     const { blockId } = await params;
@@ -68,9 +83,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 // DELETE a block
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: check.status });
     }
 
     const { blockId } = await params;
@@ -113,9 +128,9 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 // PATCH - toggle visibility or quick update
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: check.status });
     }
 
     const { blockId } = await params;
@@ -154,9 +169,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 // POST - duplicate a block
 export async function POST(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: check.status });
     }
 
     const { blockId } = await params;

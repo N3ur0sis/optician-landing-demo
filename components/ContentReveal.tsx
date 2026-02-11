@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { MotionValue } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { useRef, useEffect, useState } from 'react';
-import Footer from './Footer';
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { MotionValue } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useRef, useEffect, useState } from "react";
+import Footer from "./Footer";
+import { useApparence } from "@/lib/apparence-context";
 
 type ContentRevealProps = {
   scrollProgress?: MotionValue<number>;
@@ -23,7 +24,9 @@ type GridTile = {
   rowSpan: number;
   colStart: number;
   rowStart: number;
-  overlayType: 'LIGHT' | 'DARK';
+  overlayType: "LIGHT" | "DARK";
+  overlayColor: string | null;
+  overlayOpacity: number;
   order: number;
   published: boolean;
 };
@@ -36,26 +39,37 @@ type Tile = {
   rowSpan: number;
   colStart: number;
   rowStart: number;
-  overlay?: 'light' | 'dark';
+  overlay: "light" | "dark";
+  overlayColor?: string;
+  overlayOpacity: number;
   caption?: string;
 };
 
-const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealProps) => {
+const ContentReveal = ({
+  cameraZ = 100,
+  forceRevealed = false,
+}: ContentRevealProps) => {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const { settings: apparenceSettings } = useApparence();
+
+  // Grid settings from apparence
+  const gridPadding = apparenceSettings.grid_horizontal_padding;
+  const gridGap = apparenceSettings.grid_gap;
+  const gridRowHeight = apparenceSettings.grid_row_height;
+
   // Fetch grid tiles from API
   useEffect(() => {
     const fetchTiles = async () => {
       try {
-        const response = await fetch('/api/grid');
+        const response = await fetch("/api/grid");
         if (response.ok) {
           const gridTiles: GridTile[] = await response.json();
-          
+
           // Convert GridTile format to Tile format with proper grid positioning
           const convertedTiles = gridTiles
-            .filter(tile => tile.published)
-            .map(tile => ({
+            .filter((tile) => tile.published)
+            .map((tile) => ({
               title: tile.title,
               caption: tile.caption || undefined,
               href: tile.href,
@@ -64,18 +78,20 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
               rowSpan: tile.rowSpan,
               colStart: tile.colStart,
               rowStart: tile.rowStart,
-              overlay: tile.overlayType.toLowerCase() as 'light' | 'dark',
+              overlay: tile.overlayType.toLowerCase() as "light" | "dark",
+              overlayColor: tile.overlayColor || undefined,
+              overlayOpacity: tile.overlayOpacity ?? 60,
             }));
-          
+
           setTiles(convertedTiles);
         }
       } catch (error) {
-        console.error('Failed to fetch grid tiles:', error);
+        console.error("Failed to fetch grid tiles:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchTiles();
   }, []);
   const blurAmount = forceRevealed ? 0 : Math.max(0, (cameraZ / 100) * 20);
@@ -85,12 +101,12 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
 
   return (
     <motion.div
-      className={`absolute inset-0 ${isContentRevealed ? 'z-[25]' : 'z-[5]'}`}
+      className={`absolute inset-0 ${isContentRevealed ? "z-[25]" : "z-[5]"}`}
       style={{
-        filter: `blur(${blurAmount}px)` ,
+        filter: `blur(${blurAmount}px)`,
         opacity,
-        transition: 'filter 0.3s ease-out, opacity 0.3s ease-out',
-        pointerEvents: 'auto'
+        transition: "filter 0.3s ease-out, opacity 0.3s ease-out",
+        pointerEvents: "auto",
       }}
     >
       {/* Force cards to be clickable with CSS */}
@@ -117,13 +133,18 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
           z-index: 40 !important;
         }
         .content-reveal-card::before {
-          content: '';
+          content: "";
           position: absolute;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
+          background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            transparent 50%,
+            rgba(0, 0, 0, 0.1) 100%
+          );
           opacity: 0;
           transition: opacity 0.3s ease;
           pointer-events: none;
@@ -133,111 +154,171 @@ const ContentReveal = ({ cameraZ = 100, forceRevealed = false }: ContentRevealPr
           opacity: 1;
         }
       `}</style>
-      
+
       <div className="absolute inset-0 bg-gradient-to-br from-[#fdfbf7] via-[#f5eee6] to-[#f1e2d2]" />
 
-      <div className="relative h-full w-full overflow-y-auto" data-reveal-scroll>
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-4 pb-24 pt-16 sm:px-6 md:px-8 lg:px-10 xl:px-12">
+      <div
+        className="absolute inset-0 overflow-y-auto"
+        data-reveal-scroll
+      >
+        <div
+          className="mx-auto flex w-full max-w-7xl flex-col gap-12 pb-8 pt-16"
+          style={{
+            paddingLeft: `${gridPadding}px`,
+            paddingRight: `${gridPadding}px`,
+          }}
+        >
           <div className="flex items-center justify-center py-6">
-            <span className="text-sm tracking-[0.3em] text-neutral-500 uppercase">Optique de Bourbon</span>
+            <span className="text-sm tracking-[0.3em] text-neutral-500 uppercase">
+              Optique de Bourbon
+            </span>
           </div>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="text-neutral-400 text-sm tracking-wider">Loading...</div>
+              <div className="text-neutral-400 text-sm tracking-wider">
+                Loading...
+              </div>
             </div>
           ) : (
-            <div className="content-reveal-grid grid auto-rows-[220px] gap-5 sm:auto-rows-[260px] lg:auto-rows-[320px] lg:grid-cols-4" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 40 }}>
+            <div
+              className="content-reveal-grid grid lg:grid-cols-4"
+              style={{
+                pointerEvents: "auto",
+                position: "relative",
+                zIndex: 40,
+                gap: `${gridGap}px`,
+                gridAutoRows: `${gridRowHeight}px`,
+              }}
+            >
               {tiles.map((tile, index) => (
                 <Link
                   key={tile.title}
                   href={tile.href}
                   className="content-reveal-card group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer transform-gpu z-[30] pointer-events-auto"
                   style={{
-                    pointerEvents: 'auto',
-                    position: 'relative',
+                    pointerEvents: "auto",
+                    position: "relative",
                     zIndex: 30,
                     gridColumn: `${tile.colStart} / span ${tile.colSpan}`,
                     gridRow: `${tile.rowStart} / span ${tile.rowSpan}`,
                   }}
                   onClick={() => {
-                    sessionStorage.setItem('fromContentReveal', 'true');
+                    sessionStorage.setItem("fromContentReveal", "true");
                   }}
                 >
-                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  animate={forceRevealed ? { opacity: 1, y: 0 } : {}}
-                  whileInView={!forceRevealed ? { opacity: 1, y: 0 } : {}}
-                  whileHover={{ 
-                    scale: 1.02,
-                    transition: { duration: 0.3, ease: "easeOut" }
-                  }}
-                  whileFocus={{ 
-                    scale: 1.01,
-                    transition: { duration: 0.2, ease: "easeOut" }
-                  }}
-                  whileTap={{ 
-                    scale: 0.99,
-                    transition: { duration: 0.1, ease: "easeInOut" }
-                  }}
-                  transition={{ duration: 0.45, ease: 'easeOut' }}
-                  viewport={{ once: true, amount: 0.4 }}
-                  className="relative h-full w-full cursor-pointer"
-                >
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                    style={{
-                      backgroundImage: tile.background,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      backgroundRepeat: 'no-repeat',
+                  <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={forceRevealed ? { opacity: 1, y: 0 } : {}}
+                    whileInView={!forceRevealed ? { opacity: 1, y: 0 } : {}}
+                    whileHover={{
+                      scale: 1.02,
+                      transition: { duration: 0.3, ease: "easeOut" },
                     }}
-                  />
-                  <div
-                    className="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-all duration-500"
-                  />
-                  {/* Professional grid overlay */}
-                  <div className="absolute inset-0 opacity-10 group-hover:opacity-5 transition-opacity duration-500" 
-                    style={{
-                      backgroundImage: `
-                        linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+                    whileFocus={{
+                      scale: 1.01,
+                      transition: { duration: 0.2, ease: "easeOut" },
+                    }}
+                    whileTap={{
+                      scale: 0.99,
+                      transition: { duration: 0.1, ease: "easeInOut" },
+                    }}
+                    transition={{ duration: 0.45, ease: "easeOut" }}
+                    viewport={{ once: true, amount: 0.4 }}
+                    className="relative h-full w-full cursor-pointer"
+                  >
+                    <div
+                      aria-hidden
+                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                      style={{
+                        backgroundImage: tile.background,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
+                      }}
+                    />
+                    <div
+                      className="absolute inset-0 transition-all duration-500"
+                      style={{
+                        backgroundColor: tile.overlayColor
+                          ? tile.overlayColor
+                          : tile.overlay === "dark"
+                            ? "rgba(0,0,0,1)"
+                            : "rgba(255,255,255,1)",
+                        opacity: tile.overlayOpacity / 100,
+                      }}
+                    />
+                    <div
+                      className="absolute inset-0 transition-all duration-500 opacity-0 group-hover:opacity-100"
+                      style={{
+                        backgroundColor: tile.overlayColor
+                          ? tile.overlayColor
+                          : tile.overlay === "dark"
+                            ? "rgba(0,0,0,1)"
+                            : "rgba(255,255,255,1)",
+                        opacity: Math.max(0, tile.overlayOpacity - 20) / 100,
+                      }}
+                    />
+                    {/* Professional grid overlay */}
+                    <div
+                      className="absolute inset-0 opacity-10 group-hover:opacity-5 transition-opacity duration-500"
+                      style={{
+                        backgroundImage: `
+                        linear-gradient(${tile.overlay === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} 1px, transparent 1px),
+                        linear-gradient(90deg, ${tile.overlay === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} 1px, transparent 1px)
                       `,
-                      backgroundSize: '20px 20px'
-                    }}
-                  />
-                  <div className="relative flex h-full flex-col justify-between p-6 lg:p-8">
-                    {/* Top section - Category indicator */}
-                    <div className="flex justify-between items-start">
-                      <div className="bg-white/10 backdrop-blur-sm px-3 py-1 text-xs font-medium tracking-[0.2em] text-white uppercase">
-                        {tile.caption}
+                        backgroundSize: "20px 20px",
+                      }}
+                    />
+                    <div className="relative flex h-full flex-col justify-between p-6 lg:p-8">
+                      {/* Top section - Category indicator */}
+                      <div className="flex justify-between items-start">
+                        <div
+                          className={`${tile.overlay === "dark" ? "bg-white/10 text-white" : "bg-black/10 text-black"} backdrop-blur-sm px-3 py-1 text-xs font-medium tracking-[0.2em] uppercase`}
+                        >
+                          {tile.caption}
+                        </div>
+                        <div
+                          className={`w-6 h-6 border ${tile.overlay === "dark" ? "border-white/30" : "border-black/30"} flex items-center justify-center`}
+                        >
+                          <div
+                            className={`w-2 h-2 ${tile.overlay === "dark" ? "bg-white/80" : "bg-black/80"} transform rotate-45`}
+                          ></div>
+                        </div>
                       </div>
-                      <div className="w-6 h-6 border border-white/30 flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white/80 transform rotate-45"></div>
-                      </div>
-                    </div>
-                    
-                    {/* Bottom section - Title and CTA */}
-                    <div>
-                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white mb-4 leading-tight">
-                        {tile.title}
-                      </h2>
-                      <div className="flex items-center text-white/80 group-hover:text-white transition-colors duration-300">
-                        <div className="flex items-center space-x-1 transform group-hover:translate-x-2 transition-transform duration-300">
-                          <div className="w-8 h-px bg-current"></div>
-                          <div className="w-0 h-0 border-l-[6px] border-l-current border-y-[3px] border-y-transparent"></div>
+
+                      {/* Bottom section - Title and CTA */}
+                      <div>
+                        <h2
+                          className={`text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight ${tile.overlay === "dark" ? "text-white" : "text-black"} mb-4 leading-tight`}
+                        >
+                          {tile.title}
+                        </h2>
+                        <div
+                          className={`flex items-center ${tile.overlay === "dark" ? "text-white/80 group-hover:text-white" : "text-black/80 group-hover:text-black"} transition-colors duration-300`}
+                        >
+                          <div className="flex items-center space-x-1 transform group-hover:translate-x-2 transition-transform duration-300">
+                            <div className="w-8 h-px bg-current"></div>
+                            <div className="w-0 h-0 border-l-[6px] border-l-current border-y-[3px] border-y-transparent"></div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              </Link>
-            ))}
+                  </motion.div>
+                </Link>
+              ))}
             </div>
           )}
+        </div>
 
-          {/* Footer */}
+        {/* Footer - Same width as grid but with max padding limit */}
+        <div
+          className="mx-auto max-w-7xl pb-24"
+          style={{
+            paddingLeft: `${Math.min(gridPadding, 64)}px`,
+            paddingRight: `${Math.min(gridPadding, 64)}px`,
+          }}
+        >
           <Footer />
         </div>
       </div>

@@ -2,12 +2,26 @@
 
 import React, { useState } from "react";
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
-import { LayoutDashboard, Grid3x3, Settings, LogOut, User, FileText, Navigation, Image as ImageIcon, BarChart3, Users } from "lucide-react";
+import {
+  LayoutDashboard,
+  Grid3x3,
+  Settings,
+  LogOut,
+  User,
+  FileText,
+  Navigation,
+  Image as ImageIcon,
+  BarChart3,
+  Users,
+  Palette,
+  Store,
+} from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 import { Session } from "next-auth";
+import { hasPermission, DashboardFeature, parsePermissions } from "@/types/permissions";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -16,65 +30,84 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, session }: AdminLayoutProps) {
   const isAdmin = session.user?.role === "ADMIN";
-  
-  const links = [
+  const userPermissions = parsePermissions(session.user?.permissions);
+
+  // Helper function to check if user has access to a feature
+  const canAccess = (feature: DashboardFeature): boolean => {
+    return hasPermission(session.user?.role as "ADMIN" | "WEBMASTER", userPermissions, feature);
+  };
+
+  // Build links based on permissions
+  const allLinks = [
     {
       label: "Tableau de Bord",
       href: "/admin/dashboard",
-      icon: (
-        <LayoutDashboard className="text-black h-5 w-5 flex-shrink-0" />
-      ),
+      icon: <LayoutDashboard className="text-black h-5 w-5 shrink-0" />,
+      alwaysShow: true, // Dashboard is always visible
     },
     {
       label: "Pages",
       href: "/admin/dashboard/pages",
-      icon: (
-        <FileText className="text-black h-5 w-5 flex-shrink-0" />
-      ),
+      icon: <FileText className="text-black h-5 w-5 shrink-0" />,
+      feature: "pages" as DashboardFeature,
     },
     {
       label: "Gestionnaire de Grille",
       href: "/admin/dashboard/grid",
-      icon: (
-        <Grid3x3 className="text-black h-5 w-5 flex-shrink-0" />
-      ),
+      icon: <Grid3x3 className="text-black h-5 w-5 shrink-0" />,
+      feature: "grid" as DashboardFeature,
     },
     {
       label: "Navigation",
       href: "/admin/dashboard/navigation",
-      icon: (
-        <Navigation className="text-black h-5 w-5 flex-shrink-0" />
-      ),
+      icon: <Navigation className="text-black h-5 w-5 shrink-0" />,
+      feature: "navigation" as DashboardFeature,
     },
     {
       label: "Médiathèque",
       href: "/admin/dashboard/media",
-      icon: (
-        <ImageIcon className="text-black h-5 w-5 flex-shrink-0" />
-      ),
+      icon: <ImageIcon className="text-black h-5 w-5 shrink-0" />,
+      feature: "media" as DashboardFeature,
     },
     {
       label: "Analytics",
       href: "/admin/dashboard/analytics",
-      icon: (
-        <BarChart3 className="text-black h-5 w-5 flex-shrink-0" />
-      ),
+      icon: <BarChart3 className="text-black h-5 w-5 shrink-0" />,
+      feature: "analytics" as DashboardFeature,
     },
-    ...(isAdmin ? [{
+    {
       label: "Utilisateurs",
       href: "/admin/dashboard/users",
-      icon: (
-        <Users className="text-black h-5 w-5 flex-shrink-0" />
-      ),
-    }] : []),
+      icon: <Users className="text-black h-5 w-5 shrink-0" />,
+      adminOnly: true,
+    },
+    {
+      label: "Boutiques",
+      href: "/admin/dashboard/stores",
+      icon: <Store className="text-black h-5 w-5 shrink-0" />,
+      adminOnly: true,
+    },
+    {
+      label: "Apparence",
+      href: "/admin/dashboard/apparence",
+      icon: <Palette className="text-black h-5 w-5 shrink-0" />,
+      feature: "apparence" as DashboardFeature,
+    },
     {
       label: "Paramètres",
-      href: "/admin/settings",
-      icon: (
-        <Settings className="text-black h-5 w-5 flex-shrink-0" />
-      ),
+      href: "/admin/dashboard/settings",
+      icon: <Settings className="text-black h-5 w-5 shrink-0" />,
+      adminOnly: true, // Only admins can access settings
     },
   ];
+
+  // Filter links based on user role and permissions
+  const links = allLinks.filter((link) => {
+    if (link.alwaysShow) return true;
+    if (link.adminOnly) return isAdmin;
+    if (link.feature) return canAccess(link.feature);
+    return true;
+  });
 
   const [open, setOpen] = useState(false);
 
@@ -86,8 +119,9 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
     <div
       className={cn(
         "flex flex-col md:flex-row bg-gray-50 w-full flex-1 overflow-hidden",
-        "h-screen"
+        "h-screen",
       )}
+      style={{ colorScheme: "light" }}
     >
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody className="justify-between gap-10">
@@ -105,7 +139,7 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
                 label: session.user?.name || "Admin",
                 href: "#",
                 icon: (
-                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gray-300 flex items-center justify-center">
+                  <div className="h-7 w-7 shrink-0 rounded-full bg-gray-300 flex items-center justify-center">
                     <User className="h-4 w-4 text-black" />
                   </div>
                 ),
@@ -115,7 +149,7 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
               onClick={handleSignOut}
               className="flex items-center justify-start gap-2 group/sidebar py-2 w-full text-left hover:bg-gray-100 rounded-md px-2 transition-colors"
             >
-              <LogOut className="text-black h-5 w-5 flex-shrink-0" />
+              <LogOut className="text-black h-5 w-5 shrink-0" />
               <motion.span
                 animate={{
                   opacity: open ? 1 : 0,
@@ -130,9 +164,7 @@ export default function AdminLayout({ children, session }: AdminLayoutProps) {
         </SidebarBody>
       </Sidebar>
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto">{children}</div>
       </div>
     </div>
   );
@@ -144,7 +176,7 @@ const Logo = () => {
       href="/admin/dashboard"
       className="font-normal flex space-x-2 items-center text-sm text-black py-1 relative z-20"
     >
-      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <div className="h-5 w-6 bg-black dark:bg-white rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm shrink-0" />
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -162,7 +194,7 @@ const LogoIcon = () => {
       href="/admin/dashboard"
       className="font-normal flex space-x-2 items-center text-sm text-gray-900 py-1 relative z-20"
     >
-      <div className="h-5 w-6 bg-gray-900 rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm flex-shrink-0" />
+      <div className="h-5 w-6 bg-gray-900 rounded-br-lg rounded-tr-sm rounded-tl-lg rounded-bl-sm shrink-0" />
     </Link>
   );
 };

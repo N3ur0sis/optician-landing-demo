@@ -3,40 +3,40 @@
 
 /* Gotham Font Family */
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/Gotham-Light.otf') format('opentype');
+  font-family: "Gotham";
+  src: url("/fonts/Gotham-Light.otf") format("opentype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/Gotham-Book.otf') format('opentype');
+  font-family: "Gotham";
+  src: url("/fonts/Gotham-Book.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/GothamMedium.ttf') format('truetype');
+  font-family: "Gotham";
+  src: url("/fonts/GothamMedium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/Gotham-Bold.otf') format('opentype');
+  font-family: "Gotham";
+  src: url("/fonts/Gotham-Bold.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham';
-  src: url('/fonts/Gotham-Black.otf') format('opentype');
+  font-family: "Gotham";
+  src: url("/fonts/Gotham-Black.otf") format("opentype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -44,56 +44,56 @@
 
 /* Gotham Narrow Font Family */
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-XLight.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-XLight.otf") format("opentype");
   font-weight: 200;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Light.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Light.otf") format("opentype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Book.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Book.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Medium.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Medium.otf") format("opentype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Bold.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Bold.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Black.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Black.otf") format("opentype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Gotham Narrow';
-  src: url('/fonts/GothamNarrow-Ultra.otf') format('opentype');
+  font-family: "Gotham Narrow";
+  src: url("/fonts/GothamNarrow-Ultra.otf") format("opentype");
   font-weight: 950;
   font-style: normal;
   font-display: swap;
@@ -102,16 +102,22 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --font-gotham: 'Gotham', system-ui, sans-serif;
-  --font-gotham-narrow: 'Gotham Narrow', system-ui, sans-serif;
+  --font-gotham: "Gotham", system-ui, sans-serif;
+  --font-gotham-narrow: "Gotham Narrow", system-ui, sans-serif;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Footer link hover effect using CSS variable */
+.footer-link {
+  --hover-color: inherit;
 }
+.footer-link:hover {
+  color: var(--hover-color) !important;
+  opacity: 1;
+}
+
+/* Force le thème clair - on ignore prefers-color-scheme pour éviter les problèmes du dashboard */
+/* @media (prefers-color-scheme: dark) désactivé - le site fonctionne uniquement en mode clair */
 
 body {
   background: #ffffff;
@@ -140,7 +146,12 @@ body {
 }
 
 /* Titres avec Gotham Bold/Black pour impact visuel */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-gotham);
   font-weight: 700;
 }
@@ -183,7 +194,7 @@ h2 {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
-  
+
   /* Improve touch responsiveness - only on landing page */
   .cursor-custom {
     touch-action: pan-y;
@@ -195,8 +206,9 @@ h2 {
 
 /* Custom gradient background for hero with vignette effect - ODB 2026 brand colors */
 .radial-gradient-bg {
-  background: radial-gradient(circle at center, 
-    #ffffff 0%, 
+  background: radial-gradient(
+    circle at center,
+    #ffffff 0%,
     #e8f2fc 15%,
     #c5dff7 30%,
     #9dc9f1 45%,
@@ -243,71 +255,37 @@ html {
 }
 
 /* Mobile first hero text - Enhanced luxury responsive system */
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .hero-text-adaptive,
   .hero-text-narrow,
   .hero-text-desktop {
-    font-size: clamp(1.1rem, 5vw, 1.8rem) !important;
-    max-width: clamp(140px, 50vw, 220px) !important;
-    line-height: 0.95 !important;
-    letter-spacing: 0.05em !important;
+    font-size: clamp(1.3rem, 6vw, 2rem) !important;
+    max-width: none !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.04em !important;
     font-weight: 600 !important;
+    text-align: center !important;
   }
-  
-  .hero-spacing-left {
-    left: clamp(1rem, 3vw, 2rem) !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    right: auto !important;
-  }
-  
+
+  /* On mobile, hero-spacing classes don't apply any positioning - Tailwind handles it */
+  .hero-spacing-left,
   .hero-spacing-right {
-    right: clamp(1rem, 3vw, 2rem) !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    left: auto !important;
+    /* These classes are only for desktop, on mobile we use Tailwind max-md: classes */
+    padding: 0 !important;
+    margin: 0 !important;
   }
-  
+
   /* Enhanced mobile specific optimizations */
   body {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
   }
-  
-  /* Improve touch targets */
-  button, a, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Mobile hero text - Enhanced responsive system */
-  .hero-text-adaptive,
-  .hero-text-narrow,
-  .hero-text-desktop {
-    font-size: clamp(1.1rem, 4.5vw, 1.8rem) !important;
-    max-width: clamp(110px, 38vw, 180px) !important;
-    line-height: 1.0 !important;
-    letter-spacing: 0.06em !important;
-  }
-  
+
   /* Hide scroll indicators on mobile to prevent overlap */
   .scroll-indicator-mobile {
     display: none;
   }
-  
-  /* Mobile hero text positioning - ensure vertical alignment */
-  .hero-spacing-left {
-    left: clamp(0.8rem, 3vw, 2rem) !important;
-    top: 58% !important;
-    transform: translateY(-50%) !important;
-  }
-  
-  .hero-spacing-right {
-    right: clamp(0.8rem, 3vw, 2rem) !important;
-    top: 58% !important;
-    transform: translateY(-50%) !important;
-  }
-  
+
   /* Mobile model container centering */
   .glasses-model-mobile {
     display: flex !important;
@@ -318,29 +296,31 @@ html {
   }
 }
 
-/* Tablet range - PROGRESSIVE: 641px to 900px */
-@media (min-width: 641px) and (max-width: 900px) {
+/* Tablet range - 768px to 900px (md breakpoint starts here) */
+@media (min-width: 768px) and (max-width: 900px) {
   .hero-text-adaptive,
   .hero-text-narrow,
   .hero-text-desktop {
     font-size: clamp(1.3rem, 5.2vw, 2.1rem) !important;
     max-width: clamp(160px, 45vw, 280px) !important;
-    line-height: 1.0 !important;
+    line-height: 1 !important;
     letter-spacing: 0.06em !important;
+    text-align: left !important;
   }
-  
+
   .hero-spacing-left {
-    left: clamp(1.5rem, 4vw, 3.5rem) !important;
-    top: 58% !important;
+    top: 30% !important;
+    left: clamp(2rem, 5vw, 4rem) !important;
+    right: auto !important;
     transform: translateY(-50%) !important;
-    right: auto !important; /* Force right to auto to ensure left positioning */
   }
-  
+
   .hero-spacing-right {
-    right: clamp(1.5rem, 4vw, 3.5rem) !important;
-    top: 58% !important;
+    top: 75% !important;
+    right: clamp(2rem, 5vw, 4rem) !important;
+    left: auto !important;
     transform: translateY(-50%) !important;
-    left: auto !important; /* Force left to auto to ensure right positioning */
+    text-align: right !important;
   }
 }
 
@@ -354,14 +334,14 @@ html {
     line-height: 1.05 !important;
     letter-spacing: 0.065em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(2.2rem, 5.5vw, 5rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
     right: auto !important;
   }
-  
+
   .hero-spacing-right {
     right: clamp(2.2rem, 5.5vw, 5rem) !important;
     top: 58% !important;
@@ -380,14 +360,14 @@ html {
     line-height: 1.05 !important;
     letter-spacing: 0.07em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(2.5rem, 6vw, 7rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
     right: auto !important;
   }
-  
+
   .hero-spacing-right {
     right: clamp(2.5rem, 6vw, 7rem) !important;
     top: 58% !important;
@@ -406,14 +386,14 @@ html {
     line-height: 1.05 !important;
     letter-spacing: 0.07em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(3rem, 7vw, 8rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
     right: auto !important; /* Force right to auto to ensure left positioning */
   }
-  
+
   .hero-spacing-right {
     right: clamp(3rem, 7vw, 8rem) !important;
     top: 58% !important;
@@ -422,54 +402,30 @@ html {
   }
 }
 
-
-/* Small phones - slightly smaller than base mobile */
+/* Small phones - text sizing only, positioning handled by Tailwind max-md: classes */
 @media (max-width: 640px) {
   .hero-text-adaptive,
   .hero-text-narrow,
   .hero-text-desktop {
-    font-size: clamp(1rem, 4vw, 1.6rem) !important;
-    max-width: clamp(100px, 36vw, 160px) !important;
-    line-height: 0.95 !important;
-    letter-spacing: 0.05em !important;
+    font-size: clamp(1.2rem, 5vw, 1.8rem) !important;
+    max-width: none !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.04em !important;
+    text-align: center !important;
   }
-  
-  /* Very small phone screens - extra tight spacing */
-  .hero-spacing-left {
-    left: clamp(0.6rem, 2.5vw, 1.5rem) !important;
-    top: 58vh !important;
-    transform: translateY(-50%) !important;
-  }
-  
-  .hero-spacing-right {
-    right: clamp(0.6rem, 2.5vw, 1.5rem) !important;
-    top: 58vh !important;
-    transform: translateY(-50%) !important;
-  }
+
+  /* Do NOT apply .hero-spacing-left/right positioning on mobile - Tailwind handles it */
 }
 
-/* iPhone SE and similar very small screens - smallest size */
+/* iPhone SE and similar very small screens - text sizing only */
 @media (max-width: 375px) {
   .hero-text-adaptive,
   .hero-text-narrow,
   .hero-text-desktop {
-    font-size: clamp(0.9rem, 3.8vw, 1.4rem) !important;
-    max-width: clamp(90px, 34vw, 140px) !important;
-    line-height: 0.9 !important;
-    letter-spacing: 0.04em !important;
+    font-size: clamp(1rem, 4.5vw, 1.5rem) !important;
   }
-  
-  .hero-spacing-left {
-    left: clamp(0.4rem, 1.8vw, 1rem) !important;
-    top: 58vh !important;
-    transform: translateY(-50%) !important;
-  }
-  
-  .hero-spacing-right {
-    right: clamp(0.4rem, 1.8vw, 1rem) !important;
-    top: 58vh !important;
-    transform: translateY(-50%) !important;
-  }
+
+  /* Do NOT apply .hero-spacing-left/right positioning on mobile - Tailwind handles it */
 }
 
 /* Ultra wide screen handling */
@@ -477,7 +433,7 @@ html {
   .hero-text-ultra-wide {
     max-width: 25vw;
   }
-  
+
   /* Large desktop text - bigger and more impressive */
   .hero-text-adaptive,
   .hero-text-narrow,
@@ -487,13 +443,13 @@ html {
     line-height: 1.1 !important;
     letter-spacing: 0.08em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(3rem, 7vw, 10rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
   }
-  
+
   .hero-spacing-right {
     right: clamp(3rem, 7vw, 10rem) !important;
     top: 58% !important;
@@ -511,13 +467,13 @@ html {
     line-height: 1.1 !important;
     letter-spacing: 0.08em !important;
   }
-  
+
   .hero-spacing-left {
     left: clamp(2.5rem, 6vw, 8rem) !important;
     top: 58% !important;
     transform: translateY(-50%) !important;
   }
-  
+
   .hero-spacing-right {
     right: clamp(2.5rem, 6vw, 8rem) !important;
     top: 58% !important;
@@ -532,8 +488,13 @@ section {
 
 /* Enhanced gradient animations */
 @keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .gradient-animate {
@@ -554,9 +515,9 @@ canvas[data-engine*="three.js"] {
 }
 
 /* Curseur pointer sur tous les éléments interactifs */
-a, 
-button, 
-[role="button"], 
+a,
+button,
+[role="button"],
 input[type="button"],
 input[type="submit"],
 input[type="reset"],
@@ -584,8 +545,6 @@ textarea {
   cursor: not-allowed !important;
 }
 
-
-
 /* Professional hover effects - refined */
 .hover-lift {
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -604,13 +563,18 @@ textarea {
 }
 
 .btn-primary::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -641,7 +605,7 @@ textarea {
 }
 
 .underline-animate::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -3px;
   left: 50%;
@@ -705,7 +669,11 @@ textarea {
 }
 
 @keyframes subtleBounce {
-  0%, 20%, 50%, 80%, 100% {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateY(0);
   }
   40% {
@@ -732,7 +700,9 @@ textarea {
 .page-transition-enter-active {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.3s, transform 0.3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
 }
 
 .page-transition-exit {
@@ -743,7 +713,9 @@ textarea {
 .page-transition-exit-active {
   opacity: 0;
   transform: translateY(-20px);
-  transition: opacity 0.3s, transform 0.3s;
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
 }
 
 /* Luxury hover effects for text - refined for smooth experience */
@@ -768,7 +740,7 @@ textarea {
 
 .scroll-indicator:hover {
   transform: scale(1.05);
-  color: rgba(0,0,0,0.8);
+  color: rgba(0, 0, 0, 0.8);
 }
 
 /* Page Builder Inputs */
@@ -807,5 +779,154 @@ textarea {
   --tw-prose-pre-bg: rgba(0, 0, 0, 0.5);
   --tw-prose-th-borders: rgba(255, 255, 255, 0.3);
   --tw-prose-td-borders: rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================================================
+   CMS RESPONSIVE SYSTEM
+   ========================================================================== 
+   
+   These rules ensure all CMS blocks are responsive by default.
+   Users can customize colors, text, images, and spacing, but the responsive
+   behavior is handled automatically to maintain good design on all devices.
+   ========================================================================== */
+
+/* Force all blocks to respect viewport width on mobile */
+@media (max-width: 767px) {
+  /* Limit fixed pixel widths to max 100% on mobile */
+  [data-page-block] {
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  
+  /* Reduce large padding values on mobile */
+  [data-page-block][style*="padding-top: 8"],
+  [data-page-block][style*="padding-top: 9"],
+  [data-page-block][style*="padding-top: 10"],
+  [data-page-block][style*="padding-top: 11"],
+  [data-page-block][style*="padding-top: 12"] {
+    padding-top: 3rem !important;
+  }
+  
+  [data-page-block][style*="padding-bottom: 8"],
+  [data-page-block][style*="padding-bottom: 9"],
+  [data-page-block][style*="padding-bottom: 10"],
+  [data-page-block][style*="padding-bottom: 11"],
+  [data-page-block][style*="padding-bottom: 12"] {
+    padding-bottom: 3rem !important;
+  }
+  
+  /* Scale down large font sizes on mobile */
+  [data-page-block] h1 {
+    font-size: clamp(1.75rem, 8vw, 3rem) !important;
+    line-height: 1.2 !important;
+  }
+  
+  [data-page-block] h2 {
+    font-size: clamp(1.5rem, 6vw, 2.25rem) !important;
+    line-height: 1.25 !important;
+  }
+  
+  [data-page-block] h3 {
+    font-size: clamp(1.25rem, 5vw, 1.75rem) !important;
+    line-height: 1.3 !important;
+  }
+  
+  /* Ensure images don't overflow */
+  [data-page-block] img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Stack inline blocks on mobile */
+  [data-page-block][style*="display: inline-block"] {
+    display: block !important;
+    width: 100% !important;
+  }
+  
+  /* Reduce large gaps on mobile */
+  [data-page-block] .gap-12,
+  [data-page-block] .gap-16,
+  [data-page-block] .gap-20,
+  [data-page-block] .gap-24 {
+    gap: 1.5rem !important;
+  }
+  
+  /* Ensure centered content doesn't overflow */
+  [data-page-block] [class*="mx-auto"] {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  [data-page-block] {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Slightly reduce headings on tablet */
+  [data-page-block] h1 {
+    font-size: clamp(2rem, 6vw, 3.5rem) !important;
+  }
+  
+  [data-page-block] h2 {
+    font-size: clamp(1.75rem, 5vw, 2.5rem) !important;
+  }
+}
+
+/* Ensure smooth text scaling with viewport */
+[data-page-block] {
+  /* Enable smooth font scaling */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Default responsive typography for dynamic content */
+[data-page-block] p {
+  font-size: clamp(0.9rem, 2.5vw, 1.125rem);
+  line-height: 1.6;
+}
+
+/* Ensure buttons are touchable on mobile */
+@media (max-width: 767px) {
+  [data-page-block] a[class*="button"],
+  [data-page-block] button,
+  [data-page-block] [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Container utilities for CMS blocks */
+.cms-container {
+  width: 100%;
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .cms-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cms-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .cms-container {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 

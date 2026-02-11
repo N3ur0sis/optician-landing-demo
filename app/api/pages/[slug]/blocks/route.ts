@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { hasPermission, parsePermissions } from '@/types/permissions';
+
+// Helper to check pages permission
+async function checkPagesPermission() {
+  const session = await auth();
+  if (!session?.user) {
+    return { authorized: false, error: "Unauthorized", status: 401 };
+  }
+  const role = session.user.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user.permissions);
+  if (!hasPermission(role, permissions, "pages")) {
+    return { authorized: false, error: "Permission denied", status: 403 };
+  }
+  return { authorized: true, session, status: 200 };
+}
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
@@ -36,9 +51,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 // POST add a new block to a page
 export async function POST(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: check.status });
     }
 
     const { slug } = await params;
@@ -112,9 +127,9 @@ export async function POST(request: Request, { params }: RouteParams) {
 // PUT reorder blocks
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkPagesPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: check.status });
     }
 
     const { slug } = await params;

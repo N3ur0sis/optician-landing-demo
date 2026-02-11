@@ -2,12 +2,21 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import GridManagerClient from './GridManagerClient';
 import AdminLayout from '@/components/AdminLayout';
+import { hasPermission, parsePermissions } from '@/types/permissions';
 
 export default async function GridManagerPage() {
   const session = await auth();
 
-  if (!session || session.user.role !== 'WEBMASTER') {
+  if (!session) {
     redirect('/admin/login');
+  }
+
+  // Check permission for grid feature
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "grid")) {
+    redirect('/admin/dashboard');
   }
 
   return (

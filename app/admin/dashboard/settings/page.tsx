@@ -10,6 +10,11 @@ export default async function SettingsPage() {
     redirect('/admin/login');
   }
 
+  // Only admins can access settings
+  if (session.user?.role !== "ADMIN") {
+    redirect('/admin/dashboard');
+  }
+
   return (
     <AdminLayout session={session}>
       <SettingsClient />

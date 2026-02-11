@@ -128,9 +128,12 @@ main() {
     
     echo ""
     
-    # Seed database (only in production, first run)
-    if [ "$NODE_ENV" = "production" ] || [ "$RUN_SEED" = "true" ]; then
+    # Seed database ONLY when explicitly requested (first deployment only!)
+    # WARNING: seed.ts uses deleteMany() — it will WIPE existing data!
+    if [ "$RUN_SEED" = "true" ]; then
         seed_database
+    else
+        log_info "Skipping database seed (set RUN_SEED=true to force)"
     fi
     
     echo ""

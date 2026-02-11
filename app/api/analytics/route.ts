@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { hasPermission, parsePermissions } from "@/types/permissions"
 
 interface PageViewRecord {
   path: string
@@ -17,6 +18,14 @@ export async function GET(request: NextRequest) {
     const session = await auth()
     if (!session?.user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
+    }
+
+    // Check analytics permission
+    const role = session.user?.role as "ADMIN" | "WEBMASTER";
+    const permissions = parsePermissions(session.user?.permissions);
+    
+    if (!hasPermission(role, permissions, "analytics")) {
+      return NextResponse.json({ error: "Permission denied" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url)

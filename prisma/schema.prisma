@@ -16,14 +16,16 @@ enum Role {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  role      Role     @default(WEBMASTER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sessions  Session[]
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  name         String?
+  role         Role     @default(WEBMASTER)
+  isSuperAdmin Boolean  @default(false) // Protected admin created during deployment
+  permissions  Json?    // Granular permissions for WEBMASTER users
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  sessions     Session[]
 
   @@index([email])
   @@index([role])
@@ -119,6 +121,15 @@ enum BlockType {
   FEATURES          // Feature list with icons
   STORE_LIST        // Dynamic store list from database
   
+  // Primitive/Data Blocks
+  INFO_BOX          // Info box with icon and text
+  HOURS_TABLE       // Business hours table
+  SERVICES_LIST     // List of services with icons
+  CTA_CARD          // Call-to-action card with buttons
+  REVIEW_BADGE      // Review/rating badge
+  LOCATION_CARD     // Location card with map
+  ICON_FEATURE      // Feature block with icon
+  
   // Store-specific blocks
   STORE_HERO        // Store hero with name, address, description
   STORE_CONTACT     // Store contact info (address, phone, email, hours)
@@ -151,20 +162,22 @@ enum ContainerWidth {
 
 // Grid tiles for the main landing page ContentReveal component
 model GridTile {
-  id          String      @id @default(cuid())
-  title       String
-  caption     String?
-  href        String
-  backgroundUrl String    // Image URL or CSS gradient
-  colSpan     Int         @default(2)  // 1-4 columns
-  rowSpan     Int         @default(1)  // 1-2 rows
-  colStart    Int         @default(1)  // Starting column 1-4
-  rowStart    Int         @default(1)  // Starting row
-  overlayType OverlayType @default(DARK)
-  order       Int         @default(0)  // Display order
-  published   Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id           String      @id @default(cuid())
+  title        String
+  caption      String?
+  href         String
+  backgroundUrl String     // Image URL or CSS gradient
+  colSpan      Int         @default(2)  // 1-4 columns
+  rowSpan      Int         @default(1)  // 1-2 rows
+  colStart     Int         @default(1)  // Starting column 1-4
+  rowStart     Int         @default(1)  // Starting row
+  overlayType  OverlayType @default(DARK)
+  overlayColor String?     // Custom overlay color (hex), e.g., "#0066cc"
+  overlayOpacity Int       @default(60)  // Opacity 0-100
+  order        Int         @default(0)  // Display order
+  published    Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   @@index([published, order])
 }
@@ -183,11 +196,16 @@ model Page {
   template        String    @default("default") // default, landing, minimal, full-width
   
   // Page Styling
-  backgroundColor String    @default("#000000")
-  textColor       String    @default("#ffffff")
+  backgroundColor String    @default("#ffffff")
+  textColor       String    @default("#171717")
   customCSS       String?   // Custom CSS for page
   
-  // Navigation
+  // Navbar Title (shows title instead of menu in center)
+  showNavbarTitle  Boolean   @default(false) // Show title in navbar instead of menu
+  navbarTitle      String?   // Custom title for navbar (defaults to page title)
+  navbarSubtitle   String?   // Subtitle shown below title in navbar
+  
+  // Navigation (deprecated - use Navigation Manager instead)
   showInNav       Boolean   @default(true)
   navOrder        Int       @default(0)
   navLabel        String?   // Override title in nav
@@ -314,6 +332,7 @@ model NavigationItem {
   
   // Dropdown/submenu settings
   dropdownStyle String         @default("dropdown") // dropdown, mega, flyout
+  parentClickable Boolean      @default(true) // Can click on parent to navigate (vs just open dropdown)
   
   // State
   published   Boolean          @default(true)
@@ -348,20 +367,38 @@ model NavigationMenu {
   layout      String           @default("horizontal") // horizontal, vertical, grid
   alignment   String           @default("center")     // left, center, right, space-between
   
+  // Display mode - how menu appears on desktop
+  displayMode String           @default("hamburger-only") // hamburger-only, traditional, hybrid
+  
   // Animation settings
   animation   String           @default("none")   // none, fade, slide, scale
   animationDuration Int        @default(200)      // milliseconds
   
-  // Styling
+  // Navbar styling
+  navbarHeight    Int          @default(64)   // Navbar height in pixels
+  fontSize        Int          @default(14)   // Font size in pixels for navbar items
   backgroundColor String?      // Menu background color
   textColor       String?      // Menu text color
   hoverColor      String?      // Hover state color
   activeColor     String?      // Active item color
   borderColor     String?      // Border color
   
+  // Mobile menu styling
+  mobileMenuBg    String?      @default("rgba(0,0,0,0.95)") // Mobile menu background
+  mobileMenuText  String?      @default("#ffffff")         // Mobile menu text color
+  mobileMenuHover String?      @default("#999999")         // Mobile menu hover color
+  mobileMenuAccent String?     @default("#f59e0b")         // Mobile menu accent/highlight color
+  mobileFontSize  Int          @default(18)                // Font size for mobile menu items
+  
   // Spacing
   itemSpacing     Int          @default(24)  // Space between items (px)
   padding         String?      // CSS padding value
+  
+  // Scroll behavior
+  shadowOnScroll  Boolean      @default(true)  // Show shadow when scrolled
+  shrinkOnScroll  Boolean      @default(true)  // Reduce height when scrolled
+  scrollOpacity   Int          @default(100)   // Opacity when scrolled (0-100%)
+  hideOnScrollDown Boolean     @default(false) // Hide navbar on scroll down
   
   // Dropdown global settings
   dropdownAnimation String     @default("fadeDown") // fadeDown, slideDown, scale, none
@@ -482,4 +519,49 @@ model ActiveSession {
   
   @@index([lastSeenAt])
   @@index([path])
+}
+
+// ============================================
+// Backup & Versioning System
+// ============================================
+
+enum BackupType {
+  MANUAL           // User-triggered backup
+  AUTO_PRE_IMPORT  // Automatic backup before import
+  AUTO_PRE_EXPORT  // Automatic backup before export (optional)
+  SCHEDULED        // Scheduled automatic backup
+}
+
+// Database backups stored securely in the database
+model DatabaseBackup {
+  id          String     @id @default(cuid())
+  name        String     // Human-readable name
+  type        BackupType @default(MANUAL)
+  
+  // Compressed backup data stored as base64
+  // This is secure as it's stored in the DB, not accessible via public URL
+  data        String     @db.Text // Compressed JSON backup data
+  
+  // Metadata
+  size        Int        // Uncompressed size in bytes
+  compressedSize Int?    // Compressed size in bytes
+  version     String     @default("2.0") // Backup format version
+  
+  // What's included
+  stats       Json       // { pages: 10, blocks: 50, ... }
+  
+  // Optional notes
+  description String?
+  
+  // Tracking
+  createdBy   String?    // User ID who created the backup
+  createdAt   DateTime   @default(now())
+  
+  // Retention
+  isProtected Boolean    @default(false) // Protected backups won't be auto-deleted
+  expiresAt   DateTime?  // Optional expiration date for auto-cleanup
+  
+  @@index([type])
+  @@index([createdAt])
+  @@index([isProtected])
 }

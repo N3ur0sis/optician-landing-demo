@@ -1,6 +1,24 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { hasPermission, parsePermissions } from '@/types/permissions';
+
+// Helper to check navigation permission
+async function checkNavigationPermission() {
+  const session = await auth();
+  if (!session) {
+    return { authorized: false, error: "Unauthorized" };
+  }
+  
+  const role = session.user?.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user?.permissions);
+  
+  if (!hasPermission(role, permissions, "navigation")) {
+    return { authorized: false, error: "Permission denied" };
+  }
+  
+  return { authorized: true, session };
+}
 
 // GET all navigation items (optionally filtered by menu)
 export async function GET(request: Request) {
@@ -65,9 +83,9 @@ export async function GET(request: Request) {
 // POST create a new navigation item
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkNavigationPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const body = await request.json();
@@ -87,6 +105,7 @@ export async function POST(request: Request) {
       dropdownStyle = 'dropdown',
       published = true,
       highlighted = false,
+      parentClickable = true,
     } = body;
 
     // Validate menu exists
@@ -138,6 +157,7 @@ export async function POST(request: Request) {
         dropdownStyle,
         published,
         highlighted,
+        parentClickable,
       },
       include: {
         menu: {
@@ -157,9 +177,9 @@ export async function POST(request: Request) {
 // PUT bulk update items (for reordering, moving between menus, etc.)
 export async function PUT(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkNavigationPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: 401 });
     }
 
     const body = await request.json();

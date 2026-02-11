@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { hasPermission, parsePermissions } from '@/types/permissions';
+
+// Helper to check navigation permission
+async function checkNavigationPermission() {
+  const session = await auth();
+  if (!session?.user) {
+    return { authorized: false, error: "Unauthorized", status: 401 };
+  }
+  const role = session.user.role as "ADMIN" | "WEBMASTER";
+  const permissions = parsePermissions(session.user.permissions);
+  if (!hasPermission(role, permissions, "navigation")) {
+    return { authorized: false, error: "Permission denied", status: 403 };
+  }
+  return { authorized: true, session, status: 200 };
+}
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
@@ -53,9 +68,9 @@ export async function GET(request: Request, { params }: RouteParams) {
 // PUT update a menu
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkNavigationPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: check.status });
     }
 
     const { slug } = await params;
@@ -94,15 +109,27 @@ export async function PUT(request: Request, { params }: RouteParams) {
         alignment: body.alignment ?? existingMenu.alignment,
         animation: body.animation ?? existingMenu.animation,
         animationDuration: body.animationDuration ?? existingMenu.animationDuration,
+        navbarHeight: body.navbarHeight ?? existingMenu.navbarHeight,
+        fontSize: body.fontSize ?? existingMenu.fontSize,
+        mobileFontSize: body.mobileFontSize ?? existingMenu.mobileFontSize,
         backgroundColor: body.backgroundColor !== undefined ? body.backgroundColor : existingMenu.backgroundColor,
         textColor: body.textColor !== undefined ? body.textColor : existingMenu.textColor,
         hoverColor: body.hoverColor !== undefined ? body.hoverColor : existingMenu.hoverColor,
         activeColor: body.activeColor !== undefined ? body.activeColor : existingMenu.activeColor,
         borderColor: body.borderColor !== undefined ? body.borderColor : existingMenu.borderColor,
+        mobileMenuBg: body.mobileMenuBg !== undefined ? body.mobileMenuBg : existingMenu.mobileMenuBg,
+        mobileMenuText: body.mobileMenuText !== undefined ? body.mobileMenuText : existingMenu.mobileMenuText,
+        mobileMenuHover: body.mobileMenuHover !== undefined ? body.mobileMenuHover : existingMenu.mobileMenuHover,
+        mobileMenuAccent: body.mobileMenuAccent !== undefined ? body.mobileMenuAccent : existingMenu.mobileMenuAccent,
         itemSpacing: body.itemSpacing ?? existingMenu.itemSpacing,
         padding: body.padding !== undefined ? body.padding : existingMenu.padding,
         dropdownAnimation: body.dropdownAnimation ?? existingMenu.dropdownAnimation,
         dropdownDelay: body.dropdownDelay ?? existingMenu.dropdownDelay,
+        displayMode: body.displayMode ?? existingMenu.displayMode,
+        shadowOnScroll: body.shadowOnScroll ?? existingMenu.shadowOnScroll,
+        shrinkOnScroll: body.shrinkOnScroll ?? existingMenu.shrinkOnScroll,
+        scrollOpacity: body.scrollOpacity ?? existingMenu.scrollOpacity,
+        hideOnScrollDown: body.hideOnScrollDown ?? existingMenu.hideOnScrollDown,
         customCSS: body.customCSS !== undefined ? body.customCSS : existingMenu.customCSS,
         cssClasses: body.cssClasses !== undefined ? body.cssClasses : existingMenu.cssClasses,
         mobileBreakpoint: body.mobileBreakpoint ?? existingMenu.mobileBreakpoint,
@@ -126,9 +153,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 // DELETE a menu
 export async function DELETE(request: Request, { params }: RouteParams) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const check = await checkNavigationPermission();
+    if (!check.authorized) {
+      return NextResponse.json({ error: check.error }, { status: check.status });
     }
 
     const { slug } = await params;

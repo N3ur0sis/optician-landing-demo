@@ -1,9 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import PageNavigation from '@/components/PageNavigation';
+import DynamicNavbar from '@/components/DynamicNavbar';
 import Footer from '@/components/Footer';
 import BlockRenderer from '@/components/page-builder/BlockRenderer';
+import { PageBuilderProvider } from '@/components/page-builder/PageBuilderContext';
 import { Page, PageBlock } from '@/types/page-builder';
 
 interface DynamicPageRendererProps {
@@ -11,34 +12,35 @@ interface DynamicPageRendererProps {
 }
 
 export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) {
-  // Get first heading block for page title, or use page title
-  const firstHeroBlock = page.blocks.find(b => b.type === 'HERO');
-  const heroContent = firstHeroBlock?.content as Record<string, unknown> | undefined;
-  const pageTitle = heroContent?.title as string || page.title;
-  const pageSubtitle = heroContent?.subtitle as string || '';
+  // Check if page wants to show navbar title
+  const showNavbarTitle = (page as Page & { showNavbarTitle?: boolean }).showNavbarTitle ?? false;
+  const navbarTitle = (page as Page & { navbarTitle?: string }).navbarTitle || page.title;
+  const navbarSubtitle = (page as Page & { navbarSubtitle?: string }).navbarSubtitle || '';
 
-  // Determine if we should show the navigation header
+  // Determine if we should show the navigation header (always show on pages)
+  const firstHeroBlock = page.blocks.find(b => b.type === 'HERO');
   const showNavHeader = !firstHeroBlock || page.template !== 'landing';
 
   return (
     <main
-      className="min-h-screen"
+      className="min-h-screen overflow-x-hidden"
       style={{
         backgroundColor: page.backgroundColor,
         color: page.textColor,
       }}
     >
-      {/* Page Navigation */}
+      {/* Page Navigation - includes spacer for fixed navbar */}
       {showNavHeader && (
-        <PageNavigation
-          title={pageTitle}
-          subtitle={pageSubtitle}
+        <DynamicNavbar
+          title={showNavbarTitle ? navbarTitle : undefined}
+          subtitle={showNavbarTitle ? navbarSubtitle : undefined}
+          showBackButton={showNavbarTitle}
         />
       )}
 
-      {/* Page Content */}
-      <div className={showNavHeader ? 'pt-20' : ''}>
-        <div className="page-blocks-container">
+      {/* Page Content - overflow hidden to prevent blocks from exceeding page width */}
+      <PageBuilderProvider isEditing={false}>
+        <div className="page-blocks-container @container overflow-hidden w-full">
           {page.blocks
             .filter(block => block.visible)
             .map((block, index) => {
@@ -57,13 +59,14 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="overflow-hidden max-w-full"
                 >
                   <BlockRenderer block={block} />
                 </motion.div>
               );
             })}
         </div>
-      </div>
+      </PageBuilderProvider>
 
       {/* Footer */}
       {page.template !== 'minimal' && <Footer />}

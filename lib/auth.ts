@@ -51,6 +51,7 @@ export const authConfig = {
             email: user.email,
             name: user.name,
             role: user.role,
+            permissions: user.permissions as Record<string, boolean> | null,
           }
         } finally {
           await prisma.$disconnect()
@@ -69,6 +70,7 @@ export const authConfig = {
       if (user) {
         token.id = user.id
         token.role = user.role
+        token.permissions = user.permissions
       }
       return token
     },
@@ -76,6 +78,7 @@ export const authConfig = {
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string
+        session.user.permissions = token.permissions as Record<string, boolean> | null
       }
       return session
     }
