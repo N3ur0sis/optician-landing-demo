@@ -121,6 +121,15 @@ enum BlockType {
   FEATURES          // Feature list with icons
   STORE_LIST        // Dynamic store list from database
   
+  // Primitive/Data Blocks
+  INFO_BOX          // Info box with icon and text
+  HOURS_TABLE       // Business hours table
+  SERVICES_LIST     // List of services with icons
+  CTA_CARD          // Call-to-action card with buttons
+  REVIEW_BADGE      // Review/rating badge
+  LOCATION_CARD     // Location card with map
+  ICON_FEATURE      // Feature block with icon
+  
   // Store-specific blocks
   STORE_HERO        // Store hero with name, address, description
   STORE_CONTACT     // Store contact info (address, phone, email, hours)

@@ -706,7 +706,8 @@ function MobileMenuItem({
         className="flex items-center justify-between border-b pb-3"
         style={{ borderColor: `${textColor}20` }}
       >
-        {hasChildren && !isClickable ? (
+        {hasChildren ? (
+          // Items with children: clicking the label opens the dropdown
           <button
             onClick={onToggleExpand}
             onMouseEnter={() => setIsHovered(true)}
@@ -717,6 +718,7 @@ function MobileMenuItem({
             {item.label}
           </button>
         ) : (
+          // Items without children: clicking navigates
           <Link
             href={href}
             target={item.openInNewTab ? "_blank" : undefined}

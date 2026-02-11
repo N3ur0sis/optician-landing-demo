@@ -66,6 +66,9 @@ interface InfoBoxBlockContent {
   secondaryContent?: string;
   secondaryLink?: string;
   variant?: "default" | "compact" | "card";
+  iconColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
 }
 
 export function InfoBoxBlock({ content }: BlockContentProps<InfoBoxBlockContent>) {
@@ -77,6 +80,22 @@ export function InfoBoxBlock({ content }: BlockContentProps<InfoBoxBlockContent>
   const secondaryContent = content.secondaryContent;
   const secondaryLink = content.secondaryLink;
   const variant = content.variant || "default";
+  const iconColor = content.iconColor || "amber";
+  const backgroundColor = content.backgroundColor;
+  const textColor = content.textColor;
+
+  // Color map for icon colors
+  const colorMap: Record<string, { bg: string; text: string }> = {
+    amber: { bg: "#fef3c7", text: "#d97706" },
+    blue: { bg: "#dbeafe", text: "#2563eb" },
+    green: { bg: "#dcfce7", text: "#16a34a" },
+    red: { bg: "#fee2e2", text: "#dc2626" },
+    purple: { bg: "#f3e8ff", text: "#9333ea" },
+    pink: { bg: "#fce7f3", text: "#db2777" },
+    indigo: { bg: "#e0e7ff", text: "#4f46e5" },
+    gray: { bg: "#f3f4f6", text: "#4b5563" },
+  };
+  const colors = colorMap[iconColor] || colorMap.amber;
 
   // Use LucideIcon if valid, otherwise fallback to legacy iconMap
   const IconComponent = isValidIcon(icon) ? null : (iconMap[icon] || iconMap["info"]);
@@ -96,6 +115,10 @@ export function InfoBoxBlock({ content }: BlockContentProps<InfoBoxBlockContent>
       }
     : {};
 
+  const wrapperStyle: React.CSSProperties = {};
+  if (backgroundColor) wrapperStyle.backgroundColor = backgroundColor;
+  if (textColor) wrapperStyle.color = textColor;
+
   return (
     <ContentWrapper
       {...wrapperProps}
@@ -103,32 +126,37 @@ export function InfoBoxBlock({ content }: BlockContentProps<InfoBoxBlockContent>
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={link ? { scale: 1.01 } : undefined}
+      style={wrapperStyle}
     >
-      <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-amber-100 transition-colors">
+      <div 
+        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors"
+        style={{ backgroundColor: colors.bg }}
+      >
         {isValidIcon(icon) ? (
-          <LucideIcon name={icon} className="w-5 h-5 text-amber-600" />
+          <LucideIcon name={icon} className="w-5 h-5" style={{ color: colors.text }} />
         ) : IconComponent ? (
-          <IconComponent className="w-5 h-5 text-amber-600" />
+          <IconComponent className="w-5 h-5" style={{ color: colors.text }} />
         ) : null}
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-neutral-900 mb-1" data-field="title">{title}</h3>
+        <h3 className="font-semibold mb-1" style={{ color: textColor || "#171717" }} data-field="title">{title}</h3>
         {mainContent && (
-          <p className="text-neutral-600 whitespace-pre-line" data-field="content">{mainContent}</p>
+          <p className="whitespace-pre-line" style={{ color: textColor ? `${textColor}cc` : "#525252" }} data-field="content">{mainContent}</p>
         )}
         {secondaryContent &&
           (secondaryLink ? (
             <a
               href={secondaryLink}
-              className="text-amber-700 hover:text-amber-900 transition-colors block mt-1"
+              className="block mt-1 transition-colors"
+              style={{ color: colors.text }}
             >
               {secondaryContent}
             </a>
           ) : (
-            <p className="text-neutral-500 text-sm mt-1">{secondaryContent}</p>
+            <p className="text-sm mt-1" style={{ color: textColor ? `${textColor}99` : "#737373" }}>{secondaryContent}</p>
           ))}
         {linkLabel && (
-          <span className="text-amber-700 font-medium text-sm mt-2 inline-flex items-center gap-1">
+          <span className="font-medium text-sm mt-2 inline-flex items-center gap-1" style={{ color: colors.text }}>
             {linkLabel}
             <ExternalLink className="w-3 h-3" />
           </span>
@@ -148,6 +176,9 @@ interface HoursTableBlockContent {
   showIcon?: boolean;
   highlightToday?: boolean;
   variant?: "table" | "compact" | "cards";
+  accentColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
 }
 
 export function HoursTableBlock({ content }: BlockContentProps<HoursTableBlockContent>) {
@@ -155,45 +186,120 @@ export function HoursTableBlock({ content }: BlockContentProps<HoursTableBlockCo
   const hours = content.hours || {};
   const showIcon = content.showIcon !== false;
   const highlightToday = content.highlightToday !== false;
+  const variant = content.variant || "table";
+  const accentColor = content.accentColor || "#f59e0b"; // amber-500
+  const backgroundColor = content.backgroundColor;
+  const textColor = content.textColor;
 
   const today = new Date().toLocaleDateString("fr-FR", { weekday: "long" });
   const todayCapitalized = today.charAt(0).toUpperCase() + today.slice(1);
 
   if (Object.keys(hours).length === 0) return null;
 
+  const containerStyle: React.CSSProperties = {};
+  if (backgroundColor) containerStyle.backgroundColor = backgroundColor;
+
+  // Cards variant
+  if (variant === "cards") {
+    return (
+      <motion.div
+        className="grid grid-cols-2 @sm:grid-cols-3 @lg:grid-cols-4 gap-3"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        {Object.entries(hours).map(([day, hoursValue], idx) => {
+          const isToday = highlightToday && day.toLowerCase() === todayCapitalized.toLowerCase();
+          return (
+            <div
+              key={day}
+              className="p-3 rounded-xl text-center transition-all hover:scale-105"
+              style={{
+                backgroundColor: isToday ? accentColor : (backgroundColor || "#f5f5f5"),
+                color: isToday ? "#fff" : (textColor || "#171717"),
+              }}
+              data-item-index={idx}
+              data-child-type="hour"
+            >
+              <span className="block text-sm font-medium opacity-80">{day}</span>
+              <span className="block font-semibold mt-1">{hoursValue}</span>
+              {isToday && <span className="text-xs opacity-80">Aujourd'hui</span>}
+            </div>
+          );
+        })}
+      </motion.div>
+    );
+  }
+
+  // Compact variant
+  if (variant === "compact") {
+    return (
+      <motion.div
+        className="flex flex-wrap gap-3"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        {Object.entries(hours).map(([day, hoursValue], idx) => {
+          const isToday = highlightToday && day.toLowerCase() === todayCapitalized.toLowerCase();
+          return (
+            <div
+              key={day}
+              className="px-3 py-2 rounded-lg"
+              style={{
+                backgroundColor: isToday ? `${accentColor}20` : (backgroundColor || "#f5f5f5"),
+                borderLeft: isToday ? `3px solid ${accentColor}` : "none",
+                color: textColor || "#171717",
+              }}
+              data-item-index={idx}
+              data-child-type="hour"
+            >
+              <span className="text-sm font-medium">{day.slice(0, 3)}</span>
+              <span className="mx-2 opacity-50">:</span>
+              <span className="font-semibold">{hoursValue}</span>
+            </div>
+          );
+        })}
+      </motion.div>
+    );
+  }
+
+  // Table variant (default)
   return (
     <motion.div
       className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-neutral-100"
+      style={containerStyle}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
       {title && (
         <div className="flex items-center gap-3 mb-4">
           {showIcon && (
-            <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
-              <Clock className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${accentColor}20` }}>
+              <Clock className="w-5 h-5" style={{ color: accentColor }} />
             </div>
           )}
-          <h3 className="font-semibold text-neutral-900" data-field="title">{title}</h3>
+          <h3 className="font-semibold" style={{ color: textColor || "#171717" }} data-field="title">{title}</h3>
         </div>
       )}
       <div className={`space-y-2 ${title ? "" : "pt-0"}`}>
-        {Object.entries(hours).map(([day, hoursValue]) => {
+        {Object.entries(hours).map(([day, hoursValue], idx) => {
           const isToday = highlightToday && day.toLowerCase() === todayCapitalized.toLowerCase();
           return (
             <div
               key={day}
-              className={`flex justify-between py-2 px-3 rounded-lg transition-colors ${
-                isToday
-                  ? "bg-amber-50 border border-amber-200"
-                  : "border-b border-neutral-100 last:border-0"
-              }`}
+              className="flex justify-between py-2 px-3 rounded-lg transition-colors"
+              style={{
+                backgroundColor: isToday ? `${accentColor}15` : "transparent",
+                border: isToday ? `1px solid ${accentColor}40` : "none",
+                borderBottom: isToday ? undefined : "1px solid #f5f5f5",
+              }}
+              data-item-index={idx}
+              data-child-type="hour"
             >
-              <span className={`${isToday ? "font-semibold text-amber-800" : "text-neutral-600"}`}>
+              <span style={{ color: isToday ? accentColor : (textColor ? `${textColor}aa` : "#525252") }}>
                 {day}
-                {isToday && <span className="ml-2 text-xs text-amber-600">(Aujourd'hui)</span>}
+                {isToday && <span className="ml-2 text-xs" style={{ color: accentColor }}>(Aujourd'hui)</span>}
               </span>
-              <span className={`font-medium ${isToday ? "text-amber-900" : "text-neutral-900"}`}>
+              <span className="font-medium" style={{ color: isToday ? accentColor : (textColor || "#171717") }}>
                 {hoursValue}
               </span>
             </div>
@@ -211,19 +317,43 @@ export function HoursTableBlock({ content }: BlockContentProps<HoursTableBlockCo
 interface ServicesListBlockContent {
   title?: string;
   subtitle?: string;
-  services?: string[];
+  services?: (string | { title?: string; name?: string; text?: string; [key: string]: unknown })[];
   columns?: number;
   variant?: "bullets" | "checks" | "cards" | "badges";
   iconColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  showTitle?: boolean;
+}
+
+// Helper to extract string from service item (handles both string and object formats)
+function getServiceText(service: string | { title?: string; name?: string; text?: string; [key: string]: unknown }): string {
+  if (typeof service === "string") return service;
+  if (typeof service === "object" && service !== null) {
+    // Try common text properties
+    if (typeof service.title === "string") return service.title;
+    if (typeof service.name === "string") return service.name;
+    if (typeof service.text === "string") return service.text;
+    // If object has indexed characters (from styled text), reconstruct the string
+    const keys = Object.keys(service).filter(k => !isNaN(Number(k))).sort((a, b) => Number(a) - Number(b));
+    if (keys.length > 0) {
+      return keys.map(k => service[k]).join("");
+    }
+  }
+  return String(service || "");
 }
 
 export function ServicesListBlock({ content }: BlockContentProps<ServicesListBlockContent>) {
   const title = content.title;
   const subtitle = content.subtitle;
-  const services = content.services || [];
+  const rawServices = content.services || [];
+  const services = rawServices.map(getServiceText).filter(Boolean);
   const columns = content.columns || 2;
   const variant = content.variant || "bullets";
   const iconColor = content.iconColor || "amber";
+  const backgroundColor = content.backgroundColor;
+  const textColor = content.textColor;
+  const showTitle = content.showTitle !== false;
 
   if (services.length === 0) return null;
 
@@ -249,35 +379,40 @@ export function ServicesListBlock({ content }: BlockContentProps<ServicesListBlo
     checks: {
       container: "bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-neutral-100",
       item: "flex items-center gap-3 p-3 hover:bg-green-50 rounded-lg transition-colors group",
-      icon: <Check className="w-4 h-4 text-green-600 shrink-0" />,
+      icon: <Check className="w-4 h-4 shrink-0" style={{ color: bulletColor }} />,
     },
     cards: {
       container: "",
       item: "bg-white rounded-xl p-4 shadow-sm border border-neutral-100 hover:shadow-md hover:border-amber-200 transition-all group",
-      icon: <Star className="w-4 h-4 text-amber-500 shrink-0" />,
+      icon: <Star className="w-4 h-4 shrink-0" style={{ color: bulletColor }} />,
     },
     badges: {
       container: "flex flex-wrap gap-2",
       item: "inline-flex items-center gap-2 px-4 py-2 bg-neutral-100 hover:bg-amber-100 rounded-full transition-colors group",
-      icon: <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />,
+      icon: <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: bulletColor }} />,
     },
   };
 
   const styles = variantStyles[variant] || variantStyles.bullets;
 
+  const containerStyle: React.CSSProperties = {};
+  if (backgroundColor) containerStyle.backgroundColor = backgroundColor;
+  if (textColor) containerStyle.color = textColor;
+
   return (
     <motion.div
       className={styles.container}
+      style={containerStyle}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      {title && (
-        <h3 className="text-xl font-bold mb-2 text-neutral-900 flex items-center" data-field="title">
-          <span className="w-1.5 h-5 bg-amber-500 rounded-full mr-3"></span>
+      {showTitle && title && (
+        <h3 className="text-xl font-bold mb-2 flex items-center" style={{ color: textColor || "#171717" }} data-field="title">
+          <span className="w-1.5 h-5 rounded-full mr-3" style={{ backgroundColor: bulletColor }}></span>
           {title}
         </h3>
       )}
-      {subtitle && <p className="text-neutral-600 mb-4 ml-5" data-field="subtitle">{subtitle}</p>}
+      {showTitle && subtitle && <p className="mb-4 ml-5" style={{ color: textColor ? `${textColor}cc` : "#525252" }} data-field="subtitle">{subtitle}</p>}
       <div className={`grid gap-3 ${gridCols[columns] || gridCols[2]}`}>
         {services.map((service, idx) => (
           <motion.div
@@ -291,7 +426,7 @@ export function ServicesListBlock({ content }: BlockContentProps<ServicesListBlo
             data-child-type="service"
           >
             {styles.icon}
-            <span className="font-medium text-neutral-800 group-hover:text-amber-800 transition-colors">
+            <span className="font-medium transition-colors" style={{ color: textColor || "#262626" }}>
               {service}
             </span>
           </motion.div>
@@ -434,6 +569,9 @@ interface ReviewBadgeBlockContent {
   sourceUrl?: string;
   showStars?: boolean;
   variant?: "default" | "compact" | "detailed";
+  starColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
 }
 
 export function ReviewBadgeBlock({ content }: BlockContentProps<ReviewBadgeBlockContent>) {
@@ -444,6 +582,9 @@ export function ReviewBadgeBlock({ content }: BlockContentProps<ReviewBadgeBlock
   const sourceUrl = content.sourceUrl;
   const showStars = content.showStars !== false;
   const variant = content.variant || "default";
+  const starColor = content.starColor || "#f59e0b"; // amber-500
+  const backgroundColor = content.backgroundColor;
+  const textColor = content.textColor;
 
   const variantClasses = {
     default: "bg-white rounded-2xl shadow-lg p-6 border border-neutral-100",
@@ -456,9 +597,13 @@ export function ReviewBadgeBlock({ content }: BlockContentProps<ReviewBadgeBlock
     ? { href: sourceUrl, target: "_blank", rel: "noopener noreferrer" }
     : {};
 
+  const containerStyle: React.CSSProperties = {};
+  if (backgroundColor) containerStyle.backgroundColor = backgroundColor;
+
   return (
     <motion.div
       className={variantClasses[variant] || variantClasses.default}
+      style={containerStyle}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
@@ -469,22 +614,26 @@ export function ReviewBadgeBlock({ content }: BlockContentProps<ReviewBadgeBlock
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`w-5 h-5 ${i < Math.floor(rating) ? "text-amber-500 fill-amber-500" : "text-neutral-200"}`}
+                  className="w-5 h-5"
+                  style={{
+                    color: i < Math.floor(rating) ? starColor : "#e5e5e5",
+                    fill: i < Math.floor(rating) ? starColor : "none",
+                  }}
                 />
               ))}
             </div>
           )}
           <div>
-            <span className="text-xl font-bold text-neutral-900">{rating}</span>
-            <span className="text-neutral-400">/5</span>
-            <span className="text-sm text-neutral-500 ml-2">({reviewCount} avis)</span>
+            <span className="text-xl font-bold" style={{ color: textColor || "#171717" }}>{rating}</span>
+            <span style={{ color: textColor ? `${textColor}80` : "#a3a3a3" }}>/5</span>
+            <span className="text-sm ml-2" style={{ color: textColor ? `${textColor}aa` : "#737373" }}>({reviewCount} avis)</span>
           </div>
         </>
       ) : (
         <>
           {title && (
-            <h3 className="text-lg font-bold mb-4 text-neutral-900 flex items-center gap-2" data-field="title">
-              <Star className="w-5 h-5 text-amber-500" />
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: textColor || "#171717" }} data-field="title">
+              <Star className="w-5 h-5" style={{ color: starColor, fill: starColor }} />
               {title}
             </h3>
           )}
@@ -494,20 +643,25 @@ export function ReviewBadgeBlock({ content }: BlockContentProps<ReviewBadgeBlock
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-6 h-6 ${i < Math.floor(rating) ? "text-amber-500 fill-amber-500" : "text-neutral-200"}`}
+                    className="w-6 h-6"
+                    style={{
+                      color: i < Math.floor(rating) ? starColor : "#e5e5e5",
+                      fill: i < Math.floor(rating) ? starColor : "none",
+                    }}
                   />
                 ))}
               </div>
             )}
-            <div className="text-3xl font-bold text-neutral-900 mb-1">
+            <div className="text-3xl font-bold mb-1" style={{ color: textColor || "#171717" }}>
               {rating}
-              <span className="text-lg text-neutral-400">/5</span>
+              <span className="text-lg" style={{ color: textColor ? `${textColor}80` : "#a3a3a3" }}>/5</span>
             </div>
-            <p className="text-sm text-neutral-600 mb-3">{reviewCount} avis vérifiés</p>
+            <p className="text-sm mb-3" style={{ color: textColor ? `${textColor}aa` : "#525252" }}>{reviewCount} avis vérifiés</p>
             {source && (
               <SourceWrapper
                 {...sourceProps}
-                className="text-amber-700 hover:text-amber-900 font-medium text-sm underline-offset-4 hover:underline transition-all cursor-pointer"
+                className="font-medium text-sm underline-offset-4 hover:underline transition-all cursor-pointer"
+                style={{ color: starColor }}
               >
                 {source}
               </SourceWrapper>
@@ -529,7 +683,11 @@ interface LocationCardBlockContent {
   mapUrl?: string;
   embedUrl?: string;
   showPreview?: boolean;
+  showIcon?: boolean;
   variant?: "default" | "compact" | "map-only";
+  accentColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
 }
 
 export function LocationCardBlock({ content }: BlockContentProps<LocationCardBlockContent>) {
@@ -538,7 +696,11 @@ export function LocationCardBlock({ content }: BlockContentProps<LocationCardBlo
   const mapUrl = content.mapUrl;
   const embedUrl = content.embedUrl;
   const showPreview = content.showPreview !== false;
+  const showIcon = content.showIcon !== false;
   const variant = content.variant || "default";
+  const accentColor = content.accentColor || "#f59e0b"; // amber-500
+  const backgroundColor = content.backgroundColor;
+  const textColor = content.textColor;
 
   const variantClasses = {
     default: "bg-white rounded-2xl shadow-lg overflow-hidden border border-neutral-100",
@@ -546,29 +708,34 @@ export function LocationCardBlock({ content }: BlockContentProps<LocationCardBlo
     "map-only": "rounded-2xl overflow-hidden shadow-lg",
   };
 
+  const containerStyle: React.CSSProperties = {};
+  if (backgroundColor) containerStyle.backgroundColor = backgroundColor;
+
   return (
     <motion.div
       className={variantClasses[variant] || variantClasses.default}
+      style={containerStyle}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
       {variant !== "map-only" && (
         <div className={`${variant === "compact" ? "" : "p-6"}`}>
           {title && (
-            <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2 mb-3" data-field="title">
-              <MapPin className="w-5 h-5 text-amber-500" />
+            <h3 className="text-lg font-bold flex items-center gap-2 mb-3" style={{ color: textColor || "#171717" }} data-field="title">
+              {showIcon && <MapPin className="w-5 h-5" style={{ color: accentColor }} />}
               {title}
             </h3>
           )}
           {variant === "compact" && address && (
-            <p className="text-neutral-600 text-sm mb-2" data-field="address">{address}</p>
+            <p className="text-sm mb-2" style={{ color: textColor ? `${textColor}aa` : "#525252" }} data-field="address">{address}</p>
           )}
           {variant === "compact" && mapUrl && (
             <a
               href={mapUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-amber-700 hover:text-amber-900 text-sm font-medium inline-flex items-center gap-1"
+              className="text-sm font-medium inline-flex items-center gap-1 hover:opacity-80 transition-opacity"
+              style={{ color: accentColor }}
             >
               Voir sur Maps
               <ExternalLink className="w-3 h-3" />
@@ -590,9 +757,9 @@ export function LocationCardBlock({ content }: BlockContentProps<LocationCardBlo
             />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <MapPin className="w-12 h-12 text-amber-500/50 mb-4" />
+              <MapPin className="w-12 h-12 mb-4" style={{ color: `${accentColor}80` }} />
               {address && (
-                <p className="text-neutral-600 text-center text-sm mb-4 whitespace-pre-line" data-field="address">
+                <p className="text-center text-sm mb-4 whitespace-pre-line" style={{ color: textColor ? `${textColor}aa` : "#525252" }} data-field="address">
                   {address}
                 </p>
               )}
@@ -601,7 +768,8 @@ export function LocationCardBlock({ content }: BlockContentProps<LocationCardBlo
                   href={mapUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 bg-neutral-900 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 text-white rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
+                  style={{ backgroundColor: accentColor }}
                 >
                   <ExternalLink className="w-4 h-4" />
                   Voir sur Google Maps
@@ -627,6 +795,9 @@ interface IconFeatureBlockContent {
   variant?: "default" | "card" | "centered" | "horizontal";
   iconBackground?: boolean;
   iconColor?: string;
+  backgroundColor?: string;
+  titleColor?: string;
+  descriptionColor?: string;
 }
 
 export function IconFeatureBlock({ content }: BlockContentProps<IconFeatureBlockContent>) {
@@ -637,6 +808,9 @@ export function IconFeatureBlock({ content }: BlockContentProps<IconFeatureBlock
   const variant = content.variant || "default";
   const iconBackground = content.iconBackground !== false;
   const iconColor = content.iconColor || "amber";
+  const backgroundColor = content.backgroundColor;
+  const titleColor = content.titleColor;
+  const descriptionColor = content.descriptionColor;
 
   // Color map for icon colors
   const colorMap: Record<string, { bg: string; bgHover: string; text: string }> = {
@@ -668,10 +842,16 @@ export function IconFeatureBlock({ content }: BlockContentProps<IconFeatureBlock
       }
     : {};
 
+  const containerStyle: React.CSSProperties = {};
+  if (backgroundColor && (variant === "card" || variant === "horizontal")) {
+    containerStyle.backgroundColor = backgroundColor;
+  }
+
   return (
     <Wrapper
       {...wrapperProps}
       className={`group ${variantClasses[variant] || variantClasses.default} ${link ? "cursor-pointer" : ""}`}
+      style={containerStyle}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={link || variant === "card" ? { y: -2 } : undefined}
@@ -689,14 +869,14 @@ export function IconFeatureBlock({ content }: BlockContentProps<IconFeatureBlock
         ) : null}
       </div>
       <div className={variant === "centered" ? "" : "flex-1"}>
-        <h4 className="font-bold text-neutral-900 mb-1 group-hover:text-amber-800 transition-colors" data-field="title">
+        <h4 className="font-bold mb-1 transition-colors" style={{ color: titleColor || "#171717" }} data-field="title">
           {title}
         </h4>
         {description && (
-          <p className="text-sm text-neutral-600" data-field="description">{description}</p>
+          <p className="text-sm" style={{ color: descriptionColor || "#525252" }} data-field="description">{description}</p>
         )}
         {link && (
-          <span className="text-amber-700 text-sm font-medium inline-flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-sm font-medium inline-flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: colors.text }}>
             En savoir plus
             <ExternalLink className="w-3 h-3" />
           </span>

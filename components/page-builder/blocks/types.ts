@@ -187,6 +187,7 @@ export const COLUMNS_MAP: Record<number, string> = {
   3: "grid-cols-1 @md:grid-cols-2 @lg:grid-cols-3",
   4: "grid-cols-1 @md:grid-cols-2 @lg:grid-cols-4",
   5: "grid-cols-1 @md:grid-cols-2 @lg:grid-cols-5",
+  6: "grid-cols-1 @md:grid-cols-3 @lg:grid-cols-6",
 };
 
 /** Gap class map */

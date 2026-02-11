@@ -162,45 +162,170 @@ interface GridItem {
   image?: string;
   link?: string;
   badge?: string;
+  _styles?: {
+    backgroundColor?: string;
+    borderRadius?: string;
+    padding?: string;
+  };
 }
 
 interface GridContent {
   items?: GridItem[];
   columns?: number;
   gap?: string;
+  // Item styling
+  itemStyle?: "default" | "bordered" | "elevated" | "glass" | "minimal";
+  itemBgColor?: string;
+  itemRadius?: string;
+  itemPadding?: string;
+  // Image options
+  imageAspect?: "video" | "square" | "portrait" | "wide" | "auto";
+  showImage?: boolean;
+  imagePosition?: "top" | "left" | "right" | "background";
+  // Text styling
+  titleSize?: "sm" | "md" | "lg";
+  showDescription?: boolean;
+  textAlign?: "left" | "center" | "right";
 }
 
 export function GridBlock({ content }: BlockContentProps<GridContent>) {
   const items = content.items || [];
   const columns = content.columns || 3;
-  const gap = content.gap || "medium";
+  const gap = content.gap || "md";
+  
+  // Item styling
+  const itemStyle = content.itemStyle || "default";
+  const itemBgColor = content.itemBgColor;
+  const itemRadius = content.itemRadius || "lg";
+  const itemPadding = content.itemPadding || "md";
+  
+  // Image options
+  const imageAspect = content.imageAspect || "video";
+  const showImage = content.showImage !== false;
+  const imagePosition = content.imagePosition || "top";
+  
+  // Text styling
+  const titleSize = content.titleSize || "md";
+  const showDescription = content.showDescription !== false;
+  const textAlign = content.textAlign || "left";
 
+  // Gap mapping - matches GAP_OPTIONS values
   const gapMap: Record<string, string> = {
     none: "gap-0",
+    sm: "gap-2",
+    md: "gap-4",
+    lg: "gap-6",
+    xl: "gap-8",
+    // Legacy support
     small: "gap-2",
     medium: "gap-4",
     large: "gap-6",
   };
 
+  // Item style presets
+  const itemStyleMap: Record<string, string> = {
+    default: "bg-white/5 hover:bg-white/10",
+    bordered: "bg-transparent border border-neutral-200 hover:border-neutral-400",
+    elevated: "bg-white shadow-md hover:shadow-lg",
+    glass: "bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20",
+    minimal: "bg-transparent hover:bg-neutral-100/50",
+  };
+
+  // Border radius mapping
+  const radiusMap: Record<string, string> = {
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+    xl: "rounded-xl",
+    "2xl": "rounded-2xl",
+    full: "rounded-3xl",
+  };
+
+  // Padding mapping
+  const paddingMap: Record<string, string> = {
+    none: "p-0",
+    sm: "p-2",
+    md: "p-4",
+    lg: "p-6",
+    xl: "p-8",
+  };
+
+  // Image aspect ratio mapping
+  const aspectMap: Record<string, string> = {
+    video: "aspect-video",
+    square: "aspect-square",
+    portrait: "aspect-[3/4]",
+    wide: "aspect-[21/9]",
+    auto: "",
+  };
+
+  // Title size mapping
+  const titleSizeMap: Record<string, string> = {
+    sm: "text-sm font-medium",
+    md: "text-base font-semibold",
+    lg: "text-lg font-bold",
+  };
+
+  // Text alignment mapping
+  const textAlignMap: Record<string, string> = {
+    left: "text-left",
+    center: "text-center",
+    right: "text-right",
+  };
+
   const columnsClass = COLUMNS_MAP[columns] || COLUMNS_MAP[3];
+  const gapClass = gapMap[gap] || gapMap.md;
+  const baseItemClass = itemStyleMap[itemStyle] || itemStyleMap.default;
+  const radiusClass = radiusMap[itemRadius] || radiusMap.lg;
+  const textAlignClass = textAlignMap[textAlign] || textAlignMap.left;
 
   return (
-    <div className={`grid ${columnsClass} ${gapMap[gap]}`}>
+    <div className={`grid ${columnsClass} ${gapClass}`}>
       {items.map((item, index) => {
         const Wrapper = item.link ? Link : "div";
+        const childStyles = item._styles || {};
+        
+        // Build item styles
+        const itemInlineStyles: React.CSSProperties = {};
+        if (itemBgColor) itemInlineStyles.backgroundColor = itemBgColor;
+        if (childStyles.backgroundColor) itemInlineStyles.backgroundColor = childStyles.backgroundColor;
+        if (childStyles.borderRadius) itemInlineStyles.borderRadius = childStyles.borderRadius;
+        if (childStyles.padding) itemInlineStyles.padding = childStyles.padding;
+
+        const isBackgroundImage = imagePosition === "background" && item.image && showImage;
+
         return (
           <Wrapper
             key={index}
             href={item.link || "#"}
-            className="relative overflow-hidden rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
+            className={`relative overflow-hidden ${radiusClass} ${baseItemClass} transition-all duration-300 group ${isBackgroundImage ? "min-h-[200px] flex items-end" : ""}`}
+            style={itemInlineStyles}
+            data-item-index={index}
+            data-child-type="grid-item"
           >
+            {/* Background image mode */}
+            {isBackgroundImage && (
+              <>
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
+              </>
+            )}
+
+            {/* Badge */}
             {item.badge && (
               <span className="absolute top-3 right-3 px-2 py-1 bg-white text-black text-xs font-medium rounded z-10">
                 {item.badge}
               </span>
             )}
-            {item.image && (
-              <div className="aspect-video overflow-hidden">
+
+            {/* Image top position */}
+            {item.image && showImage && imagePosition === "top" && (
+              <div className={`${aspectMap[imageAspect]} overflow-hidden`}>
                 <img
                   src={item.image}
                   alt={item.title}
@@ -208,12 +333,33 @@ export function GridBlock({ content }: BlockContentProps<GridContent>) {
                 />
               </div>
             )}
-            <div className="p-4">
-              <h3 className="font-semibold">{item.title}</h3>
-              {item.description && (
-                <p className="text-sm opacity-70 mt-1 line-clamp-2">{item.description}</p>
-              )}
-            </div>
+
+            {/* Horizontal layout (image left/right) */}
+            {item.image && showImage && (imagePosition === "left" || imagePosition === "right") ? (
+              <div className={`flex ${imagePosition === "right" ? "flex-row-reverse" : "flex-row"} gap-4`}>
+                <div className={`w-1/3 shrink-0 ${aspectMap[imageAspect]} overflow-hidden`}>
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className={`flex-1 ${paddingMap[itemPadding]} ${textAlignClass}`}>
+                  <h3 className={titleSizeMap[titleSize]} data-field="title">{item.title}</h3>
+                  {item.description && showDescription && (
+                    <p className="text-sm opacity-70 mt-1 line-clamp-2" data-field="description">{item.description}</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Standard vertical layout (top or background) */
+              <div className={`${paddingMap[itemPadding]} ${textAlignClass} ${isBackgroundImage ? "relative z-10 text-white" : ""}`}>
+                <h3 className={titleSizeMap[titleSize]} data-field="title">{item.title}</h3>
+                {item.description && showDescription && (
+                  <p className={`text-sm mt-1 line-clamp-2 ${isBackgroundImage ? "text-white/80" : "opacity-70"}`} data-field="description">{item.description}</p>
+                )}
+              </div>
+            )}
           </Wrapper>
         );
       })}

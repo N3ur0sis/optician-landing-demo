@@ -29,7 +29,7 @@ export const INLINE_EDITABLE_FIELDS: Record<string, string[]> = {
   // Layout blocks
   COLUMNS: [],
   CONTAINER: [],
-  GRID: [],
+  GRID: ["title"],
   BENTO: [],
 
   // Content blocks
@@ -134,6 +134,15 @@ export const ARRAY_EDITABLE_FIELDS: Record<string, ArrayFieldConfig[]> = {
     },
   ],
 
+  // Grid
+  GRID: [
+    {
+      arrayField: "items",
+      textFields: ["title", "description"],
+      childType: "grid-item",
+    },
+  ],
+
   // Stats
   STATS: [
     {
@@ -196,14 +205,9 @@ export const ARRAY_EDITABLE_FIELDS: Record<string, ArrayFieldConfig[]> = {
   // List
   LIST: [{ arrayField: "items", textFields: ["text"], childType: "list-item" }],
 
-  // Services List
-  SERVICES_LIST: [
-    {
-      arrayField: "services",
-      textFields: ["title", "description", "price"],
-      childType: "service",
-    },
-  ],
+  // Services List - services are simple strings, not objects
+  // The inline editing finds the text in the span and updates the array item directly
+  SERVICES_LIST: [],
 
   // Tabs
   TABS: [
@@ -228,13 +232,8 @@ export const ARRAY_EDITABLE_FIELDS: Record<string, ArrayFieldConfig[]> = {
   ],
 
   // Store blocks with items
-  STORE_SERVICES: [
-    {
-      arrayField: "services",
-      textFields: ["name", "description"],
-      childType: "service",
-    },
-  ],
+  // STORE_SERVICES - services are simple strings, not objects
+  STORE_SERVICES: [],
   STORE_REVIEWS: [
     {
       arrayField: "reviews",

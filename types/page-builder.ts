@@ -174,9 +174,22 @@ export interface ColumnsContent {
 
 // Grid Block
 export interface GridContent {
-  columns?: 2 | 3 | 4;
-  gap?: "none" | "small" | "medium" | "large";
-  items: GridItem[];
+  items?: GridItem[];
+  columns?: 1 | 2 | 3 | 4 | 5 | 6;
+  gap?: "none" | "sm" | "md" | "lg" | "xl" | "small" | "medium" | "large";
+  // Item styling
+  itemStyle?: "default" | "bordered" | "elevated" | "glass" | "minimal";
+  itemBgColor?: string;
+  itemRadius?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+  itemPadding?: "none" | "sm" | "md" | "lg" | "xl";
+  // Image options
+  imageAspect?: "video" | "square" | "portrait" | "wide" | "auto";
+  showImage?: boolean;
+  imagePosition?: "top" | "left" | "right" | "background";
+  // Text styling
+  titleSize?: "sm" | "md" | "lg";
+  showDescription?: boolean;
+  textAlign?: "left" | "center" | "right";
 }
 
 export interface GridItem {
@@ -185,6 +198,11 @@ export interface GridItem {
   image?: string;
   link?: string;
   badge?: string;
+  _styles?: {
+    backgroundColor?: string;
+    borderRadius?: string;
+    padding?: string;
+  };
 }
 
 // Spacer Block

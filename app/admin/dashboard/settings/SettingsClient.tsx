@@ -31,13 +31,9 @@ interface SiteSettings {
   contact_email: string;
   contact_phone: string;
   contact_address: string;
-  social_facebook: string;
-  social_instagram: string;
-  social_linkedin: string;
   meta_robots: string;
   google_analytics_id: string;
   google_search_console: string;
-  homepage_slug: string;
 }
 
 interface DatabaseBackup {
@@ -62,13 +58,9 @@ const defaultSettings: SiteSettings = {
   contact_email: "contact@optiquedebourbon.re",
   contact_phone: "0262 XX XX XX",
   contact_address: "Saint-Denis, La Réunion",
-  social_facebook: "",
-  social_instagram: "",
-  social_linkedin: "",
   meta_robots: "index, follow",
   google_analytics_id: "",
   google_search_console: "",
-  homepage_slug: "",
 };
 
 export default function SettingsClient() {
@@ -84,9 +76,6 @@ export default function SettingsClient() {
     text: string;
   } | null>(null);
   const [backupLoading, setBackupLoading] = useState(false);
-  const [availablePages, setAvailablePages] = useState<
-    { slug: string; title: string }[]
-  >([]);
   
   // Backup management state
   const [backups, setBackups] = useState<DatabaseBackup[]>([]);
@@ -118,7 +107,6 @@ export default function SettingsClient() {
 
   useEffect(() => {
     fetchSettings();
-    fetchPages();
   }, []);
 
   // Fetch backups when backup tab is active
@@ -141,23 +129,6 @@ export default function SettingsClient() {
       console.error("Failed to fetch settings:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchPages = async () => {
-    try {
-      const response = await fetch("/api/pages");
-      if (response.ok) {
-        const data = await response.json();
-        setAvailablePages(
-          data.map((p: { slug: string; title: string }) => ({
-            slug: p.slug,
-            title: p.title,
-          })),
-        );
-      }
-    } catch (error) {
-      console.error("Failed to fetch pages:", error);
     }
   };
 
@@ -612,88 +583,6 @@ export default function SettingsClient() {
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                 />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Réseaux sociaux
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Facebook
-                </label>
-                <input
-                  type="url"
-                  value={settings.social_facebook}
-                  onChange={(e) =>
-                    updateSetting("social_facebook", e.target.value)
-                  }
-                  placeholder="https://facebook.com/..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Instagram
-                </label>
-                <input
-                  type="url"
-                  value={settings.social_instagram}
-                  onChange={(e) =>
-                    updateSetting("social_instagram", e.target.value)
-                  }
-                  placeholder="https://instagram.com/..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  LinkedIn
-                </label>
-                <input
-                  type="url"
-                  value={settings.social_linkedin}
-                  onChange={(e) =>
-                    updateSetting("social_linkedin", e.target.value)
-                  }
-                  placeholder="https://linkedin.com/..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Homepage Selection */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              Page d&apos;accueil
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sélectionner la page d&apos;accueil
-                </label>
-                <select
-                  value={settings.homepage_slug}
-                  onChange={(e) =>
-                    updateSetting("homepage_slug", e.target.value)
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                >
-                  <option value="">Page par défaut (index)</option>
-                  {availablePages.map((page) => (
-                    <option key={page.slug} value={page.slug}>
-                      {page.title} (/{page.slug})
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-gray-500 mt-2">
-                  Cette page sera affichée à l&apos;accueil du site (/)
-                </p>
               </div>
             </div>
           </div>

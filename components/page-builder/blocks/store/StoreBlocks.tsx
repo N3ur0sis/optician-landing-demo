@@ -447,13 +447,31 @@ export function StoreContactBlock({ content }: BlockContentProps<StoreContactBlo
 interface StoreServicesBlockContent {
   title?: string;
   subtitle?: string;
-  services?: string[];
+  services?: (string | { title?: string; name?: string; text?: string; [key: string]: unknown })[];
+}
+
+// Helper to extract string from service item (handles both string and object formats)
+function getServiceText(service: string | { title?: string; name?: string; text?: string; [key: string]: unknown }): string {
+  if (typeof service === "string") return service;
+  if (typeof service === "object" && service !== null) {
+    // Try common text properties
+    if (typeof service.title === "string") return service.title;
+    if (typeof service.name === "string") return service.name;
+    if (typeof service.text === "string") return service.text;
+    // If object has indexed characters (from styled text), reconstruct the string
+    const keys = Object.keys(service).filter(k => !isNaN(Number(k))).sort((a, b) => Number(a) - Number(b));
+    if (keys.length > 0) {
+      return keys.map(k => service[k]).join("");
+    }
+  }
+  return String(service || "");
 }
 
 export function StoreServicesBlock({ content }: BlockContentProps<StoreServicesBlockContent>) {
   const title = content.title || "Nos services";
   const subtitle = content.subtitle;
-  const services = content.services || [];
+  const rawServices = content.services || [];
+  const services = rawServices.map(getServiceText).filter(Boolean);
 
   if (services.length === 0) return null;
 
