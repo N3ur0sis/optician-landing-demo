@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePageBuilder } from "@/components/page-builder/PageBuilderContext";
 import { LucideIcon } from "@/components/ui/icon-picker";
-import { BlockContentProps } from "../types";
+import { BlockContentProps, ChildElementStyles, getChildElementInlineStyles } from "../types";
 
 // ============================================
 // Button Block
@@ -119,6 +119,7 @@ interface ButtonItem {
   href: string;
   variant?: string;
   openInNewTab?: boolean;
+  _styles?: ChildElementStyles;
 }
 
 interface ButtonGroupContent {
@@ -165,11 +166,16 @@ export function ButtonGroupBlock({
     <div
       className={`flex ${direction === "vertical" ? "flex-col" : stackOnMobile ? "flex-col md:flex-row" : "flex-row"} ${gapStyles[gap]} ${alignStyles[alignment]} flex-wrap`}
     >
-      {buttons.map((btn, idx) => (
-        isEditing ? (
+      {buttons.map((btn, idx) => {
+        const childStyles = getChildElementInlineStyles(btn._styles);
+        return isEditing ? (
           <span
             key={idx}
+            data-item-index={idx}
+            data-child-type="button"
+            data-field="label"
             className={`inline-flex items-center justify-center gap-2 font-medium transition-all px-6 py-3 rounded-lg opacity-70 cursor-not-allowed ${variantClasses[btn.variant || "primary"] || variantClasses.primary}`}
+            style={childStyles}
           >
             {btn.label}
           </span>
@@ -179,12 +185,16 @@ export function ButtonGroupBlock({
             href={btn.href || "#"}
             target={btn.openInNewTab ? "_blank" : undefined}
             rel={btn.openInNewTab ? "noopener noreferrer" : undefined}
+            data-item-index={idx}
+            data-child-type="button"
+            data-field="label"
             className={`inline-flex items-center justify-center gap-2 font-medium transition-all px-6 py-3 rounded-lg ${variantClasses[btn.variant || "primary"] || variantClasses.primary}`}
+            style={childStyles}
           >
             {btn.label}
           </Link>
-        )
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -296,11 +306,16 @@ export function ListBlock({ content }: BlockContentProps<ListContent>) {
   return (
     <ul className="space-y-3">
       {items.map((item, index) => (
-        <li key={index} className="flex items-start gap-3">
+        <li 
+          key={index} 
+          data-item-index={index}
+          data-child-type="list-item"
+          className="flex items-start gap-3"
+        >
           <span className="flex-shrink-0 mt-1" style={{ color: iconColor }}>
             {style === "number" ? `${index + 1}.` : iconMap[style]}
           </span>
-          <span data-field={`items.${index}`}>{item}</span>
+          <span data-field="text">{item}</span>
         </li>
       ))}
     </ul>

@@ -200,7 +200,7 @@ export default function GridManagerClient() {
         <div className="flex flex-wrap gap-2 sm:gap-3">
           <button
             onClick={handleAddTile}
-            className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-md">
+            className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-md"
           >
             <svg
               className="w-5 h-5"

@@ -131,6 +131,7 @@ export const ARRAY_EDITABLE_FIELDS: Record<string, ArrayFieldConfig[]> = {
   // Pricing with nested features
   PRICING: [
     { arrayField: "plans", textFields: ["name", "price", "period", "description", "buttonText"], childType: "plan" },
+    { arrayField: "plans.features", textFields: ["feature"], childType: "feature" },
   ],
   
   // Accordion

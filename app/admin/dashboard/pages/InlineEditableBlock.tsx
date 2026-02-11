@@ -667,8 +667,8 @@ function InlineEditableBlock({
         </div>
       )}
 
-      {/* Edit hints - centered on block */}
-      {isEditing && !activeField && !isStyleMode && (
+      {/* Edit hints - show only on hover, hide when block selected */}
+      {!isEditing && !isStyleMode && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
           <div className="bg-black/80 text-white text-xs px-3 py-1.5 rounded-full whitespace-nowrap shadow-lg backdrop-blur-sm">
             ✎ Cliquez pour éditer · Alt+Clic pour styler

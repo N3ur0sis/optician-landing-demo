@@ -181,6 +181,7 @@ interface GalleryContent {
   lightbox?: boolean;
   aspectRatio?: string;
   borderRadius?: string;
+  style?: "grid" | "masonry" | "carousel" | "lightbox" | "polaroid";
 }
 
 export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
@@ -191,6 +192,7 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
   const lightboxEnabled = content.lightbox !== false;
   const aspectRatio = content.aspectRatio || "square";
   const borderRadius = content.borderRadius || "lg";
+  const style = content.style || "grid";
   
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
 
@@ -213,6 +215,7 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
     video: "aspect-video",
     portrait: "aspect-3/4",
     landscape: "aspect-4/3",
+    auto: "",
   };
 
   const radiusMap: Record<string, string> = {
@@ -227,6 +230,154 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
     return (
       <div className="bg-gray-100/10 rounded-lg p-8 text-center text-gray-400">
         No images in gallery
+      </div>
+    );
+  }
+
+  // Masonry style
+  if (style === "masonry") {
+    return (
+      <>
+        <div className={`columns-1 md:columns-2 lg:columns-${columns} ${gapMap[gap]}`} style={{ columnGap: gap === "none" ? "0" : gap === "small" ? "0.5rem" : gap === "large" ? "1.5rem" : "1rem" }}>
+          {images.map((img, idx) => (
+            <div
+              key={idx}
+              className={`mb-4 break-inside-avoid overflow-hidden ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
+              onClick={isEditing ? undefined : () => lightboxEnabled && setSelectedImage(img)}
+            >
+              <img
+                src={img.src}
+                alt={img.alt || `Gallery image ${idx + 1}`}
+                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+              {img.caption && (
+                <div className="p-3 bg-white/5">
+                  <p className="text-sm opacity-70">{img.caption}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {renderLightbox()}
+      </>
+    );
+  }
+
+  // Polaroid style
+  if (style === "polaroid") {
+    return (
+      <>
+        <div className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}>
+          {images.map((img, idx) => (
+            <div
+              key={idx}
+              className={`bg-white p-3 pb-12 shadow-lg transform hover:rotate-0 transition-transform ${idx % 2 === 0 ? "rotate-2" : "-rotate-2"} ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
+              onClick={isEditing ? undefined : () => lightboxEnabled && setSelectedImage(img)}
+            >
+              <div className={`${aspectMap[aspectRatio]} overflow-hidden`}>
+                <img
+                  src={img.src}
+                  alt={img.alt || `Gallery image ${idx + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {img.caption && (
+                <p className="text-center mt-3 text-sm text-gray-600 font-handwriting">{img.caption}</p>
+              )}
+            </div>
+          ))}
+        </div>
+        {renderLightbox()}
+      </>
+    );
+  }
+
+  // Carousel style
+  if (style === "carousel") {
+    return (
+      <>
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide">
+          {images.map((img, idx) => (
+            <div
+              key={idx}
+              className={`flex-shrink-0 w-80 snap-center overflow-hidden ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
+              onClick={isEditing ? undefined : () => lightboxEnabled && setSelectedImage(img)}
+            >
+              <div className={`${aspectMap[aspectRatio]} relative`}>
+                <img
+                  src={img.src}
+                  alt={img.alt || `Gallery image ${idx + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                {img.caption && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-white text-sm">{img.caption}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        {renderLightbox()}
+      </>
+    );
+  }
+
+  // Lightbox style (larger focus on modal)
+  if (style === "lightbox") {
+    return (
+      <>
+        <div className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}>
+          {images.map((img, idx) => (
+            <div
+              key={idx}
+              className={`relative overflow-hidden ${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} group cursor-pointer`}
+              onClick={isEditing ? undefined : () => setSelectedImage(img)}
+            >
+              <img
+                src={img.src}
+                alt={img.alt || `Gallery image ${idx + 1}`}
+                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
+              />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <X className="w-6 h-6 text-white rotate-45" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {renderLightbox()}
+      </>
+    );
+  }
+
+  // Default grid style
+  function renderLightbox() {
+    if (!selectedImage) return null;
+    return (
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-pointer"
+        onClick={() => setSelectedImage(null)}
+      >
+        <button 
+          className="absolute top-4 right-4 text-white/70 hover:text-white p-2"
+          onClick={() => setSelectedImage(null)}
+          aria-label="Fermer"
+        >
+          <X className="w-8 h-8" />
+        </button>
+        <img
+          src={selectedImage.src}
+          alt={selectedImage.alt || ""}
+          className="max-w-[90vw] max-h-[90vh] object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+        {selectedImage.caption && (
+          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-center">
+            {selectedImage.caption}
+          </p>
+        )}
       </div>
     );
   }
@@ -253,33 +404,7 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
           </div>
         ))}
       </div>
-
-      {/* Lightbox */}
-      {selectedImage && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-pointer"
-          onClick={() => setSelectedImage(null)}
-        >
-          <button 
-            className="absolute top-4 right-4 text-white/70 hover:text-white p-2"
-            onClick={() => setSelectedImage(null)}
-            aria-label="Fermer"
-          >
-            <X className="w-8 h-8" />
-          </button>
-          <img
-            src={selectedImage.src}
-            alt={selectedImage.alt || ""}
-            className="max-w-[90vw] max-h-[90vh] object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-          {selectedImage.caption && (
-            <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-center">
-              {selectedImage.caption}
-            </p>
-          )}
-        </div>
-      )}
+      {renderLightbox()}
     </>
   );
 }

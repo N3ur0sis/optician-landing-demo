@@ -345,24 +345,24 @@ interface TimelineItem {
   description?: string;
   image?: string;
   icon?: string;
+  _styles?: ChildElementStyles;
 }
 
 interface TimelineContent {
   items?: TimelineItem[];
-  layout?: "vertical" | "alternating";
-  style?: string;
+  style?: "vertical" | "horizontal" | "alternating" | "minimal" | "cards";
   accentColor?: string;
   animation?: string;
   showDates?: boolean;
   showIcon?: boolean;
   lineColor?: string;
+  dotColor?: string;
 }
 
 export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
   const items = content.items || [];
-  const layout = content.layout || "vertical";
-  const style = content.style || "default";
-  const accentColor = content.accentColor || "#ffffff";
+  const style = content.style || "vertical";
+  const accentColor = content.accentColor || content.dotColor || "#ffffff";
   const animation = content.animation || "none";
   const showDates = content.showDates !== false;
   const showIcon = content.showIcon !== false;
@@ -375,7 +375,47 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
     boxShadow: style === "cards" ? `0 0 0 4px ${accentColor}22` : undefined,
   });
 
-  if (layout === "alternating") {
+  // Horizontal layout
+  if (style === "horizontal") {
+    return (
+      <div className="relative overflow-x-auto pb-4">
+        <div className="absolute top-6 left-0 right-0 h-0.5" style={{ backgroundColor: lineColor }} />
+        <div className="flex gap-8 min-w-max px-4">
+          {items.map((item, index) => {
+            const childStyles = getChildElementInlineStyles(item._styles);
+            return (
+              <div
+                key={index}
+                data-item-index={index}
+                data-child-type="timeline-item"
+                className={`relative flex flex-col items-center min-w-[200px] ${animationClass}`}
+                style={{
+                  animationDelay: animation !== "none" ? `${index * 100}ms` : undefined,
+                  ...childStyles,
+                }}
+              >
+                <div className="w-4 h-4 rounded-full z-10 mb-4" style={getDotStyle()} />
+                {showDates && (
+                  <span className="text-sm opacity-50 mb-2" data-field="date">{item.date}</span>
+                )}
+                <h3 className="text-lg font-semibold text-center" data-field="title" style={{ color: accentColor }}>
+                  {item.title}
+                </h3>
+                {item.description && (
+                  <p className="text-sm opacity-70 mt-2 text-center max-w-[180px]" data-field="description">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Alternating layout
+  if (style === "alternating") {
     return (
       <div className="relative">
         <div
@@ -383,7 +423,9 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
           style={{ backgroundColor: lineColor }}
         />
         <div className="space-y-12">
-          {items.map((item, index) => (
+          {items.map((item, index) => {
+            const childStyles = getChildElementInlineStyles(item._styles);
+            return (
             <div
               key={index}
               data-item-index={index}
@@ -392,10 +434,11 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
               style={{
                 animationDelay:
                   animation !== "none" ? `${index * 100}ms` : undefined,
+                ...childStyles,
               }}
             >
               <div
-                className={`flex-1 ${index % 2 === 0 ? "text-right" : "text-left"} ${style === "cards" ? "bg-white/5 p-4 rounded-lg" : ""}`}
+                className={`flex-1 ${index % 2 === 0 ? "text-right" : "text-left"}`}
               >
                 {showDates && (
                   <span className="text-sm opacity-50" data-field="date">
@@ -405,7 +448,7 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
                 <h3
                   className="text-lg font-semibold mt-1"
                   data-field="title"
-                  style={style === "cards" ? { color: accentColor } : undefined}
+                  style={{ color: accentColor }}
                 >
                   {item.title}
                 </h3>
@@ -438,28 +481,113 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
   }
 
-  // Vertical layout
+  // Minimal layout - simple without line or cards
+  if (style === "minimal") {
+    return (
+      <div className="space-y-8">
+        {items.map((item, index) => {
+          const childStyles = getChildElementInlineStyles(item._styles);
+          return (
+            <div
+              key={index}
+              data-item-index={index}
+              data-child-type="timeline-item"
+              className={`flex gap-4 ${animationClass}`}
+              style={{
+                animationDelay: animation !== "none" ? `${index * 100}ms` : undefined,
+                ...childStyles,
+              }}
+            >
+              {showDates && (
+                <span className="text-sm opacity-50 w-24 shrink-0" data-field="date">
+                  {item.date}
+                </span>
+              )}
+              <div>
+                <h3 className="text-lg font-semibold" data-field="title">
+                  {item.title}
+                </h3>
+                {item.description && (
+                  <p className="text-sm opacity-70 mt-1" data-field="description">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Cards layout
+  if (style === "cards") {
+    return (
+      <div className="relative pl-8" style={{ borderLeft: `2px solid ${lineColor}` }}>
+        <div className="space-y-8">
+          {items.map((item, index) => {
+            const childStyles = getChildElementInlineStyles(item._styles);
+            return (
+              <div
+                key={index}
+                data-item-index={index}
+                data-child-type="timeline-item"
+                className={`relative bg-white/5 p-4 rounded-lg ml-4 ${animationClass}`}
+                style={{
+                  animationDelay: animation !== "none" ? `${index * 100}ms` : undefined,
+                  ...childStyles,
+                }}
+              >
+                <div
+                  className="absolute -left-[2.6rem] top-4 w-4 h-4 rounded-full"
+                  style={getDotStyle()}
+                />
+                {showDates && (
+                  <span className="text-sm opacity-50" data-field="date">{item.date}</span>
+                )}
+                <h3 className="text-lg font-semibold mt-1" data-field="title" style={{ color: accentColor }}>
+                  {item.title}
+                </h3>
+                {item.description && (
+                  <p className="text-sm opacity-70 mt-2" data-field="description">{item.description}</p>
+                )}
+                {item.image && (
+                  <img src={item.image} alt={item.title} className="rounded-lg mt-4 max-w-md" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Vertical layout (default)
   return (
     <div
       className="relative pl-8"
       style={{ borderLeft: `2px solid ${lineColor}` }}
     >
       <div className="space-y-8">
-        {items.map((item, index) => (
+        {items.map((item, index) => {
+          const childStyles = getChildElementInlineStyles(item._styles);
+          return (
           <div
             key={index}
             data-item-index={index}
             data-child-type="timeline-item"
-            className={`relative ${animationClass} ${style === "cards" ? "bg-white/5 p-4 rounded-lg ml-4" : ""}`}
+            className={`relative ${animationClass}`}
             style={{
               animationDelay:
                 animation !== "none" ? `${index * 100}ms` : undefined,
+              ...childStyles,
             }}
           >
             <div
@@ -474,7 +602,7 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
             <h3
               className="text-lg font-semibold mt-1"
               data-field="title"
-              style={style === "cards" ? { color: accentColor } : undefined}
+              style={{ color: accentColor }}
             >
               {item.title}
             </h3>
@@ -491,7 +619,8 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
               />
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

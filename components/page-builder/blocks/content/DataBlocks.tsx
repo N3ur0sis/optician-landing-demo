@@ -81,12 +81,11 @@ export function StatsBlock({ content }: BlockContentProps<StatsContent>) {
           >
             <div
               className="text-4xl md:text-5xl font-bold mb-2"
-              data-field="value"
               style={{ color: valueColor }}
             >
-              {stat.prefix}
-              {stat.value}
-              {stat.suffix}
+              {stat.prefix && <span data-field="prefix">{stat.prefix}</span>}
+              <span data-field="value">{stat.value}</span>
+              {stat.suffix && <span data-field="suffix">{stat.suffix}</span>}
             </div>
             <div
               className="text-sm opacity-70 uppercase tracking-wider"
@@ -278,8 +277,8 @@ interface FeatureItem {
 interface FeaturesContent {
   features?: FeatureItem[];
   columns?: number;
-  layout?: "cards" | "list" | "icons";
-  iconStyle?: "circle" | "square" | "none";
+  style?: "icon-top" | "icon-left" | "cards" | "minimal" | "bordered";
+  iconStyle?: "circle" | "square" | "rounded" | "none";
   accentColor?: string;
   gap?: string;
 }
@@ -288,7 +287,7 @@ export function FeaturesBlock({ content }: BlockContentProps<FeaturesContent>) {
   const { isEditing } = usePageBuilder();
   const features = content.features || [];
   const columns = content.columns || 3;
-  const layout = content.layout || "cards";
+  const style = content.style || "icon-top";
   const iconStyle = content.iconStyle || "circle";
   const accentColor = content.accentColor || "#D4A574";
   const gap = content.gap || "md";
@@ -303,153 +302,140 @@ export function FeaturesBlock({ content }: BlockContentProps<FeaturesContent>) {
   const iconContainerStyles: Record<string, string> = {
     circle: "w-12 h-12 rounded-full",
     square: "w-12 h-12 rounded-lg",
-    none: "",
+    rounded: "w-12 h-12 rounded-xl",
+    none: "w-12 h-12",
   };
 
-  // List layout
-  if (layout === "list") {
-    return (
-      <div className={`space-y-6`}>
-        {features.map((feature, index) => {
-          const childStyles = getChildElementInlineStyles(feature._styles);
-          return (
-            <div
-              key={index}
-              data-item-index={index}
-              data-child-type="feature"
-              className="flex gap-4"
-              style={childStyles}
-            >
-              {feature.icon && iconStyle !== "none" && (
-                <div
-                  className={`${iconContainerStyles[iconStyle]} flex items-center justify-center shrink-0`}
-                  style={{ backgroundColor: `${accentColor}22` }}
-                >
-                  <LucideIcon
-                    name={feature.icon}
-                    className="w-6 h-6"
-                    style={{ color: accentColor }}
-                  />
-                </div>
-              )}
-              <div>
-                <h3 className="font-semibold text-lg mb-1" data-field="title">
-                  {feature.title}
-                </h3>
-                <p className="opacity-70 whitespace-pre-line" data-field="description">
-                  {feature.description}
-                </p>
-                {feature.link && (
-                  isEditing ? (
-                    <span
-                      className="text-sm mt-2 inline-block cursor-not-allowed opacity-70"
-                      style={{ color: accentColor }}
-                    >
-                      En savoir plus →
-                    </span>
-                  ) : (
-                    <Link
-                      href={feature.link}
-                      className="text-sm mt-2 inline-block"
-                      style={{ color: accentColor }}
-                    >
-                      En savoir plus →
-                    </Link>
-                  )
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
+  const getContainerClasses = () => {
+    switch (style) {
+      case "icon-left":
+        return "space-y-6";
+      default:
+        return `grid ${COLUMNS_MAP[columns] || COLUMNS_MAP[3]} ${gapMap[gap]}`;
+    }
+  };
 
-  // Icons layout (centered)
-  if (layout === "icons") {
-    const columnsClass = COLUMNS_MAP[columns] || COLUMNS_MAP[4];
-    return (
-      <div className={`grid ${columnsClass} ${gapMap[gap]}`}>
-        {features.map((feature, index) => {
-          const childStyles = getChildElementInlineStyles(feature._styles);
-          return (
-            <div
-              key={index}
-              data-item-index={index}
-              data-child-type="feature"
-              className="text-center"
-              style={childStyles}
-            >
-              {feature.icon && (
-                <div
-                  className={`${iconContainerStyles[iconStyle]} flex items-center justify-center mx-auto mb-4`}
-                  style={{ backgroundColor: `${accentColor}22` }}
-                >
-                  <LucideIcon
-                    name={feature.icon}
-                    className="w-6 h-6"
-                    style={{ color: accentColor }}
-                  />
-                </div>
-              )}
-              <h3 className="font-semibold text-lg mb-2" data-field="title">
-                {feature.title}
-              </h3>
-              <p className="text-sm opacity-70 whitespace-pre-line" data-field="description">
-                {feature.description}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
+  const getItemClasses = () => {
+    switch (style) {
+      case "icon-left":
+        return "flex gap-4";
+      case "cards":
+        return "p-6 bg-white/5 rounded-xl hover:bg-white/10 transition-colors group";
+      case "minimal":
+        return "text-center";
+      case "bordered":
+        return "p-6 border border-white/20 rounded-xl hover:border-white/40 transition-colors text-center";
+      case "icon-top":
+      default:
+        return "text-center";
+    }
+  };
 
-  // Cards layout (default)
-  const columnsClass = COLUMNS_MAP[columns] || COLUMNS_MAP[3];
-  return (
-    <div className={`grid ${columnsClass} ${gapMap[gap]}`}>
-      {features.map((feature, index) => {
-        const childStyles = getChildElementInlineStyles(feature._styles);
-        const Wrapper = feature.link ? Link : "div";
-        return (
-          <Wrapper
-            key={index}
-            href={feature.link || "#"}
-            data-item-index={index}
-            data-child-type="feature"
-            className="p-6 bg-white/5 rounded-xl hover:bg-white/10 transition-colors group"
-            style={childStyles}
-          >
-            {feature.icon && iconStyle !== "none" && (
-              <div
-                className={`${iconContainerStyles[iconStyle]} flex items-center justify-center mb-4`}
-                style={{ backgroundColor: `${accentColor}22` }}
-              >
-                <LucideIcon
-                  name={feature.icon}
-                  className="w-6 h-6"
-                  style={{ color: accentColor }}
-                />
-              </div>
-            )}
-            <h3 className="font-semibold text-lg mb-2" data-field="title">
-              {feature.title}
-            </h3>
-            <p className="text-sm opacity-70" data-field="description">
-              {feature.description}
-            </p>
+  const getIconWrapperClasses = () => {
+    switch (style) {
+      case "icon-left":
+        return `${iconContainerStyles[iconStyle]} flex items-center justify-center shrink-0`;
+      case "minimal":
+        return `${iconContainerStyles[iconStyle]} flex items-center justify-center mx-auto mb-4`;
+      default:
+        return `${iconContainerStyles[iconStyle]} flex items-center justify-center mx-auto mb-4`;
+    }
+  };
+
+  const getIconBgStyle = (): React.CSSProperties => {
+    if (iconStyle === "none") {
+      return {};
+    }
+    return { backgroundColor: `${accentColor}22` };
+  };
+
+  const renderFeatureContent = (feature: FeatureItem, index: number) => {
+    if (style === "icon-left") {
+      // Icon-left layout: horizontal with icon on side
+      return (
+        <>
+          {feature.icon && iconStyle !== "none" && (
+            <div className={getIconWrapperClasses()} style={getIconBgStyle()}>
+              <LucideIcon name={feature.icon} className="w-6 h-6" style={{ color: accentColor }} />
+            </div>
+          )}
+          <div>
+            <h3 className="font-semibold text-lg mb-1" data-field="title">{feature.title}</h3>
+            <p className="opacity-70 whitespace-pre-line" data-field="description">{feature.description}</p>
             {feature.link && (
-              <span
-                className="text-sm mt-4 inline-block group-hover:translate-x-1 transition-transform"
-                style={{ color: accentColor }}
-              >
-                En savoir plus →
-              </span>
+              isEditing ? (
+                <span className="text-sm mt-2 inline-block cursor-not-allowed opacity-70" style={{ color: accentColor }}>
+                  En savoir plus →
+                </span>
+              ) : (
+                <span className="text-sm mt-2 inline-block" style={{ color: accentColor }}>
+                  En savoir plus →
+                </span>
+              )
             )}
-          </Wrapper>
-        );
-      })}
+          </div>
+        </>
+      );
+    }
+
+    // Other layouts: vertical with icon on top
+    return (
+      <>
+        {feature.icon && iconStyle !== "none" && (
+          <div className={getIconWrapperClasses()} style={getIconBgStyle()}>
+            <LucideIcon name={feature.icon} className="w-6 h-6" style={{ color: accentColor }} />
+          </div>
+        )}
+        <h3 className="font-semibold text-lg mb-2" data-field="title">
+          {feature.title}
+        </h3>
+        <p className="text-sm opacity-70 whitespace-pre-line" data-field="description">
+          {feature.description}
+        </p>
+        {feature.link && style === "cards" && (
+          <span className="text-sm mt-4 inline-block group-hover:translate-x-1 transition-transform" style={{ color: accentColor }}>
+            En savoir plus →
+          </span>
+        )}
+      </>
+    );
+  };
+
+  const renderFeatureItem = (feature: FeatureItem, index: number) => {
+    const childStyles = getChildElementInlineStyles(feature._styles);
+    const hasLink = feature.link && !isEditing;
+
+    if (hasLink && feature.link) {
+      return (
+        <Link
+          key={index}
+          href={feature.link}
+          data-item-index={index}
+          data-child-type="feature"
+          className={getItemClasses()}
+          style={childStyles}
+        >
+          {renderFeatureContent(feature, index)}
+        </Link>
+      );
+    }
+
+    return (
+      <div
+        key={index}
+        data-item-index={index}
+        data-child-type="feature"
+        className={getItemClasses()}
+        style={childStyles}
+      >
+        {renderFeatureContent(feature, index)}
+      </div>
+    );
+  };
+
+  return (
+    <div className={getContainerClasses()}>
+      {features.map((feature, index) => renderFeatureItem(feature, index))}
     </div>
   );
 }
