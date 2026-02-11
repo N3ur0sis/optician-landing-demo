@@ -136,7 +136,7 @@ export function ColumnsBlock({ content }: BlockContentProps<ColumnsContent>) {
   }
 
   return (
-    <div className={`${stackOnMobile ? "flex flex-col md:flex-row" : "flex"} ${gapMap[gap]}`}>
+    <div className={`${stackOnMobile ? "flex flex-col @md:flex-row" : "flex"} ${gapMap[gap]}`}>
       {columns.map((column, index) => (
         <div
           key={index}

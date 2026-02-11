@@ -59,9 +59,9 @@ export function StoreListBlock({ content }: BlockContentProps<StoreListBlockCont
 
   const columnClasses: Record<number, string> = {
     1: "grid-cols-1",
-    2: "grid-cols-1 md:grid-cols-2",
-    3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
-    4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
+    2: "grid-cols-1 @md:grid-cols-2",
+    3: "grid-cols-1 @md:grid-cols-2 @lg:grid-cols-3",
+    4: "grid-cols-1 @md:grid-cols-2 @lg:grid-cols-4",
   };
 
   if (isLoading) {
@@ -366,7 +366,7 @@ export function StoreContactBlock({ content }: BlockContentProps<StoreContactBlo
         {title}
       </h2>
       <div className="h-px w-16 bg-linear-to-r from-amber-300 to-amber-100 mb-6"></div>
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid @md:grid-cols-2 gap-6">
         <div className="space-y-5">
           {address && (
             <div className="flex items-start gap-3 group">
@@ -470,7 +470,7 @@ export function StoreServicesBlock({ content }: BlockContentProps<StoreServicesB
       </h2>
       {subtitle && <p className="text-neutral-600 mb-4" data-field="subtitle">{subtitle}</p>}
       <div className="h-px w-16 bg-linear-to-r from-amber-300 to-amber-100 mb-6"></div>
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid @md:grid-cols-2 gap-4">
         {services.map((service, index) => (
           <motion.div
             key={service}
@@ -750,7 +750,7 @@ export function StoreLayoutBlock({ content }: BlockContentProps<StoreLayoutBlock
     <div className="bg-linear-to-b from-neutral-50 to-white py-12 lg:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main 2-column layout */}
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid @lg:grid-cols-3 gap-8">
           {/* Left Column - Main Content (2/3) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Contact Information */}
@@ -765,7 +765,7 @@ export function StoreLayoutBlock({ content }: BlockContentProps<StoreLayoutBlock
                   <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
                   {String(contact.title || "Informations de contact")}
                 </h2>
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid @md:grid-cols-2 gap-8">
                   <div className="space-y-6">
                     {Boolean(contact.address) && (
                       <div className="flex items-start gap-4 group">
@@ -888,7 +888,7 @@ export function StoreLayoutBlock({ content }: BlockContentProps<StoreLayoutBlock
                   <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
                   {String(specialties.title || "Nos spécialités")}
                 </h2>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid @sm:grid-cols-2 @lg:grid-cols-3 gap-4">
                   {specialties.items.map((spec, idx) => (
                     <motion.div
                       key={idx}
@@ -1042,7 +1042,7 @@ export function StoreLayoutBlock({ content }: BlockContentProps<StoreLayoutBlock
               <span className="w-1.5 h-6 bg-amber-500 rounded-full mr-3"></span>
               {String(gallery.title || "Découvrez notre magasin")}
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4 gap-4">
               {gallery.images.map((img, idx) => (
                 <motion.div
                   key={idx}

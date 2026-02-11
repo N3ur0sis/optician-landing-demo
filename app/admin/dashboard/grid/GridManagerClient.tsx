@@ -173,9 +173,9 @@ export default function GridManagerClient() {
               <div
                 key={i}
                 className={`bg-gray-100 rounded-xl animate-pulse ${
-                  i % 3 === 0 ? 'col-span-2 row-span-2' : ''
+                  i % 3 === 0 ? "col-span-2 row-span-2" : ""
                 }`}
-                style={{ minHeight: i % 3 === 0 ? '200px' : '100px' }}
+                style={{ minHeight: i % 3 === 0 ? "200px" : "100px" }}
               />
             ))}
           </div>
@@ -243,7 +243,9 @@ export default function GridManagerClient() {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                <span className="hidden sm:inline">Publier les Modifications</span>
+                <span className="hidden sm:inline">
+                  Publier les Modifications
+                </span>
                 <span className="sm:hidden">Publier</span>
               </>
             )}

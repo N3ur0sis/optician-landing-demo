@@ -118,7 +118,7 @@ export function HeroBlock({ content }: BlockContentProps<HeroContent>) {
         {Boolean(content.title) && (
           <h1 
             data-field="title"
-            className={`text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 whitespace-pre-line ${
+            className={`text-4xl @md:text-6xl @lg:text-7xl font-bold tracking-tight mb-6 whitespace-pre-line ${
               style === "elegant" ? "font-light tracking-wide" : style === "bold" ? "font-black" : ""
             }`}
           >
@@ -126,7 +126,7 @@ export function HeroBlock({ content }: BlockContentProps<HeroContent>) {
           </h1>
         )}
         {Boolean(content.description) && (
-          <p data-field="description" className="text-lg md:text-xl opacity-80 max-w-2xl whitespace-pre-line">
+          <p data-field="description" className="text-lg @md:text-xl opacity-80 max-w-2xl whitespace-pre-line">
             {content.description}
           </p>
         )}

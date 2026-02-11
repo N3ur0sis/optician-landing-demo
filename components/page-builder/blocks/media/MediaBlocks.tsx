@@ -36,9 +36,9 @@ export function ImageBlock({ content }: BlockContentProps<ImageContent>) {
   const hoverEffect = content.hoverEffect || "none";
   const showCaption = content.showCaption;
   const lightbox = content.lightbox;
-  
+
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  
+
   const aspectRatioMap: Record<string, string> = {
     auto: "",
     square: "aspect-square",
@@ -47,7 +47,7 @@ export function ImageBlock({ content }: BlockContentProps<ImageContent>) {
     landscape: "aspect-4/3",
     wide: "aspect-[21/9]",
   };
-  
+
   const radiusMap: Record<string, string> = {
     none: "rounded-none",
     sm: "rounded-sm",
@@ -56,7 +56,7 @@ export function ImageBlock({ content }: BlockContentProps<ImageContent>) {
     xl: "rounded-xl",
     full: "rounded-full",
   };
-  
+
   const shadowMap: Record<string, string> = {
     none: "",
     sm: "shadow-sm",
@@ -64,7 +64,7 @@ export function ImageBlock({ content }: BlockContentProps<ImageContent>) {
     lg: "shadow-lg",
     xl: "shadow-xl",
   };
-  
+
   const hoverMap: Record<string, string> = {
     none: "",
     lift: "hover:-translate-y-2 transition-transform duration-300",
@@ -76,7 +76,9 @@ export function ImageBlock({ content }: BlockContentProps<ImageContent>) {
 
   if (!src) {
     return (
-      <div className={`bg-gray-200 ${aspectRatioMap[aspectRatio] || "aspect-video"} flex items-center justify-center text-gray-400 ${radiusMap[borderRadius]}`}>
+      <div
+        className={`bg-gray-200 ${aspectRatioMap[aspectRatio] || "aspect-video"} flex items-center justify-center text-gray-400 ${radiusMap[borderRadius]}`}
+      >
         No image source
       </div>
     );
@@ -84,7 +86,9 @@ export function ImageBlock({ content }: BlockContentProps<ImageContent>) {
 
   const imageElement = (
     <figure className={hoverMap[hoverEffect]}>
-      <div className={`relative overflow-hidden ${aspectRatioMap[aspectRatio]} ${radiusMap[borderRadius]} ${shadowMap[shadow]}`}>
+      <div
+        className={`relative overflow-hidden ${aspectRatioMap[aspectRatio]} ${radiusMap[borderRadius]} ${shadowMap[shadow]}`}
+      >
         <img
           src={src}
           alt={alt}
@@ -102,11 +106,11 @@ export function ImageBlock({ content }: BlockContentProps<ImageContent>) {
 
   // Lightbox modal
   const lightboxModal = isLightboxOpen && (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-pointer"
       onClick={() => setIsLightboxOpen(false)}
     >
-      <button 
+      <button
         className="absolute top-4 right-4 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
         onClick={() => setIsLightboxOpen(false)}
         aria-label="Fermer"
@@ -193,7 +197,7 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
   const aspectRatio = content.aspectRatio || "square";
   const borderRadius = content.borderRadius || "lg";
   const style = content.style || "grid";
-  
+
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
 
   const gapMap: Record<string, string> = {
@@ -204,10 +208,10 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
   };
 
   const columnsMap: Record<number, string> = {
-    2: "grid-cols-1 md:grid-cols-2",
-    3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
-    4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
-    5: "grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
+    2: "grid-cols-1 @md:grid-cols-2",
+    3: "grid-cols-1 @md:grid-cols-2 @lg:grid-cols-3",
+    4: "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4",
+    5: "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-5",
   };
 
   const aspectMap: Record<string, string> = {
@@ -238,12 +242,28 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
   if (style === "masonry") {
     return (
       <>
-        <div className={`columns-1 md:columns-2 lg:columns-${columns} ${gapMap[gap]}`} style={{ columnGap: gap === "none" ? "0" : gap === "small" ? "0.5rem" : gap === "large" ? "1.5rem" : "1rem" }}>
+        <div
+          className={`columns-1 @md:columns-2 @lg:columns-${columns} ${gapMap[gap]}`}
+          style={{
+            columnGap:
+              gap === "none"
+                ? "0"
+                : gap === "small"
+                  ? "0.5rem"
+                  : gap === "large"
+                    ? "1.5rem"
+                    : "1rem",
+          }}
+        >
           {images.map((img, idx) => (
             <div
               key={idx}
               className={`mb-4 break-inside-avoid overflow-hidden ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
-              onClick={isEditing ? undefined : () => lightboxEnabled && setSelectedImage(img)}
+              onClick={
+                isEditing
+                  ? undefined
+                  : () => lightboxEnabled && setSelectedImage(img)
+              }
             >
               <img
                 src={img.src}
@@ -267,12 +287,18 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
   if (style === "polaroid") {
     return (
       <>
-        <div className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}>
+        <div
+          className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}
+        >
           {images.map((img, idx) => (
             <div
               key={idx}
               className={`bg-white p-3 pb-12 shadow-lg transform hover:rotate-0 transition-transform ${idx % 2 === 0 ? "rotate-2" : "-rotate-2"} ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
-              onClick={isEditing ? undefined : () => lightboxEnabled && setSelectedImage(img)}
+              onClick={
+                isEditing
+                  ? undefined
+                  : () => lightboxEnabled && setSelectedImage(img)
+              }
             >
               <div className={`${aspectMap[aspectRatio]} overflow-hidden`}>
                 <img
@@ -282,7 +308,9 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
                 />
               </div>
               {img.caption && (
-                <p className="text-center mt-3 text-sm text-gray-600 font-handwriting">{img.caption}</p>
+                <p className="text-center mt-3 text-sm text-gray-600 font-handwriting">
+                  {img.caption}
+                </p>
               )}
             </div>
           ))}
@@ -301,7 +329,11 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
             <div
               key={idx}
               className={`flex-shrink-0 w-80 snap-center overflow-hidden ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
-              onClick={isEditing ? undefined : () => lightboxEnabled && setSelectedImage(img)}
+              onClick={
+                isEditing
+                  ? undefined
+                  : () => lightboxEnabled && setSelectedImage(img)
+              }
             >
               <div className={`${aspectMap[aspectRatio]} relative`}>
                 <img
@@ -327,7 +359,9 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
   if (style === "lightbox") {
     return (
       <>
-        <div className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}>
+        <div
+          className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}
+        >
           {images.map((img, idx) => (
             <div
               key={idx}
@@ -356,11 +390,11 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
   function renderLightbox() {
     if (!selectedImage) return null;
     return (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm cursor-pointer"
         onClick={() => setSelectedImage(null)}
       >
-        <button 
+        <button
           className="absolute top-4 right-4 text-white/70 hover:text-white p-2"
           onClick={() => setSelectedImage(null)}
           aria-label="Fermer"
@@ -384,12 +418,18 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
 
   return (
     <>
-      <div className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}>
+      <div
+        className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}
+      >
         {images.map((img, idx) => (
           <div
             key={idx}
             className={`relative overflow-hidden ${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
-            onClick={isEditing ? undefined : () => lightboxEnabled && setSelectedImage(img)}
+            onClick={
+              isEditing
+                ? undefined
+                : () => lightboxEnabled && setSelectedImage(img)
+            }
           >
             <img
               src={img.src}
@@ -452,7 +492,9 @@ export function VideoBlock({ content }: BlockContentProps<VideoContent>) {
   // Extract video ID for YouTube/Vimeo
   const getEmbedUrl = () => {
     if (type === "youtube") {
-      const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?\s]+)/);
+      const match = url.match(
+        /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?\s]+)/,
+      );
       const videoId = match ? match[1] : url;
       let embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
       if (autoplay) embedUrl += "&autoplay=1";
@@ -476,7 +518,9 @@ export function VideoBlock({ content }: BlockContentProps<VideoContent>) {
 
   if (!url) {
     return (
-      <div className={`bg-gray-100/10 ${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} flex items-center justify-center text-gray-400`}>
+      <div
+        className={`bg-gray-100/10 ${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} flex items-center justify-center text-gray-400`}
+      >
         No video URL
       </div>
     );
@@ -484,7 +528,9 @@ export function VideoBlock({ content }: BlockContentProps<VideoContent>) {
 
   if (type === "file") {
     return (
-      <div className={`${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} overflow-hidden`}>
+      <div
+        className={`${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} overflow-hidden`}
+      >
         <video
           src={url}
           poster={content.poster}
@@ -500,7 +546,9 @@ export function VideoBlock({ content }: BlockContentProps<VideoContent>) {
   }
 
   return (
-    <div className={`${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} overflow-hidden`}>
+    <div
+      className={`${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} overflow-hidden`}
+    >
       <iframe
         src={getEmbedUrl()}
         className="w-full h-full"
@@ -534,7 +582,7 @@ export function FileBlock({ content }: BlockContentProps<FileContent>) {
   const getFileIcon = () => {
     const ext = name.split(".").pop()?.toLowerCase() || type?.toLowerCase();
     const iconClasses = "w-8 h-8";
-    
+
     if (["pdf"].includes(ext || "")) {
       return <span className={`${iconClasses} text-red-500`}>PDF</span>;
     }
@@ -560,8 +608,12 @@ export function FileBlock({ content }: BlockContentProps<FileContent>) {
         {getFileIcon()}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium truncate group-hover:text-primary transition-colors">{name}</p>
-        {description && <p className="text-sm opacity-70 truncate">{description}</p>}
+        <p className="font-medium truncate group-hover:text-primary transition-colors">
+          {name}
+        </p>
+        {description && (
+          <p className="text-sm opacity-70 truncate">{description}</p>
+        )}
         {size && <p className="text-xs opacity-50">{size}</p>}
       </div>
       <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -602,7 +654,9 @@ export function IframeBlock({ content }: BlockContentProps<IframeContent>) {
 
   if (!url) {
     return (
-      <div className={`bg-gray-100/10 h-64 ${radiusMap[borderRadius]} flex items-center justify-center text-gray-400`}>
+      <div
+        className={`bg-gray-100/10 h-64 ${radiusMap[borderRadius]} flex items-center justify-center text-gray-400`}
+      >
         No URL provided
       </div>
     );
@@ -611,7 +665,7 @@ export function IframeBlock({ content }: BlockContentProps<IframeContent>) {
   const aspectClass = aspectRatio === "video" ? "aspect-video" : "";
 
   return (
-    <div 
+    <div
       className={`overflow-hidden ${radiusMap[borderRadius]} ${aspectClass}`}
       style={!aspectRatio ? { height: `${height}px` } : undefined}
     >

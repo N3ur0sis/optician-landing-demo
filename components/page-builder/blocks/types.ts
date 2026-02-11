@@ -180,13 +180,13 @@ export const SHADOW_MAP: Record<string, string> = {
   xl: "0 20px 25px -5px rgba(0,0,0,0.1)",
 };
 
-/** Column class map */
+/** Column class map - Uses container queries for responsive preview */
 export const COLUMNS_MAP: Record<number, string> = {
   1: "grid-cols-1",
-  2: "grid-cols-1 md:grid-cols-2",
-  3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
-  4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
-  5: "grid-cols-1 md:grid-cols-2 lg:grid-cols-5",
+  2: "grid-cols-1 @md:grid-cols-2",
+  3: "grid-cols-1 @md:grid-cols-2 @lg:grid-cols-3",
+  4: "grid-cols-1 @md:grid-cols-2 @lg:grid-cols-4",
+  5: "grid-cols-1 @md:grid-cols-2 @lg:grid-cols-5",
 };
 
 /** Gap class map */

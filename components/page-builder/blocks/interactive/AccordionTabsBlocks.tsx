@@ -5,7 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { usePageBuilder } from "@/components/page-builder/PageBuilderContext";
 import { LucideIcon } from "@/components/ui/icon-picker";
-import { BlockContentProps, ChildElementStyles, getChildElementInlineStyles } from "../types";
+import {
+  BlockContentProps,
+  ChildElementStyles,
+  getChildElementInlineStyles,
+} from "../types";
 
 // ============================================
 // Accordion Block
@@ -73,47 +77,51 @@ export function AccordionBlock({
       {items.map((item, index) => {
         const childStyles = getChildElementInlineStyles(item._styles);
         return (
-        <div
-          key={index}
-          data-item-index={index}
-          data-child-type="accordion-item"
-          className={getStyleClasses()}
-          style={childStyles}
-        >
-          <button
-            onClick={isEditing ? undefined : () => toggleItem(index)}
-            className={`w-full flex items-center justify-between py-4 ${style !== "default" ? "px-4" : ""} text-left ${isEditing ? 'cursor-default' : 'hover:opacity-80 transition-opacity'}`}
+          <div
+            key={index}
+            data-item-index={index}
+            data-child-type="accordion-item"
+            className={getStyleClasses()}
+            style={childStyles}
           >
-            <span
-              data-field="title"
-              className="font-medium"
-              style={openItems.has(index) ? { color: accentColor } : undefined}
+            <button
+              onClick={isEditing ? undefined : () => toggleItem(index)}
+              className={`w-full flex items-center justify-between py-4 ${style !== "default" ? "px-4" : ""} text-left ${isEditing ? "cursor-default" : "hover:opacity-80 transition-opacity"}`}
             >
-              {item.title}
-            </span>
-            <ChevronDown
-              className={`w-5 h-5 transition-transform ${openItems.has(index) ? "rotate-180" : ""}`}
-              style={openItems.has(index) ? { color: accentColor } : undefined}
-            />
-          </button>
-          <AnimatePresence>
-            {openItems.has(index) && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
+              <span
+                data-field="title"
+                className="font-medium"
+                style={
+                  openItems.has(index) ? { color: accentColor } : undefined
+                }
               >
-                <div
-                  data-field="content"
-                  className={`pb-4 ${style !== "default" ? "px-4" : ""} opacity-70`}
-                  dangerouslySetInnerHTML={{ __html: item.content }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                {item.title}
+              </span>
+              <ChevronDown
+                className={`w-5 h-5 transition-transform ${openItems.has(index) ? "rotate-180" : ""}`}
+                style={
+                  openItems.has(index) ? { color: accentColor } : undefined
+                }
+              />
+            </button>
+            <AnimatePresence>
+              {openItems.has(index) && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div
+                    data-field="content"
+                    className={`pb-4 ${style !== "default" ? "px-4" : ""} opacity-70`}
+                    dangerouslySetInnerHTML={{ __html: item.content }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         );
       })}
     </div>
@@ -197,33 +205,33 @@ export function TabsBlock({ content }: BlockContentProps<TabsContent>) {
   const isVertical = styleVariant === "vertical";
 
   return (
-    <div className={isVertical ? "flex gap-6" : ""}>
+    <div className={isVertical ? "flex flex-col @md:flex-row gap-4 @md:gap-6" : ""}>
       <div
-        className={`flex gap-2 ${styles.container} ${isVertical ? "w-48 shrink-0" : ""}`}
+        className={`flex gap-2 ${styles.container} ${isVertical ? "w-full @md:w-48 shrink-0" : ""}`}
         style={tabBackground ? { backgroundColor: tabBackground } : undefined}
       >
         {tabs.map((tab, index) => {
           const childStyles = getChildElementInlineStyles(tab._styles);
           return (
-          <button
-            key={index}
-            onClick={isEditing ? undefined : () => setActiveTab(index)}
-            data-item-index={index}
-            data-child-type="tab"
-            className={`${styles.tab} flex items-center gap-2 ${isVertical ? "w-full" : ""} ${isEditing ? 'cursor-default' : ''}`}
-            style={{
-              ...(activeTab === index
-                ? {
-                    ...styles.activeTab,
-                    ...(activeTabColor ? { color: activeTabColor } : {}),
-                  }
-                : {}),
-              ...childStyles,
-            }}
-          >
-            {tab.icon && <LucideIcon name={tab.icon} className="w-4 h-4" />}
-            <span data-field="label">{tab.label}</span>
-          </button>
+            <button
+              key={index}
+              onClick={isEditing ? undefined : () => setActiveTab(index)}
+              data-item-index={index}
+              data-child-type="tab"
+              className={`${styles.tab} flex items-center gap-2 ${isVertical ? "w-full" : ""} ${isEditing ? "cursor-default" : ""}`}
+              style={{
+                ...(activeTab === index
+                  ? {
+                      ...styles.activeTab,
+                      ...(activeTabColor ? { color: activeTabColor } : {}),
+                    }
+                  : {}),
+                ...childStyles,
+              }}
+            >
+              {tab.icon && <LucideIcon name={tab.icon} className="w-4 h-4" />}
+              <span data-field="label">{tab.label}</span>
+            </button>
           );
         })}
       </div>
@@ -379,7 +387,10 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
   if (style === "horizontal") {
     return (
       <div className="relative overflow-x-auto pb-4">
-        <div className="absolute top-6 left-0 right-0 h-0.5" style={{ backgroundColor: lineColor }} />
+        <div
+          className="absolute top-6 left-0 right-0 h-0.5"
+          style={{ backgroundColor: lineColor }}
+        />
         <div className="flex gap-8 min-w-max px-4">
           {items.map((item, index) => {
             const childStyles = getChildElementInlineStyles(item._styles);
@@ -390,19 +401,32 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
                 data-child-type="timeline-item"
                 className={`relative flex flex-col items-center min-w-[200px] ${animationClass}`}
                 style={{
-                  animationDelay: animation !== "none" ? `${index * 100}ms` : undefined,
+                  animationDelay:
+                    animation !== "none" ? `${index * 100}ms` : undefined,
                   ...childStyles,
                 }}
               >
-                <div className="w-4 h-4 rounded-full z-10 mb-4" style={getDotStyle()} />
+                <div
+                  className="w-4 h-4 rounded-full z-10 mb-4"
+                  style={getDotStyle()}
+                />
                 {showDates && (
-                  <span className="text-sm opacity-50 mb-2" data-field="date">{item.date}</span>
+                  <span className="text-sm opacity-50 mb-2" data-field="date">
+                    {item.date}
+                  </span>
                 )}
-                <h3 className="text-lg font-semibold text-center" data-field="title" style={{ color: accentColor }}>
+                <h3
+                  className="text-lg font-semibold text-center"
+                  data-field="title"
+                  style={{ color: accentColor }}
+                >
                   {item.title}
                 </h3>
                 {item.description && (
-                  <p className="text-sm opacity-70 mt-2 text-center max-w-[180px]" data-field="description">
+                  <p
+                    className="text-sm opacity-70 mt-2 text-center max-w-[180px]"
+                    data-field="description"
+                  >
                     {item.description}
                   </p>
                 )}
@@ -419,68 +443,68 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
     return (
       <div className="relative">
         <div
-          className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2"
+          className="absolute left-4 @md:left-1/2 top-0 bottom-0 w-px @md:-translate-x-1/2"
           style={{ backgroundColor: lineColor }}
         />
-        <div className="space-y-12">
+        <div className="space-y-8 @md:space-y-12">
           {items.map((item, index) => {
             const childStyles = getChildElementInlineStyles(item._styles);
             return (
-            <div
-              key={index}
-              data-item-index={index}
-              data-child-type="timeline-item"
-              className={`relative flex items-center gap-8 ${animationClass} ${index % 2 === 0 ? "flex-row" : "flex-row-reverse"}`}
-              style={{
-                animationDelay:
-                  animation !== "none" ? `${index * 100}ms` : undefined,
-                ...childStyles,
-              }}
-            >
               <div
-                className={`flex-1 ${index % 2 === 0 ? "text-right" : "text-left"}`}
+                key={index}
+                data-item-index={index}
+                data-child-type="timeline-item"
+                className={`relative flex items-start @md:items-center gap-4 @md:gap-8 ${animationClass} flex-row ${index % 2 === 0 ? "@md:flex-row" : "@md:flex-row-reverse"}`}
+                style={{
+                  animationDelay:
+                    animation !== "none" ? `${index * 100}ms` : undefined,
+                  ...childStyles,
+                }}
               >
-                {showDates && (
-                  <span className="text-sm opacity-50" data-field="date">
-                    {item.date}
-                  </span>
-                )}
-                <h3
-                  className="text-lg font-semibold mt-1"
-                  data-field="title"
-                  style={{ color: accentColor }}
+                <div
+                  className={`flex-1 text-left ${index % 2 === 0 ? "@md:text-right" : "@md:text-left"}`}
                 >
-                  {item.title}
-                </h3>
-                {item.description && (
-                  <p
-                    className="text-sm opacity-70 mt-2"
-                    data-field="description"
+                  {showDates && (
+                    <span className="text-sm opacity-50" data-field="date">
+                      {item.date}
+                    </span>
+                  )}
+                  <h3
+                    className="text-lg font-semibold mt-1"
+                    data-field="title"
+                    style={{ color: accentColor }}
                   >
-                    {item.description}
-                  </p>
-                )}
+                    {item.title}
+                  </h3>
+                  {item.description && (
+                    <p
+                      className="text-sm opacity-70 mt-2"
+                      data-field="description"
+                    >
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+                <div
+                  className="w-4 h-4 rounded-full shrink-0 z-10"
+                  style={getDotStyle()}
+                >
+                  {showIcon && item.icon && (
+                    <span className="flex items-center justify-center w-full h-full text-xs">
+                      <LucideIcon name={item.icon} className="w-3 h-3" />
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="rounded-lg max-w-xs"
+                    />
+                  )}
+                </div>
               </div>
-              <div
-                className="w-4 h-4 rounded-full shrink-0 z-10"
-                style={getDotStyle()}
-              >
-                {showIcon && item.icon && (
-                  <span className="flex items-center justify-center w-full h-full text-xs">
-                    <LucideIcon name={item.icon} className="w-3 h-3" />
-                  </span>
-                )}
-              </div>
-              <div className="flex-1">
-                {item.image && (
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="rounded-lg max-w-xs"
-                  />
-                )}
-              </div>
-            </div>
             );
           })}
         </div>
@@ -501,12 +525,16 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
               data-child-type="timeline-item"
               className={`flex gap-4 ${animationClass}`}
               style={{
-                animationDelay: animation !== "none" ? `${index * 100}ms` : undefined,
+                animationDelay:
+                  animation !== "none" ? `${index * 100}ms` : undefined,
                 ...childStyles,
               }}
             >
               {showDates && (
-                <span className="text-sm opacity-50 w-24 shrink-0" data-field="date">
+                <span
+                  className="text-sm opacity-50 w-24 shrink-0"
+                  data-field="date"
+                >
                   {item.date}
                 </span>
               )}
@@ -515,7 +543,10 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
                   {item.title}
                 </h3>
                 {item.description && (
-                  <p className="text-sm opacity-70 mt-1" data-field="description">
+                  <p
+                    className="text-sm opacity-70 mt-1"
+                    data-field="description"
+                  >
                     {item.description}
                   </p>
                 )}
@@ -530,7 +561,10 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
   // Cards layout
   if (style === "cards") {
     return (
-      <div className="relative pl-8" style={{ borderLeft: `2px solid ${lineColor}` }}>
+      <div
+        className="relative pl-8"
+        style={{ borderLeft: `2px solid ${lineColor}` }}
+      >
         <div className="space-y-8">
           {items.map((item, index) => {
             const childStyles = getChildElementInlineStyles(item._styles);
@@ -541,7 +575,8 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
                 data-child-type="timeline-item"
                 className={`relative bg-white/5 p-4 rounded-lg ml-4 ${animationClass}`}
                 style={{
-                  animationDelay: animation !== "none" ? `${index * 100}ms` : undefined,
+                  animationDelay:
+                    animation !== "none" ? `${index * 100}ms` : undefined,
                   ...childStyles,
                 }}
               >
@@ -550,16 +585,31 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
                   style={getDotStyle()}
                 />
                 {showDates && (
-                  <span className="text-sm opacity-50" data-field="date">{item.date}</span>
+                  <span className="text-sm opacity-50" data-field="date">
+                    {item.date}
+                  </span>
                 )}
-                <h3 className="text-lg font-semibold mt-1" data-field="title" style={{ color: accentColor }}>
+                <h3
+                  className="text-lg font-semibold mt-1"
+                  data-field="title"
+                  style={{ color: accentColor }}
+                >
                   {item.title}
                 </h3>
                 {item.description && (
-                  <p className="text-sm opacity-70 mt-2" data-field="description">{item.description}</p>
+                  <p
+                    className="text-sm opacity-70 mt-2"
+                    data-field="description"
+                  >
+                    {item.description}
+                  </p>
                 )}
                 {item.image && (
-                  <img src={item.image} alt={item.title} className="rounded-lg mt-4 max-w-md" />
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="rounded-lg mt-4 max-w-md"
+                  />
                 )}
               </div>
             );
@@ -579,46 +629,46 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
         {items.map((item, index) => {
           const childStyles = getChildElementInlineStyles(item._styles);
           return (
-          <div
-            key={index}
-            data-item-index={index}
-            data-child-type="timeline-item"
-            className={`relative ${animationClass}`}
-            style={{
-              animationDelay:
-                animation !== "none" ? `${index * 100}ms` : undefined,
-              ...childStyles,
-            }}
-          >
             <div
-              className="absolute -left-[2.6rem] top-1 w-4 h-4 rounded-full"
-              style={getDotStyle()}
-            />
-            {showDates && (
-              <span className="text-sm opacity-50" data-field="date">
-                {item.date}
-              </span>
-            )}
-            <h3
-              className="text-lg font-semibold mt-1"
-              data-field="title"
-              style={{ color: accentColor }}
+              key={index}
+              data-item-index={index}
+              data-child-type="timeline-item"
+              className={`relative ${animationClass}`}
+              style={{
+                animationDelay:
+                  animation !== "none" ? `${index * 100}ms` : undefined,
+                ...childStyles,
+              }}
             >
-              {item.title}
-            </h3>
-            {item.description && (
-              <p className="text-sm opacity-70 mt-2" data-field="description">
-                {item.description}
-              </p>
-            )}
-            {item.image && (
-              <img
-                src={item.image}
-                alt={item.title}
-                className="rounded-lg mt-4 max-w-md"
+              <div
+                className="absolute -left-[2.6rem] top-1 w-4 h-4 rounded-full"
+                style={getDotStyle()}
               />
-            )}
-          </div>
+              {showDates && (
+                <span className="text-sm opacity-50" data-field="date">
+                  {item.date}
+                </span>
+              )}
+              <h3
+                className="text-lg font-semibold mt-1"
+                data-field="title"
+                style={{ color: accentColor }}
+              >
+                {item.title}
+              </h3>
+              {item.description && (
+                <p className="text-sm opacity-70 mt-2" data-field="description">
+                  {item.description}
+                </p>
+              )}
+              {item.image && (
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="rounded-lg mt-4 max-w-md"
+                />
+              )}
+            </div>
           );
         })}
       </div>

@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePageBuilder } from "@/components/page-builder/PageBuilderContext";
 import { LucideIcon } from "@/components/ui/icon-picker";
-import { BlockContentProps, ChildElementStyles, getChildElementInlineStyles } from "../types";
+import {
+  BlockContentProps,
+  ChildElementStyles,
+  getChildElementInlineStyles,
+} from "../types";
 
 // ============================================
 // Button Block
@@ -84,29 +88,27 @@ export function ButtonBlock({ content }: BlockContentProps<ButtonContent>) {
     return <LucideIcon name={icon} className="w-4 h-4" />;
   };
 
-  return (
-    isEditing ? (
-      <span
-        data-field="text"
-        className={`inline-flex items-center justify-center gap-2 font-medium transition-all opacity-70 cursor-not-allowed ${sizeStyles[size]} ${radiusStyles[borderRadius]}`}
-        style={inlineStyles}
-      >
-        {renderIcon()}
-        <span data-field="text">{text}</span>
-      </span>
-    ) : (
-      <Link
-        href={url}
-        target={newTab ? "_blank" : undefined}
-        rel={newTab ? "noopener noreferrer" : undefined}
-        data-field="text"
-        className={`inline-flex items-center justify-center gap-2 font-medium transition-all hover:opacity-80 ${sizeStyles[size]} ${radiusStyles[borderRadius]}`}
-        style={inlineStyles}
-      >
-        {renderIcon()}
-        <span data-field="text">{text}</span>
-      </Link>
-    )
+  return isEditing ? (
+    <span
+      data-field="text"
+      className={`inline-flex items-center justify-center gap-2 font-medium transition-all opacity-70 cursor-not-allowed ${sizeStyles[size]} ${radiusStyles[borderRadius]}`}
+      style={inlineStyles}
+    >
+      {renderIcon()}
+      <span data-field="text">{text}</span>
+    </span>
+  ) : (
+    <Link
+      href={url}
+      target={newTab ? "_blank" : undefined}
+      rel={newTab ? "noopener noreferrer" : undefined}
+      data-field="text"
+      className={`inline-flex items-center justify-center gap-2 font-medium transition-all hover:opacity-80 ${sizeStyles[size]} ${radiusStyles[borderRadius]}`}
+      style={inlineStyles}
+    >
+      {renderIcon()}
+      <span data-field="text">{text}</span>
+    </Link>
   );
 }
 
@@ -164,7 +166,7 @@ export function ButtonGroupBlock({
 
   return (
     <div
-      className={`flex ${direction === "vertical" ? "flex-col" : stackOnMobile ? "flex-col md:flex-row" : "flex-row"} ${gapStyles[gap]} ${alignStyles[alignment]} flex-wrap`}
+      className={`flex ${direction === "vertical" ? "flex-col" : stackOnMobile ? "flex-col @md:flex-row" : "flex-row"} ${gapStyles[gap]} ${alignStyles[alignment]} flex-wrap`}
     >
       {buttons.map((btn, idx) => {
         const childStyles = getChildElementInlineStyles(btn._styles);
@@ -306,8 +308,8 @@ export function ListBlock({ content }: BlockContentProps<ListContent>) {
   return (
     <ul className="space-y-3">
       {items.map((item, index) => (
-        <li 
-          key={index} 
+        <li
+          key={index}
           data-item-index={index}
           data-child-type="list-item"
           className="flex items-start gap-3"

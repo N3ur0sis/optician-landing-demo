@@ -932,7 +932,7 @@ export default function PageBuilderEditor({
         <div className="flex-1 overflow-auto bg-gray-100 p-4 md:p-8">
           <div
             ref={previewRef}
-            className="mx-auto transition-all duration-300 bg-white shadow-xl rounded-lg overflow-hidden"
+            className="@container mx-auto transition-all duration-300 bg-white shadow-xl rounded-lg overflow-hidden"
             style={{
               width: deviceWidths[deviceMode],
               maxWidth: "100%",
@@ -1114,7 +1114,7 @@ export default function PageBuilderEditor({
                               className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                               title="Ajouter après"
                             >
-                              <Plus className="w-4 h-4" />
+                              <Plus className="w-4 h-4 text-gray-700" />
                             </button>
                             <button
                               onClick={(e) => {
@@ -1124,7 +1124,7 @@ export default function PageBuilderEditor({
                               className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                               title="Dupliquer"
                             >
-                              <Copy className="w-4 h-4" />
+                              <Copy className="w-4 h-4 text-gray-700" />
                             </button>
                             <button
                               onClick={(e) => {
@@ -1305,6 +1305,7 @@ export default function PageBuilderEditor({
                         isEditing={
                           viewMode === "edit" && selectedBlockId === block.id
                         }
+                        isPreviewMode={viewMode === "preview"}
                         onUpdate={(updates) =>
                           handleUpdateBlock(block.id, updates)
                         }

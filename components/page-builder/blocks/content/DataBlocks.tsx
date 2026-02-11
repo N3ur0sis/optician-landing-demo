@@ -46,9 +46,9 @@ export function StatsBlock({ content }: BlockContentProps<StatsContent>) {
   const gapMap: Record<string, string> = {
     none: "gap-0",
     sm: "gap-2",
-    md: "gap-4 md:gap-8",
-    lg: "gap-6 md:gap-12",
-    xl: "gap-8 md:gap-16",
+    md: "gap-4 @md:gap-8",
+    lg: "gap-6 @md:gap-12",
+    xl: "gap-8 @md:gap-16",
   };
 
   const styleMap: Record<string, string> = {
@@ -80,7 +80,7 @@ export function StatsBlock({ content }: BlockContentProps<StatsContent>) {
             }}
           >
             <div
-              className="text-4xl md:text-5xl font-bold mb-2"
+              className="text-4xl @md:text-5xl font-bold mb-2"
               style={{ color: valueColor }}
             >
               {stat.prefix && <span data-field="prefix">{stat.prefix}</span>}
@@ -150,9 +150,9 @@ export function CardsBlock({ content }: BlockContentProps<CardsContent>) {
   const gapMap: Record<string, string> = {
     none: "gap-0",
     sm: "gap-2",
-    md: "gap-4 md:gap-6",
-    lg: "gap-6 md:gap-8",
-    xl: "gap-8 md:gap-12",
+    md: "gap-4 @md:gap-6",
+    lg: "gap-6 @md:gap-8",
+    xl: "gap-8 @md:gap-12",
   };
 
   const radiusMap: Record<string, string> = {
@@ -223,7 +223,10 @@ export function CardsBlock({ content }: BlockContentProps<CardsContent>) {
                 {card.title}
               </h3>
               {showDescription && card.description && (
-                <p className="opacity-70 line-clamp-3 whitespace-pre-line" data-field="description">
+                <p
+                  className="opacity-70 line-clamp-3 whitespace-pre-line"
+                  data-field="description"
+                >
                   {card.description}
                 </p>
               )}
@@ -356,23 +359,39 @@ export function FeaturesBlock({ content }: BlockContentProps<FeaturesContent>) {
         <>
           {feature.icon && iconStyle !== "none" && (
             <div className={getIconWrapperClasses()} style={getIconBgStyle()}>
-              <LucideIcon name={feature.icon} className="w-6 h-6" style={{ color: accentColor }} />
+              <LucideIcon
+                name={feature.icon}
+                className="w-6 h-6"
+                style={{ color: accentColor }}
+              />
             </div>
           )}
           <div>
-            <h3 className="font-semibold text-lg mb-1" data-field="title">{feature.title}</h3>
-            <p className="opacity-70 whitespace-pre-line" data-field="description">{feature.description}</p>
-            {feature.link && (
-              isEditing ? (
-                <span className="text-sm mt-2 inline-block cursor-not-allowed opacity-70" style={{ color: accentColor }}>
+            <h3 className="font-semibold text-lg mb-1" data-field="title">
+              {feature.title}
+            </h3>
+            <p
+              className="opacity-70 whitespace-pre-line"
+              data-field="description"
+            >
+              {feature.description}
+            </p>
+            {feature.link &&
+              (isEditing ? (
+                <span
+                  className="text-sm mt-2 inline-block cursor-not-allowed opacity-70"
+                  style={{ color: accentColor }}
+                >
                   En savoir plus →
                 </span>
               ) : (
-                <span className="text-sm mt-2 inline-block" style={{ color: accentColor }}>
+                <span
+                  className="text-sm mt-2 inline-block"
+                  style={{ color: accentColor }}
+                >
                   En savoir plus →
                 </span>
-              )
-            )}
+              ))}
           </div>
         </>
       );
@@ -383,17 +402,27 @@ export function FeaturesBlock({ content }: BlockContentProps<FeaturesContent>) {
       <>
         {feature.icon && iconStyle !== "none" && (
           <div className={getIconWrapperClasses()} style={getIconBgStyle()}>
-            <LucideIcon name={feature.icon} className="w-6 h-6" style={{ color: accentColor }} />
+            <LucideIcon
+              name={feature.icon}
+              className="w-6 h-6"
+              style={{ color: accentColor }}
+            />
           </div>
         )}
         <h3 className="font-semibold text-lg mb-2" data-field="title">
           {feature.title}
         </h3>
-        <p className="text-sm opacity-70 whitespace-pre-line" data-field="description">
+        <p
+          className="text-sm opacity-70 whitespace-pre-line"
+          data-field="description"
+        >
           {feature.description}
         </p>
         {feature.link && style === "cards" && (
-          <span className="text-sm mt-4 inline-block group-hover:translate-x-1 transition-transform" style={{ color: accentColor }}>
+          <span
+            className="text-sm mt-4 inline-block group-hover:translate-x-1 transition-transform"
+            style={{ color: accentColor }}
+          >
             En savoir plus →
           </span>
         )}

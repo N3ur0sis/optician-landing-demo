@@ -47,12 +47,12 @@ export function HeadingBlock({ content }: BlockContentProps<HeadingContent>) {
   const subtitle = content.subtitle;
 
   const sizeMap: Record<string, string> = {
-    h1: "text-5xl md:text-6xl lg:text-7xl",
-    h2: "text-4xl md:text-5xl",
-    h3: "text-3xl md:text-4xl",
-    h4: "text-2xl md:text-3xl",
-    h5: "text-xl md:text-2xl",
-    h6: "text-lg md:text-xl",
+    h1: "text-5xl @md:text-6xl @lg:text-7xl",
+    h2: "text-4xl @md:text-5xl",
+    h3: "text-3xl @md:text-4xl",
+    h4: "text-2xl @md:text-3xl",
+    h5: "text-xl @md:text-2xl",
+    h6: "text-lg @md:text-xl",
   };
 
   const Tag = level as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";

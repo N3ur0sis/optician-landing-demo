@@ -5,7 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Mail, User, Star, Check, Send, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePageBuilder } from "@/components/page-builder/PageBuilderContext";
-import { BlockContentProps, ChildElementStyles, getChildElementInlineStyles, COLUMNS_MAP } from "../types";
+import {
+  BlockContentProps,
+  ChildElementStyles,
+  getChildElementInlineStyles,
+  COLUMNS_MAP,
+} from "../types";
 
 // ============================================
 // Team Block
@@ -49,19 +54,34 @@ export function TeamBlock({ content }: BlockContentProps<TeamContent>) {
   const showSocial = content.showSocial !== false;
 
   const gapMap: Record<string, string> = {
-    none: "gap-0", sm: "gap-2", md: "gap-4 md:gap-6", lg: "gap-6 md:gap-8", xl: "gap-8 md:gap-12",
+    none: "gap-0",
+    sm: "gap-2",
+    md: "gap-4 @md:gap-6",
+    lg: "gap-6 @md:gap-8",
+    xl: "gap-8 @md:gap-12",
   };
 
   const imageSizeMap: Record<string, string> = {
-    xs: "w-16 h-16", sm: "w-20 h-20", md: "w-24 h-24", lg: "w-32 h-32", xl: "w-40 h-40", "2xl": "w-48 h-48",
+    xs: "w-16 h-16",
+    sm: "w-20 h-20",
+    md: "w-24 h-24",
+    lg: "w-32 h-32",
+    xl: "w-40 h-40",
+    "2xl": "w-48 h-48",
   };
 
   const shapeMap: Record<string, string> = {
-    rounded: "rounded-lg", circle: "rounded-full", square: "rounded-none",
+    rounded: "rounded-lg",
+    circle: "rounded-full",
+    square: "rounded-none",
   };
 
   const hoverMap: Record<string, string> = {
-    none: "", zoom: "hover:scale-105", lift: "hover:-translate-y-2", glow: "hover:shadow-lg", fade: "hover:opacity-80",
+    none: "",
+    zoom: "hover:scale-105",
+    lift: "hover:-translate-y-2",
+    glow: "hover:shadow-lg",
+    fade: "hover:opacity-80",
   };
 
   const columnsClass = COLUMNS_MAP[columns] || COLUMNS_MAP[3];
@@ -72,13 +92,45 @@ export function TeamBlock({ content }: BlockContentProps<TeamContent>) {
       <div className="flex gap-3">
         {isEditing ? (
           <>
-            {member.social.email && <span className="opacity-50 cursor-not-allowed" style={{ color: accentColor }}><Mail className="w-5 h-5" /></span>}
-            {member.social.linkedin && <span className="opacity-50 cursor-not-allowed" style={{ color: accentColor }}><User className="w-5 h-5" /></span>}
+            {member.social.email && (
+              <span
+                className="opacity-50 cursor-not-allowed"
+                style={{ color: accentColor }}
+              >
+                <Mail className="w-5 h-5" />
+              </span>
+            )}
+            {member.social.linkedin && (
+              <span
+                className="opacity-50 cursor-not-allowed"
+                style={{ color: accentColor }}
+              >
+                <User className="w-5 h-5" />
+              </span>
+            )}
           </>
         ) : (
           <>
-            {member.social.email && <a href={`mailto:${member.social.email}`} className="opacity-50 hover:opacity-100" style={{ color: accentColor }}><Mail className="w-5 h-5" /></a>}
-            {member.social.linkedin && <a href={member.social.linkedin} target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100" style={{ color: accentColor }}><User className="w-5 h-5" /></a>}
+            {member.social.email && (
+              <a
+                href={`mailto:${member.social.email}`}
+                className="opacity-50 hover:opacity-100"
+                style={{ color: accentColor }}
+              >
+                <Mail className="w-5 h-5" />
+              </a>
+            )}
+            {member.social.linkedin && (
+              <a
+                href={member.social.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="opacity-50 hover:opacity-100"
+                style={{ color: accentColor }}
+              >
+                <User className="w-5 h-5" />
+              </a>
+            )}
           </>
         )}
       </div>
@@ -90,16 +142,44 @@ export function TeamBlock({ content }: BlockContentProps<TeamContent>) {
     return (
       <div className={`grid ${columnsClass} ${gapMap[gap]}`}>
         {members.map((member, index) => (
-          <div key={index} data-item-index={index} data-child-type="member" className="text-center">
+          <div
+            key={index}
+            data-item-index={index}
+            data-child-type="member"
+            className="text-center"
+          >
             {member.image && (
-              <div className={`w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden ring-4 ring-white/10 ${hoverMap[hoverEffect]}`}>
-                <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+              <div
+                className={`w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden ring-4 ring-white/10 ${hoverMap[hoverEffect]}`}
+              >
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
             )}
-            <h3 className="font-semibold text-lg" data-field="name">{member.name}</h3>
-            <p className="text-sm mb-2" data-field="role" style={{ color: accentColor }}>{member.role}</p>
-            {showBio && member.bio && <p className="text-sm opacity-70 max-w-xs mx-auto" data-field="bio">{member.bio}</p>}
-            <div className="flex justify-center mt-3">{renderSocialLinks(member)}</div>
+            <h3 className="font-semibold text-lg" data-field="name">
+              {member.name}
+            </h3>
+            <p
+              className="text-sm mb-2"
+              data-field="role"
+              style={{ color: accentColor }}
+            >
+              {member.role}
+            </p>
+            {showBio && member.bio && (
+              <p
+                className="text-sm opacity-70 max-w-xs mx-auto"
+                data-field="bio"
+              >
+                {member.bio}
+              </p>
+            )}
+            <div className="flex justify-center mt-3">
+              {renderSocialLinks(member)}
+            </div>
           </div>
         ))}
       </div>
@@ -111,16 +191,37 @@ export function TeamBlock({ content }: BlockContentProps<TeamContent>) {
     return (
       <div className={`grid ${columnsClass} ${gapMap[gap]}`}>
         {members.map((member, index) => (
-          <div key={index} data-item-index={index} data-child-type="member" className={`bg-white/5 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${hoverMap[hoverEffect] || 'hover:-translate-y-1 hover:shadow-xl'}`}>
+          <div
+            key={index}
+            data-item-index={index}
+            data-child-type="member"
+            className={`bg-white/5 rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${hoverMap[hoverEffect] || "hover:-translate-y-1 hover:shadow-xl"}`}
+          >
             {member.image && (
               <div className="aspect-square overflow-hidden">
-                <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
             )}
             <div className="p-5">
-              <h3 className="text-lg font-semibold" data-field="name">{member.name}</h3>
-              <p className="text-sm mb-2" data-field="role" style={{ color: accentColor }}>{member.role}</p>
-              {showBio && member.bio && <p className="text-sm opacity-70 line-clamp-3" data-field="bio">{member.bio}</p>}
+              <h3 className="text-lg font-semibold" data-field="name">
+                {member.name}
+              </h3>
+              <p
+                className="text-sm mb-2"
+                data-field="role"
+                style={{ color: accentColor }}
+              >
+                {member.role}
+              </p>
+              {showBio && member.bio && (
+                <p className="text-sm opacity-70 line-clamp-3" data-field="bio">
+                  {member.bio}
+                </p>
+              )}
               <div className="mt-3">{renderSocialLinks(member)}</div>
             </div>
           </div>
@@ -134,14 +235,33 @@ export function TeamBlock({ content }: BlockContentProps<TeamContent>) {
     return (
       <div className={`grid ${columnsClass} ${gapMap[gap]}`}>
         {members.map((member, index) => (
-          <div key={index} data-item-index={index} data-child-type="member" className="text-center">
+          <div
+            key={index}
+            data-item-index={index}
+            data-child-type="member"
+            className="text-center"
+          >
             {member.image && (
-              <div className={`${imageSizeMap[imageSize]} mx-auto mb-3 ${shapeMap[imageShape]} overflow-hidden`}>
-                <img src={member.image} alt={member.name} className={`w-full h-full object-cover ${hoverMap[hoverEffect]}`} />
+              <div
+                className={`${imageSizeMap[imageSize]} mx-auto mb-3 ${shapeMap[imageShape]} overflow-hidden`}
+              >
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className={`w-full h-full object-cover ${hoverMap[hoverEffect]}`}
+                />
               </div>
             )}
-            <h3 className="font-semibold" data-field="name">{member.name}</h3>
-            <p className="text-sm opacity-70" data-field="role" style={{ color: accentColor }}>{member.role}</p>
+            <h3 className="font-semibold" data-field="name">
+              {member.name}
+            </h3>
+            <p
+              className="text-sm opacity-70"
+              data-field="role"
+              style={{ color: accentColor }}
+            >
+              {member.role}
+            </p>
           </div>
         ))}
       </div>
@@ -153,16 +273,40 @@ export function TeamBlock({ content }: BlockContentProps<TeamContent>) {
     return (
       <div className={`grid ${columnsClass} ${gapMap[gap]}`}>
         {members.map((member, index) => (
-          <div key={index} data-item-index={index} data-child-type="member" className="group">
+          <div
+            key={index}
+            data-item-index={index}
+            data-child-type="member"
+            className="group"
+          >
             {member.image && (
               <div className="aspect-3/4 overflow-hidden rounded-xl mb-4 relative">
-                <img src={member.image} alt={member.name} className={`w-full h-full object-cover transition-transform duration-500 ${hoverMap[hoverEffect] || 'group-hover:scale-105'}`} />
+                <img
+                  src={member.image}
+                  alt={member.name}
+                  className={`w-full h-full object-cover transition-transform duration-500 ${hoverMap[hoverEffect] || "group-hover:scale-105"}`}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             )}
-            <h3 className="text-xl font-semibold" data-field="name">{member.name}</h3>
-            <p className="text-sm mb-3" data-field="role" style={{ color: accentColor }}>{member.role}</p>
-            {showBio && member.bio && <p className="text-sm opacity-70 mb-4 whitespace-pre-line" data-field="bio">{member.bio}</p>}
+            <h3 className="text-xl font-semibold" data-field="name">
+              {member.name}
+            </h3>
+            <p
+              className="text-sm mb-3"
+              data-field="role"
+              style={{ color: accentColor }}
+            >
+              {member.role}
+            </p>
+            {showBio && member.bio && (
+              <p
+                className="text-sm opacity-70 mb-4 whitespace-pre-line"
+                data-field="bio"
+              >
+                {member.bio}
+              </p>
+            )}
             {renderSocialLinks(member)}
           </div>
         ))}
@@ -174,16 +318,40 @@ export function TeamBlock({ content }: BlockContentProps<TeamContent>) {
   return (
     <div className={`grid ${columnsClass} ${gapMap[gap]}`}>
       {members.map((member, index) => (
-        <div key={index} data-item-index={index} data-child-type="member" className={`bg-white/5 ${shapeMap[imageShape]} overflow-hidden group ${hoverMap[hoverEffect]}`}>
+        <div
+          key={index}
+          data-item-index={index}
+          data-child-type="member"
+          className={`bg-white/5 ${shapeMap[imageShape]} overflow-hidden group ${hoverMap[hoverEffect]}`}
+        >
           {member.image && (
             <div className="aspect-4/5 overflow-hidden">
-              <img src={member.image} alt={member.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <img
+                src={member.image}
+                alt={member.name}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
             </div>
           )}
           <div className="p-6">
-            <h3 className="text-xl font-semibold" data-field="name">{member.name}</h3>
-            <p className="text-sm mb-3" data-field="role" style={{ color: accentColor }}>{member.role}</p>
-            {showBio && member.bio && <p className="text-sm opacity-70 mb-4 whitespace-pre-line" data-field="bio">{member.bio}</p>}
+            <h3 className="text-xl font-semibold" data-field="name">
+              {member.name}
+            </h3>
+            <p
+              className="text-sm mb-3"
+              data-field="role"
+              style={{ color: accentColor }}
+            >
+              {member.role}
+            </p>
+            {showBio && member.bio && (
+              <p
+                className="text-sm opacity-70 mb-4 whitespace-pre-line"
+                data-field="bio"
+              >
+                {member.bio}
+              </p>
+            )}
             {renderSocialLinks(member)}
           </div>
         </div>
@@ -220,7 +388,9 @@ interface TestimonialsContent {
   animation?: string;
 }
 
-export function TestimonialsBlock({ content }: BlockContentProps<TestimonialsContent>) {
+export function TestimonialsBlock({
+  content,
+}: BlockContentProps<TestimonialsContent>) {
   const { isEditing } = usePageBuilder();
   const testimonials = content.testimonials || [];
   const columns = content.columns || 2;
@@ -233,13 +403,19 @@ export function TestimonialsBlock({ content }: BlockContentProps<TestimonialsCon
   const cardBackground = content.cardBackground;
 
   const gapMap: Record<string, string> = {
-    none: "gap-0", sm: "gap-2", md: "gap-4 md:gap-6", lg: "gap-6 md:gap-8",
+    none: "gap-0",
+    sm: "gap-2",
+    md: "gap-4 @md:gap-6",
+    lg: "gap-6 @md:gap-8",
   };
 
   const renderStars = (rating: number) => (
     <div className="flex gap-1">
       {Array.from({ length: 5 }).map((_, i) => (
-        <Star key={i} className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-white/20"}`} />
+        <Star
+          key={i}
+          className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-white/20"}`}
+        />
       ))}
     </div>
   );
@@ -265,9 +441,9 @@ export function TestimonialsBlock({ content }: BlockContentProps<TestimonialsCon
   const getQuoteClasses = () => {
     switch (style) {
       case "elegant":
-        return "text-xl md:text-2xl italic mb-6 leading-relaxed";
+        return "text-xl @md:text-2xl italic mb-6 leading-relaxed";
       case "quote":
-        return "text-xl md:text-2xl mb-6 leading-relaxed";
+        return "text-xl @md:text-2xl mb-6 leading-relaxed";
       case "minimal":
         return "text-base mb-4";
       default:
@@ -283,41 +459,94 @@ export function TestimonialsBlock({ content }: BlockContentProps<TestimonialsCon
           data-item-index={index}
           data-child-type="testimonial"
           className={getCardClasses()}
-          style={{ backgroundColor: style !== "minimal" && style !== "quote" ? (cardBackground || "rgba(255,255,255,0.05)") : undefined }}
+          style={{
+            backgroundColor:
+              style !== "minimal" && style !== "quote"
+                ? cardBackground || "rgba(255,255,255,0.05)"
+                : undefined,
+          }}
         >
           {/* Quote icon - different positioning for quote style */}
           {showQuoteIcon && style === "quote" && (
-            <div className="mb-6 flex justify-center" style={{ color: accentColor }}>
-              <svg className="w-16 h-16 opacity-30" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+            <div
+              className="mb-6 flex justify-center"
+              style={{ color: accentColor }}
+            >
+              <svg
+                className="w-16 h-16 opacity-30"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
               </svg>
             </div>
           )}
           {showQuoteIcon && style !== "quote" && (
             <div className="mb-4" style={{ color: accentColor }}>
-              <svg className="w-8 h-8 opacity-50" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+              <svg
+                className="w-8 h-8 opacity-50"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
               </svg>
             </div>
           )}
-          {showRating && testimonial.rating && <div className={`mb-4 ${style === "quote" ? "flex justify-center" : ""}`}>{renderStars(testimonial.rating)}</div>}
-          <blockquote className={`${getQuoteClasses()} whitespace-pre-line`} data-field="quote">
-            {style === "elegant" ? `"${testimonial.text}"` : `"${testimonial.text}"`}
+          {showRating && testimonial.rating && (
+            <div
+              className={`mb-4 ${style === "quote" ? "flex justify-center" : ""}`}
+            >
+              {renderStars(testimonial.rating)}
+            </div>
+          )}
+          <blockquote
+            className={`${getQuoteClasses()} whitespace-pre-line`}
+            data-field="quote"
+          >
+            {style === "elegant"
+              ? `"${testimonial.text}"`
+              : `"${testimonial.text}"`}
           </blockquote>
-          <div className={`flex items-center gap-3 ${style === "quote" ? "justify-center" : ""}`}>
+          <div
+            className={`flex items-center gap-3 ${style === "quote" ? "justify-center" : ""}`}
+          >
             {showImage && testimonial.image && (
-              <div 
-                className={`overflow-hidden ${style === "elegant" ? "w-14 h-14" : "w-12 h-12"} rounded-full`} 
-                style={{ boxShadow: style !== "minimal" ? `0 0 0 2px ${accentColor}` : undefined }}
+              <div
+                className={`overflow-hidden ${style === "elegant" ? "w-14 h-14" : "w-12 h-12"} rounded-full`}
+                style={{
+                  boxShadow:
+                    style !== "minimal"
+                      ? `0 0 0 2px ${accentColor}`
+                      : undefined,
+                }}
               >
-                <img src={testimonial.image} alt={testimonial.author} className="w-full h-full object-cover" />
+                <img
+                  src={testimonial.image}
+                  alt={testimonial.author}
+                  className="w-full h-full object-cover"
+                />
               </div>
             )}
-            <div className={style === "quote" && !testimonial.image ? "text-center" : ""}>
-              <div className={`font-semibold ${style === "elegant" ? "text-lg" : ""}`} data-field="author">{testimonial.author}</div>
+            <div
+              className={
+                style === "quote" && !testimonial.image ? "text-center" : ""
+              }
+            >
+              <div
+                className={`font-semibold ${style === "elegant" ? "text-lg" : ""}`}
+                data-field="author"
+              >
+                {testimonial.author}
+              </div>
               {(testimonial.role || testimonial.company) && (
                 <div className="text-sm opacity-70">
-                  {testimonial.role && <span data-field="role">{testimonial.role}</span>}{testimonial.role && testimonial.company && " · "}{testimonial.company && <span data-field="company">{testimonial.company}</span>}
+                  {testimonial.role && (
+                    <span data-field="role">{testimonial.role}</span>
+                  )}
+                  {testimonial.role && testimonial.company && " · "}
+                  {testimonial.company && (
+                    <span data-field="company">{testimonial.company}</span>
+                  )}
                 </div>
               )}
             </div>
@@ -366,7 +595,9 @@ export function PricingBlock({ content }: BlockContentProps<PricingContent>) {
   const showPeriod = content.showPeriod !== false;
 
   const gapMap: Record<string, string> = {
-    sm: "gap-4", md: "gap-6", lg: "gap-8",
+    sm: "gap-4",
+    md: "gap-6",
+    lg: "gap-8",
   };
 
   const columnsClass = COLUMNS_MAP[columns] || COLUMNS_MAP[3];
@@ -390,7 +621,9 @@ export function PricingBlock({ content }: BlockContentProps<PricingContent>) {
 
   const getCardStyle = (isHighlighted: boolean): React.CSSProperties => {
     if (style === "gradient" && isHighlighted) {
-      return { background: `linear-gradient(135deg, ${accentColor}, ${accentColor}88)` };
+      return {
+        background: `linear-gradient(135deg, ${accentColor}, ${accentColor}88)`,
+      };
     }
     if (isHighlighted) {
       return { backgroundColor: accentColor };
@@ -413,22 +646,53 @@ export function PricingBlock({ content }: BlockContentProps<PricingContent>) {
               Populaire
             </span>
           )}
-          <h3 className={`font-bold mb-2 ${style === "compact" ? "text-lg" : "text-xl"}`} data-field="name">{plan.name}</h3>
+          <h3
+            className={`font-bold mb-2 ${style === "compact" ? "text-lg" : "text-xl"}`}
+            data-field="name"
+          >
+            {plan.name}
+          </h3>
           <div className="flex items-baseline gap-1 mb-4">
-            <span className={`font-bold ${style === "compact" ? "text-3xl" : "text-4xl"}`} data-field="price">{plan.price}</span>
-            {showPeriod && plan.period && <span className="opacity-70" data-field="period">/{plan.period}</span>}
+            <span
+              className={`font-bold ${style === "compact" ? "text-3xl" : "text-4xl"}`}
+              data-field="price"
+            >
+              {plan.price}
+            </span>
+            {showPeriod && plan.period && (
+              <span className="opacity-70" data-field="period">
+                /{plan.period}
+              </span>
+            )}
           </div>
-          {plan.description && <p className="opacity-70 mb-6" data-field="description">{plan.description}</p>}
+          {plan.description && (
+            <p className="opacity-70 mb-6" data-field="description">
+              {plan.description}
+            </p>
+          )}
           <ul className={`space-y-3 ${style === "compact" ? "mb-4" : "mb-6"}`}>
             {plan.features.map((feature, fIdx) => (
-              <li key={fIdx} className="flex items-center gap-2" data-item-index={fIdx} data-child-type="feature">
-                <Check className={`${style === "compact" ? "w-4 h-4" : "w-5 h-5"}`} style={{ color: plan.highlighted ? "white" : accentColor }} />
-                <span data-field="feature" className={style === "compact" ? "text-sm" : ""}>{feature}</span>
+              <li
+                key={fIdx}
+                className="flex items-center gap-2"
+                data-item-index={fIdx}
+                data-child-type="feature"
+              >
+                <Check
+                  className={`${style === "compact" ? "w-4 h-4" : "w-5 h-5"}`}
+                  style={{ color: plan.highlighted ? "white" : accentColor }}
+                />
+                <span
+                  data-field="feature"
+                  className={style === "compact" ? "text-sm" : ""}
+                >
+                  {feature}
+                </span>
               </li>
             ))}
           </ul>
-          {plan.buttonUrl && (
-            isEditing ? (
+          {plan.buttonUrl &&
+            (isEditing ? (
               <span
                 className={`block text-center py-3 rounded-lg font-medium transition-colors opacity-70 cursor-not-allowed ${plan.highlighted ? "bg-white text-black" : "border border-white/20"}`}
                 data-field="buttonText"
@@ -443,8 +707,7 @@ export function PricingBlock({ content }: BlockContentProps<PricingContent>) {
               >
                 {plan.buttonText || "Choisir"}
               </Link>
-            )
-          )}
+            ))}
         </div>
       ))}
     </div>
@@ -480,7 +743,9 @@ export function FAQBlock({ content }: BlockContentProps<FAQContent>) {
   const showIcon = content.showIcon !== false;
   const accentColor = content.accentColor || "#D4A574";
 
-  const [openIndices, setOpenIndices] = useState<Set<number>>(() => new Set([0]));
+  const [openIndices, setOpenIndices] = useState<Set<number>>(
+    () => new Set([0]),
+  );
 
   const toggleQuestion = (index: number) => {
     setOpenIndices((prev) => {
@@ -499,7 +764,7 @@ export function FAQBlock({ content }: BlockContentProps<FAQContent>) {
   const getContainerClasses = () => {
     switch (style) {
       case "cards":
-        return "grid grid-cols-1 md:grid-cols-2 gap-4";
+        return "grid grid-cols-1 @md:grid-cols-2 gap-4";
       case "bordered":
         return "space-y-3";
       case "minimal":
@@ -507,7 +772,7 @@ export function FAQBlock({ content }: BlockContentProps<FAQContent>) {
       case "numbered":
         return "space-y-4";
       default: // accordion
-        return `${layout === "two-column" ? "grid grid-cols-1 md:grid-cols-2 gap-x-12" : ""} divide-y divide-white/10`;
+        return `${layout === "two-column" ? "grid grid-cols-1 @md:grid-cols-2 gap-x-12" : ""} divide-y divide-white/10`;
     }
   };
 
@@ -530,13 +795,13 @@ export function FAQBlock({ content }: BlockContentProps<FAQContent>) {
     switch (style) {
       case "cards":
       case "bordered":
-        return `w-full flex items-center justify-between p-4 text-left ${isEditing ? 'cursor-default' : 'hover:bg-white/5'}`;
+        return `w-full flex items-center justify-between p-4 text-left ${isEditing ? "cursor-default" : "hover:bg-white/5"}`;
       case "minimal":
-        return `w-full flex items-center justify-between py-2 text-left ${isEditing ? 'cursor-default' : 'hover:opacity-80'}`;
+        return `w-full flex items-center justify-between py-2 text-left ${isEditing ? "cursor-default" : "hover:opacity-80"}`;
       case "numbered":
-        return `flex-1 flex items-center justify-between py-3 text-left ${isEditing ? 'cursor-default' : 'hover:opacity-80'}`;
+        return `flex-1 flex items-center justify-between py-3 text-left ${isEditing ? "cursor-default" : "hover:opacity-80"}`;
       default:
-        return `w-full flex items-center justify-between py-4 text-left ${isEditing ? 'cursor-default' : 'hover:opacity-80'}`;
+        return `w-full flex items-center justify-between py-4 text-left ${isEditing ? "cursor-default" : "hover:opacity-80"}`;
     }
   };
 
@@ -558,24 +823,51 @@ export function FAQBlock({ content }: BlockContentProps<FAQContent>) {
         const isOpen = openIndices.has(index);
         const childStyles = getChildElementInlineStyles(item._styles);
         return (
-          <div key={index} data-item-index={index} data-child-type="faq" className={getItemClasses(isOpen)} style={childStyles}>
+          <div
+            key={index}
+            data-item-index={index}
+            data-child-type="faq"
+            className={getItemClasses(isOpen)}
+            style={childStyles}
+          >
             {style === "numbered" && (
-              <div 
+              <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-                style={{ backgroundColor: accentColor, color: '#fff' }}
+                style={{ backgroundColor: accentColor, color: "#fff" }}
               >
                 {index + 1}
               </div>
             )}
             <div className={style === "numbered" ? "flex-1" : "w-full"}>
-              <button onClick={isEditing ? undefined : () => toggleQuestion(index)} className={getButtonClasses()}>
-                <span className="font-medium pr-4" data-field="question" style={isOpen ? { color: accentColor } : undefined}>{item.question}</span>
-                {showIcon && <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : ""}`} style={{ color: accentColor }} />}
+              <button
+                onClick={isEditing ? undefined : () => toggleQuestion(index)}
+                className={getButtonClasses()}
+              >
+                <span
+                  className="font-medium pr-4"
+                  data-field="question"
+                  style={isOpen ? { color: accentColor } : undefined}
+                >
+                  {item.question}
+                </span>
+                {showIcon && (
+                  <ChevronDown
+                    className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                    style={{ color: accentColor }}
+                  />
+                )}
               </button>
               <AnimatePresence>
                 {isOpen && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                    <p className={getAnswerClasses()} data-field="answer">{item.answer}</p>
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <p className={getAnswerClasses()} data-field="answer">
+                      {item.answer}
+                    </p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -615,7 +907,9 @@ interface ContactFormContent {
   inputStyle?: string;
 }
 
-export function ContactFormBlock({ content }: BlockContentProps<ContactFormContent>) {
+export function ContactFormBlock({
+  content,
+}: BlockContentProps<ContactFormContent>) {
   const title = content.title;
   const description = content.description;
   const fields = content.fields || [];
@@ -626,7 +920,7 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
   const backgroundColor = content.backgroundColor;
   const buttonColor = content.buttonColor || "#ffffff";
   const borderRadius = content.borderRadius || "lg";
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -641,7 +935,12 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
   };
 
   const radiusClasses: Record<string, string> = {
-    none: "rounded-none", sm: "rounded-sm", md: "rounded-md", lg: "rounded-lg", xl: "rounded-xl", full: "rounded-full",
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+    xl: "rounded-xl",
+    full: "rounded-full",
   };
   const radiusClass = radiusClasses[borderRadius] || radiusClasses.lg;
 
@@ -673,7 +972,7 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
 
   const getInputClasses = (fieldName?: string) => {
     const baseClasses = "w-full focus:outline-none transition-all duration-200";
-    
+
     switch (style) {
       case "minimal":
         return `${baseClasses} px-0 py-3 bg-transparent border-b border-white/20 focus:border-white/50`;
@@ -685,7 +984,7 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
         const isFocused = focusedField === fieldName;
         const hasValue = fieldValues[fieldName || ""] ? true : false;
         const isActive = isFocused || hasValue;
-        return `${baseClasses} px-4 pt-6 pb-2 bg-white/5 border border-white/10 ${radiusClass} ${isActive ? 'border-white/30' : ''}`;
+        return `${baseClasses} px-4 pt-6 pb-2 bg-white/5 border border-white/10 ${radiusClass} ${isActive ? "border-white/30" : ""}`;
       default:
         return `${baseClasses} px-4 py-3 bg-white/5 border border-white/10 ${radiusClass} focus:border-white/30`;
     }
@@ -694,7 +993,7 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
   const getFormClasses = () => {
     switch (layout) {
       case "two-column":
-        return "grid grid-cols-1 md:grid-cols-2 gap-4";
+        return "grid grid-cols-1 @md:grid-cols-2 gap-4";
       case "inline":
         return "flex flex-wrap gap-4";
       default:
@@ -708,9 +1007,9 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
       const hasValue = fieldValues[fieldName] ? true : false;
       const isActive = isFocused || hasValue;
       return `absolute left-4 transition-all duration-200 pointer-events-none ${
-        isActive 
-          ? 'top-2 text-xs opacity-70' 
-          : 'top-1/2 -translate-y-1/2 text-sm'
+        isActive
+          ? "top-2 text-xs opacity-70"
+          : "top-1/2 -translate-y-1/2 text-sm"
       }`;
     }
     return "block text-sm font-medium mb-1";
@@ -718,10 +1017,18 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
 
   if (isSubmitted) {
     return (
-      <div className="text-center p-8 rounded-lg" style={{ backgroundColor: backgroundColor || "rgba(255,255,255,0.05)" }}>
-        <Check className="w-12 h-12 mx-auto mb-4" style={{ color: accentColor }} />
+      <div
+        className="text-center p-8 rounded-lg"
+        style={{ backgroundColor: backgroundColor || "rgba(255,255,255,0.05)" }}
+      >
+        <Check
+          className="w-12 h-12 mx-auto mb-4"
+          style={{ color: accentColor }}
+        />
         <h3 className="text-xl font-semibold mb-2">Message envoyé !</h3>
-        <p className="opacity-70">{content.successMessage || "Nous vous répondrons dès que possible."}</p>
+        <p className="opacity-70">
+          {content.successMessage || "Nous vous répondrons dès que possible."}
+        </p>
       </div>
     );
   }
@@ -731,11 +1038,18 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
     const isFloating = style === "floating-labels";
 
     return (
-      <div key={index} className={`${layout === "inline" ? "flex-1 min-w-[200px]" : ""} ${isFloating ? "relative" : ""}`}>
+      <div
+        key={index}
+        className={`${layout === "inline" ? "flex-1 min-w-[200px]" : ""} ${isFloating ? "relative" : ""}`}
+      >
         {!isFloating && (
           <label className={getLabelClasses(field.name)}>
             {field.label}
-            {field.required && <span style={{ color: accentColor }} className="ml-1">*</span>}
+            {field.required && (
+              <span style={{ color: accentColor }} className="ml-1">
+                *
+              </span>
+            )}
           </label>
         )}
         {field.type === "textarea" ? (
@@ -748,19 +1062,36 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
               className={inputClasses}
               onFocus={() => setFocusedField(field.name)}
               onBlur={() => setFocusedField(null)}
-              onChange={(e) => setFieldValues(prev => ({ ...prev, [field.name]: e.target.value }))}
+              onChange={(e) =>
+                setFieldValues((prev) => ({
+                  ...prev,
+                  [field.name]: e.target.value,
+                }))
+              }
             />
             {isFloating && (
               <label className={getLabelClasses(field.name)}>
                 {field.label}
-                {field.required && <span style={{ color: accentColor }} className="ml-1">*</span>}
+                {field.required && (
+                  <span style={{ color: accentColor }} className="ml-1">
+                    *
+                  </span>
+                )}
               </label>
             )}
           </div>
         ) : field.type === "select" ? (
-          <select name={field.name} required={field.required} className={inputClasses}>
+          <select
+            name={field.name}
+            required={field.required}
+            className={inputClasses}
+          >
             <option value="">{field.placeholder || "Sélectionner..."}</option>
-            {field.options?.map((option, i) => <option key={i} value={option}>{option}</option>)}
+            {field.options?.map((option, i) => (
+              <option key={i} value={option}>
+                {option}
+              </option>
+            ))}
           </select>
         ) : (
           <div className={isFloating ? "relative" : ""}>
@@ -772,12 +1103,21 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
               className={inputClasses}
               onFocus={() => setFocusedField(field.name)}
               onBlur={() => setFocusedField(null)}
-              onChange={(e) => setFieldValues(prev => ({ ...prev, [field.name]: e.target.value }))}
+              onChange={(e) =>
+                setFieldValues((prev) => ({
+                  ...prev,
+                  [field.name]: e.target.value,
+                }))
+              }
             />
             {isFloating && (
               <label className={getLabelClasses(field.name)}>
                 {field.label}
-                {field.required && <span style={{ color: accentColor }} className="ml-1">*</span>}
+                {field.required && (
+                  <span style={{ color: accentColor }} className="ml-1">
+                    *
+                  </span>
+                )}
               </label>
             )}
           </div>
@@ -790,8 +1130,16 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
     <div className={getContainerClasses()} style={getContainerStyle()}>
       {(title || description) && (
         <div className="mb-6">
-          {title && <h3 className="text-2xl font-semibold mb-2" data-field="title">{title}</h3>}
-          {description && <p className="opacity-70" data-field="description">{description}</p>}
+          {title && (
+            <h3 className="text-2xl font-semibold mb-2" data-field="title">
+              {title}
+            </h3>
+          )}
+          {description && (
+            <p className="opacity-70" data-field="description">
+              {description}
+            </p>
+          )}
         </div>
       )}
       <form onSubmit={handleSubmit} className={getFormClasses()}>
@@ -801,7 +1149,10 @@ export function ContactFormBlock({ content }: BlockContentProps<ContactFormConte
             type="submit"
             disabled={isSubmitting}
             className={`w-full px-6 py-3 font-medium ${radiusClass} hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-all duration-200`}
-            style={{ backgroundColor: buttonColor, color: buttonColor === "#ffffff" ? "#000" : "#fff" }}
+            style={{
+              backgroundColor: buttonColor,
+              color: buttonColor === "#ffffff" ? "#000" : "#fff",
+            }}
           >
             {isSubmitting ? (
               <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
@@ -836,7 +1187,9 @@ interface NewsletterContent {
   inputStyle?: string;
 }
 
-export function NewsletterBlock({ content }: BlockContentProps<NewsletterContent>) {
+export function NewsletterBlock({
+  content,
+}: BlockContentProps<NewsletterContent>) {
   const title = content.title;
   const description = content.description;
   const placeholder = content.placeholder || "Votre email";
@@ -862,7 +1215,12 @@ export function NewsletterBlock({ content }: BlockContentProps<NewsletterContent
   };
 
   const radiusClasses: Record<string, string> = {
-    none: "rounded-none", sm: "rounded-sm", md: "rounded-md", lg: "rounded-lg", xl: "rounded-xl", full: "rounded-full",
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+    xl: "rounded-xl",
+    full: "rounded-full",
   };
   const radiusClass = radiusClasses[borderRadius] || radiusClasses.lg;
 
@@ -915,14 +1273,20 @@ export function NewsletterBlock({ content }: BlockContentProps<NewsletterContent
       case "centered":
         return "flex flex-col gap-3 max-w-sm mx-auto text-center";
       default:
-        return "flex flex-col sm:flex-row gap-3 max-w-md mx-auto";
+        return "flex flex-col @sm:flex-row gap-3 max-w-md mx-auto";
     }
   };
 
   if (isSubmitted) {
     return (
-      <div className={`text-center p-6 ${radiusClass}`} style={{ backgroundColor: backgroundColor || "rgba(255,255,255,0.05)" }}>
-        <Check className="w-10 h-10 mx-auto mb-3" style={{ color: accentColor }} />
+      <div
+        className={`text-center p-6 ${radiusClass}`}
+        style={{ backgroundColor: backgroundColor || "rgba(255,255,255,0.05)" }}
+      >
+        <Check
+          className="w-10 h-10 mx-auto mb-3"
+          style={{ color: accentColor }}
+        />
         <p className="font-medium">Merci pour votre inscription !</p>
       </div>
     );
@@ -931,12 +1295,18 @@ export function NewsletterBlock({ content }: BlockContentProps<NewsletterContent
   return (
     <div className={getContainerClasses()} style={getContainerStyle()}>
       {title && (
-        <h3 className={`text-2xl font-semibold mb-2 ${style === "minimal" ? "" : "text-center"}`} data-field="title">
+        <h3
+          className={`text-2xl font-semibold mb-2 ${style === "minimal" ? "" : "text-center"}`}
+          data-field="title"
+        >
           {title}
         </h3>
       )}
       {description && (
-        <p className={`opacity-70 mb-6 ${style === "minimal" ? "" : "text-center"}`} data-field="description">
+        <p
+          className={`opacity-70 mb-6 ${style === "minimal" ? "" : "text-center"}`}
+          data-field="description"
+        >
           {description}
         </p>
       )}
@@ -953,7 +1323,10 @@ export function NewsletterBlock({ content }: BlockContentProps<NewsletterContent
           type="submit"
           disabled={isSubmitting}
           className={`px-6 py-3 font-medium ${radiusClass} hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap`}
-          style={{ backgroundColor: buttonColor, color: buttonColor === "#ffffff" ? "#000" : "#fff" }}
+          style={{
+            backgroundColor: buttonColor,
+            color: buttonColor === "#ffffff" ? "#000" : "#fff",
+          }}
         >
           {isSubmitting ? (
             <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />

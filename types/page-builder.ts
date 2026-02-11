@@ -552,7 +552,13 @@ export interface BlockStyles {
 
   // Typography
   fontSize?: "xs" | "sm" | "base" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
-  fontWeight?: "light" | "normal" | "medium" | "semibold" | "bold" | "extrabold";
+  fontWeight?:
+    | "light"
+    | "normal"
+    | "medium"
+    | "semibold"
+    | "bold"
+    | "extrabold";
   lineHeight?: "none" | "tight" | "snug" | "normal" | "relaxed" | "loose";
   letterSpacing?: "tighter" | "tight" | "normal" | "wide" | "wider" | "widest";
 
@@ -563,19 +569,19 @@ export interface BlockStyles {
   widthPreset?: "narrow" | "medium" | "wide" | "full" | "edge"; // Preset widths
   widthValue?: number; // Custom width value
   widthUnit?: "px" | "%"; // Unit for custom width
-  
+
   // Legacy support
   widthPercent?: number; // 10, 20, 25, 33, 50, 66, 75, 100 (deprecated, use widthValue + widthUnit)
   containerWidth?: ContainerWidth; // Legacy preset widths
 
   // =====================================================
-  // HEIGHT - Complete system  
+  // HEIGHT - Complete system
   // =====================================================
   heightMode?: "auto" | "preset" | "custom" | "viewport"; // How height is determined
   heightPreset?: "small" | "medium" | "large" | "xlarge"; // Preset heights
   heightValue?: number; // Custom height value
   heightUnit?: "px" | "vh"; // Unit for custom height (px or viewport height)
-  
+
   // Legacy support
   height?: "auto" | "small" | "medium" | "large" | "xlarge" | "screen";
   minHeight?: number; // Minimum height in px (legacy)
@@ -851,9 +857,9 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Galerie d'images",
     defaultContent: {
       images: [
-        { src: "/images/placeholder.jpg", alt: "Image 1", caption: "" },
-        { src: "/images/placeholder.jpg", alt: "Image 2", caption: "" },
-        { src: "/images/placeholder.jpg", alt: "Image 3", caption: "" },
+        { src: "/images/placeholder.svg", alt: "Image 1", caption: "" },
+        { src: "/images/placeholder.svg", alt: "Image 2", caption: "" },
+        { src: "/images/placeholder.svg", alt: "Image 3", caption: "" },
       ],
       columns: 3,
       gap: "medium",
@@ -925,9 +931,21 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
       columns: 3,
       gap: "medium",
       items: [
-        { title: "Élément 1", description: "Description de l'élément", image: "" },
-        { title: "Élément 2", description: "Description de l'élément", image: "" },
-        { title: "Élément 3", description: "Description de l'élément", image: "" },
+        {
+          title: "Élément 1",
+          description: "Description de l'élément",
+          image: "",
+        },
+        {
+          title: "Élément 2",
+          description: "Description de l'élément",
+          image: "",
+        },
+        {
+          title: "Élément 3",
+          description: "Description de l'élément",
+          image: "",
+        },
       ],
     },
     defaultStyles: {
@@ -1041,9 +1059,20 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Sections pliables",
     defaultContent: {
       items: [
-        { title: "Comment prendre rendez-vous ?", content: "Vous pouvez prendre rendez-vous en ligne ou par téléphone.", defaultOpen: true },
-        { title: "Quels modes de paiement acceptez-vous ?", content: "Nous acceptons les cartes bancaires, espèces et chèques." },
-        { title: "Proposez-vous un service après-vente ?", content: "Oui, nous assurons l'entretien et les réparations de vos lunettes." },
+        {
+          title: "Comment prendre rendez-vous ?",
+          content: "Vous pouvez prendre rendez-vous en ligne ou par téléphone.",
+          defaultOpen: true,
+        },
+        {
+          title: "Quels modes de paiement acceptez-vous ?",
+          content: "Nous acceptons les cartes bancaires, espèces et chèques.",
+        },
+        {
+          title: "Proposez-vous un service après-vente ?",
+          content:
+            "Oui, nous assurons l'entretien et les réparations de vos lunettes.",
+        },
       ],
       allowMultiple: false,
       style: "default",
@@ -1061,9 +1090,21 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Contenu à onglets",
     defaultContent: {
       tabs: [
-        { label: "Verres", content: "Découvrez notre gamme de verres optiques et solaires.", icon: "eye" },
-        { label: "Montures", content: "Plus de 500 montures de grandes marques.", icon: "glasses" },
-        { label: "Lentilles", content: "Toutes les marques de lentilles de contact.", icon: "circle" },
+        {
+          label: "Verres",
+          content: "Découvrez notre gamme de verres optiques et solaires.",
+          icon: "eye",
+        },
+        {
+          label: "Montures",
+          content: "Plus de 500 montures de grandes marques.",
+          icon: "glasses",
+        },
+        {
+          label: "Lentilles",
+          content: "Toutes les marques de lentilles de contact.",
+          icon: "circle",
+        },
       ],
       variant: "line",
     },
@@ -1118,9 +1159,21 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Chronologie",
     defaultContent: {
       items: [
-        { date: "1998", title: "Création", description: "Ouverture de notre première boutique." },
-        { date: "2010", title: "Expansion", description: "Ouverture de 3 nouvelles boutiques." },
-        { date: "2024", title: "Innovation", description: "Lancement de nos services en ligne." },
+        {
+          date: "1998",
+          title: "Création",
+          description: "Ouverture de notre première boutique.",
+        },
+        {
+          date: "2010",
+          title: "Expansion",
+          description: "Ouverture de 3 nouvelles boutiques.",
+        },
+        {
+          date: "2024",
+          title: "Innovation",
+          description: "Lancement de nos services en ligne.",
+        },
       ],
       layout: "vertical",
     },
@@ -1137,9 +1190,21 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Grille de cartes",
     defaultContent: {
       cards: [
-        { title: "Service 1", description: "Description du premier service offert.", image: "" },
-        { title: "Service 2", description: "Description du deuxième service offert.", image: "" },
-        { title: "Service 3", description: "Description du troisième service offert.", image: "" },
+        {
+          title: "Service 1",
+          description: "Description du premier service offert.",
+          image: "",
+        },
+        {
+          title: "Service 2",
+          description: "Description du deuxième service offert.",
+          image: "",
+        },
+        {
+          title: "Service 3",
+          description: "Description du troisième service offert.",
+          image: "",
+        },
       ],
       columns: 3,
       variant: "default",
@@ -1208,9 +1273,24 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Présentation d'équipe",
     defaultContent: {
       members: [
-        { name: "Jean Dupont", role: "Directeur", image: "", bio: "Passionné par l'optique depuis 20 ans." },
-        { name: "Marie Martin", role: "Opticienne", image: "", bio: "Spécialiste en contactologie." },
-        { name: "Pierre Bernard", role: "Opticien", image: "", bio: "Expert en verres progressifs." },
+        {
+          name: "Jean Dupont",
+          role: "Directeur",
+          image: "",
+          bio: "Passionné par l'optique depuis 20 ans.",
+        },
+        {
+          name: "Marie Martin",
+          role: "Opticienne",
+          image: "",
+          bio: "Spécialiste en contactologie.",
+        },
+        {
+          name: "Pierre Bernard",
+          role: "Opticien",
+          image: "",
+          bio: "Expert en verres progressifs.",
+        },
       ],
       columns: 3,
       variant: "card",
@@ -1230,8 +1310,18 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Avis clients",
     defaultContent: {
       testimonials: [
-        { text: "Un service exceptionnel et des conseils personnalisés. Je recommande vivement !", author: "Sophie L.", role: "Cliente fidèle", rating: 5 },
-        { text: "Équipe très professionnelle et à l'écoute. Mes nouvelles lunettes sont parfaites.", author: "Marc D.", role: "Client", rating: 5 },
+        {
+          text: "Un service exceptionnel et des conseils personnalisés. Je recommande vivement !",
+          author: "Sophie L.",
+          role: "Cliente fidèle",
+          rating: 5,
+        },
+        {
+          text: "Équipe très professionnelle et à l'écoute. Mes nouvelles lunettes sont parfaites.",
+          author: "Marc D.",
+          role: "Client",
+          rating: 5,
+        },
       ],
       layout: "grid",
       columns: 2,
@@ -1251,9 +1341,44 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Tableau de prix",
     defaultContent: {
       plans: [
-        { name: "Essentiel", price: "29€", period: "mois", description: "Pour débuter", features: ["Verres simples", "Monture basique", "Garantie 1 an"], buttonText: "Choisir", buttonUrl: "#" },
-        { name: "Confort", price: "49€", period: "mois", description: "Le plus populaire", features: ["Verres progressifs", "Monture premium", "Garantie 2 ans", "Nettoyage offert"], highlighted: true, buttonText: "Choisir", buttonUrl: "#" },
-        { name: "Premium", price: "79€", period: "mois", description: "Le meilleur", features: ["Verres haute définition", "Monture luxe", "Garantie 3 ans", "Service VIP"], buttonText: "Choisir", buttonUrl: "#" },
+        {
+          name: "Essentiel",
+          price: "29€",
+          period: "mois",
+          description: "Pour débuter",
+          features: ["Verres simples", "Monture basique", "Garantie 1 an"],
+          buttonText: "Choisir",
+          buttonUrl: "#",
+        },
+        {
+          name: "Confort",
+          price: "49€",
+          period: "mois",
+          description: "Le plus populaire",
+          features: [
+            "Verres progressifs",
+            "Monture premium",
+            "Garantie 2 ans",
+            "Nettoyage offert",
+          ],
+          highlighted: true,
+          buttonText: "Choisir",
+          buttonUrl: "#",
+        },
+        {
+          name: "Premium",
+          price: "79€",
+          period: "mois",
+          description: "Le meilleur",
+          features: [
+            "Verres haute définition",
+            "Monture luxe",
+            "Garantie 3 ans",
+            "Service VIP",
+          ],
+          buttonText: "Choisir",
+          buttonUrl: "#",
+        },
       ],
       columns: 3,
     },
@@ -1270,9 +1395,20 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Questions fréquentes",
     defaultContent: {
       questions: [
-        { question: "Quels sont vos horaires d'ouverture ?", answer: "Nous sommes ouverts du lundi au samedi de 9h à 19h." },
-        { question: "Acceptez-vous la carte vitale ?", answer: "Oui, nous acceptons la carte vitale et travaillons avec toutes les mutuelles." },
-        { question: "Combien de temps pour recevoir mes lunettes ?", answer: "Comptez généralement 7 à 10 jours ouvrés pour des verres simples, et jusqu'à 15 jours pour des verres progressifs." },
+        {
+          question: "Quels sont vos horaires d'ouverture ?",
+          answer: "Nous sommes ouverts du lundi au samedi de 9h à 19h.",
+        },
+        {
+          question: "Acceptez-vous la carte vitale ?",
+          answer:
+            "Oui, nous acceptons la carte vitale et travaillons avec toutes les mutuelles.",
+        },
+        {
+          question: "Combien de temps pour recevoir mes lunettes ?",
+          answer:
+            "Comptez généralement 7 à 10 jours ouvrés pour des verres simples, et jusqu'à 15 jours pour des verres progressifs.",
+        },
       ],
       layout: "accordion",
       allowMultiple: false,
@@ -1326,9 +1462,21 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     description: "Liste de fonctionnalités",
     defaultContent: {
       features: [
-        { icon: "eye", title: "Examen de vue", description: "Un examen complet pour déterminer votre correction." },
-        { icon: "glasses", title: "Large choix", description: "Plus de 500 montures de grandes marques." },
-        { icon: "shield", title: "Garantie", description: "Tous nos produits sont garantis 2 ans." },
+        {
+          icon: "eye",
+          title: "Examen de vue",
+          description: "Un examen complet pour déterminer votre correction.",
+        },
+        {
+          icon: "glasses",
+          title: "Large choix",
+          description: "Plus de 500 montures de grandes marques.",
+        },
+        {
+          icon: "shield",
+          title: "Garantie",
+          description: "Tous nos produits sont garantis 2 ans.",
+        },
       ],
       columns: 3,
       layout: "cards",

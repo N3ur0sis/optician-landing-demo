@@ -13,13 +13,14 @@ import {
 interface InlineEditableBlockProps {
   block: PageBlock;
   isEditing: boolean; // Block is selected for editing
+  isPreviewMode?: boolean; // True when in preview mode (no edit hints)
   onUpdate: (updates: Partial<PageBlock>) => void;
   onChildClick?: (
     e: MouseEvent,
     element: HTMLElement,
     childType: string,
     index: number,
-    arrayField: string
+    arrayField: string,
   ) => void;
   styleMode?: boolean;
   onStyleModeChange?: (active: boolean) => void;
@@ -62,12 +63,12 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string {
 function setNestedValue(
   obj: Record<string, unknown>,
   path: string,
-  value: string
+  value: string,
 ): Record<string, unknown> {
   const result = JSON.parse(JSON.stringify(obj));
   const parts = path.split(".");
   let current: Record<string, unknown> = result;
-  
+
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i];
     if (!current[part]) {
@@ -90,17 +91,17 @@ function makeElementEditable(
     onBlur: () => void;
     onKeyDown: (e: KeyboardEvent) => void;
     onFocus: () => void;
-  }
+  },
 ): void {
   if (el.getAttribute("data-inline-editable")) return;
 
   const htmlEl = el as EditableHTMLElement;
-  
+
   // Mark as editable
   htmlEl.setAttribute("data-inline-editable", fieldPath);
   htmlEl.setAttribute("contenteditable", "true");
   htmlEl.setAttribute("spellcheck", "false");
-  
+
   // Apply editing styles
   Object.assign(htmlEl.style, {
     outline: "none",
@@ -119,7 +120,8 @@ function makeElementEditable(
     keyDownHandler: (e) => handlers.onKeyDown(e as KeyboardEvent),
     focusHandler: () => {
       handlers.onFocus();
-      htmlEl.style.boxShadow = "0 0 0 2px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.2)";
+      htmlEl.style.boxShadow =
+        "0 0 0 2px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.2)";
     },
     mouseEnterHandler: () => {
       if (!htmlEl.matches(":focus")) {
@@ -171,7 +173,7 @@ function cleanupEditableElement(el: HTMLElement): void {
     transition: "",
     boxShadow: "",
   });
-  
+
   delete htmlEl._inlineHandlers;
 }
 
@@ -183,53 +185,59 @@ function cleanupEditableElement(el: HTMLElement): void {
 function blockInteractiveElements(container: HTMLElement): () => void {
   // Store original href values to restore later
   const disabledLinks: Map<HTMLAnchorElement, string> = new Map();
-  
+
   // Find ALL links and disable them by removing href temporarily
-  const allLinks = container.querySelectorAll<HTMLAnchorElement>('a[href]');
-  allLinks.forEach(link => {
-    const href = link.getAttribute('href');
+  const allLinks = container.querySelectorAll<HTMLAnchorElement>("a[href]");
+  allLinks.forEach((link) => {
+    const href = link.getAttribute("href");
     if (href) {
       disabledLinks.set(link, href);
-      link.removeAttribute('href');
-      link.setAttribute('data-disabled-href', href);
-      link.style.cursor = 'default';
+      link.removeAttribute("href");
+      link.setAttribute("data-disabled-href", href);
+      link.style.cursor = "default";
     }
   });
 
   // Handler to prevent default actions but ALLOW propagation for block selection
   const clickHandler = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    
+
     // If clicking on an editable element, allow it (for text editing)
-    if (target.getAttribute('contenteditable') === 'true') {
+    if (target.getAttribute("contenteditable") === "true") {
       // Still prevent default to avoid any link/button behavior
       e.preventDefault();
       return;
     }
-    
+
     // Check if clicking on or inside ANY interactive elements
     const interactiveElement = target.closest(
       'a, button, [role="button"], form, [onclick], [data-disabled-href], ' +
-      '[data-child-type], .cursor-pointer, [class*="clickable"]'
+        '[data-child-type], .cursor-pointer, [class*="clickable"]',
     );
-    
+
     // Always prevent default for any element in edit mode
     // This stops links, buttons, form submissions, etc.
     e.preventDefault();
-    
+
     // DO NOT stopPropagation - we want the click to bubble up to select the block
-    
+
     // If there's an editable child and the element is an interactive one, focus it
     if (interactiveElement) {
-      const editableChild = interactiveElement.querySelector('[contenteditable="true"]') as HTMLElement;
+      const editableChild = interactiveElement.querySelector(
+        '[contenteditable="true"]',
+      ) as HTMLElement;
       if (editableChild) {
-        const closestEditable = target.closest('[contenteditable="true"]') as HTMLElement;
+        const closestEditable = target.closest(
+          '[contenteditable="true"]',
+        ) as HTMLElement;
         if (closestEditable) {
           closestEditable.focus();
         } else {
           editableChild.focus();
         }
-      } else if (interactiveElement.getAttribute('contenteditable') === 'true') {
+      } else if (
+        interactiveElement.getAttribute("contenteditable") === "true"
+      ) {
         (interactiveElement as HTMLElement).focus();
       }
     }
@@ -244,9 +252,9 @@ function blockInteractiveElements(container: HTMLElement): () => void {
   // Handler to prevent keyboard navigation (Enter on links/buttons)
   const keyDownHandler = (e: KeyboardEvent) => {
     const target = e.target as HTMLElement;
-    
+
     // If pressing Enter on a link/button that's not being edited, prevent default
-    if (e.key === 'Enter' && !target.getAttribute('contenteditable')) {
+    if (e.key === "Enter" && !target.getAttribute("contenteditable")) {
       const interactiveElement = target.closest('a, button, [role="button"]');
       if (interactiveElement) {
         e.preventDefault();
@@ -254,40 +262,45 @@ function blockInteractiveElements(container: HTMLElement): () => void {
       }
     }
   };
-  
+
   // Block accordion and tabs toggle buttons but allow click to bubble
-  const buttons = container.querySelectorAll<HTMLButtonElement>('button');
-  const originalOnClicks: Map<HTMLButtonElement, ((e: MouseEvent) => void) | null> = new Map();
-  buttons.forEach(btn => {
+  const buttons = container.querySelectorAll<HTMLButtonElement>("button");
+  const originalOnClicks: Map<
+    HTMLButtonElement,
+    ((e: MouseEvent) => void) | null
+  > = new Map();
+  buttons.forEach((btn) => {
     // Store and remove onclick handlers
     originalOnClicks.set(btn, btn.onclick as ((e: MouseEvent) => void) | null);
     btn.onclick = (e) => {
       e.preventDefault();
       // DO NOT stopPropagation - allow click to bubble for block selection
       // Focus editable child if exists
-      const editable = btn.querySelector('[contenteditable="true"]') as HTMLElement;
+      const editable = btn.querySelector(
+        '[contenteditable="true"]',
+      ) as HTMLElement;
       if (editable) editable.focus();
     };
   });
 
   // Add listeners with capture phase to intercept before normal handlers
-  container.addEventListener('click', clickHandler, true);
-  container.addEventListener('submit', submitHandler, true);
-  container.addEventListener('keydown', keyDownHandler, true);
+  container.addEventListener("click", clickHandler, true);
+  container.addEventListener("submit", submitHandler, true);
+  container.addEventListener("keydown", keyDownHandler, true);
 
   // Return cleanup function
   return () => {
-    container.removeEventListener('click', clickHandler, true);
-    container.removeEventListener('submit', submitHandler, true);
-    container.removeEventListener('keydown', keyDownHandler, true);
-    
+    container.removeEventListener("click", clickHandler, true);
+    container.removeEventListener("submit", submitHandler, true);
+    container.removeEventListener("keydown", keyDownHandler, true);
+
     // Restore all disabled links
     disabledLinks.forEach((href, link) => {
-      link.setAttribute('href', href);
-      link.removeAttribute('data-disabled-href');
-      link.style.cursor = '';
+      link.setAttribute("href", href);
+      link.removeAttribute("data-disabled-href");
+      link.style.cursor = "";
     });
-    
+
     // Restore button onclick handlers
     originalOnClicks.forEach((handler, btn) => {
       btn.onclick = handler;
@@ -298,6 +311,7 @@ function blockInteractiveElements(container: HTMLElement): () => void {
 function InlineEditableBlock({
   block,
   isEditing, // Block is selected for inline editing
+  isPreviewMode = false, // True when in preview mode (no edit hints)
   onUpdate,
   onChildClick,
   styleMode: externalStyleMode,
@@ -310,8 +324,9 @@ function InlineEditableBlock({
   const pendingChangesRef = useRef<Map<string, string>>(new Map());
 
   // Combined style mode: external prop takes priority, otherwise use internal state
-  const isStyleMode = externalStyleMode !== undefined ? externalStyleMode : internalStyleMode;
-  
+  const isStyleMode =
+    externalStyleMode !== undefined ? externalStyleMode : internalStyleMode;
+
   // Toggle style mode
   const toggleStyleMode = useCallback(() => {
     const newValue = !isStyleMode;
@@ -340,19 +355,19 @@ function InlineEditableBlock({
     const lastPart = field.split(".").pop() || "";
     // Fields that commonly need line breaks
     const multilineFields = [
-      "text",           // General text content
-      "description",    // Descriptions
-      "content",        // Rich content
-      "answer",         // FAQ answers
-      "bio",            // Biographies
-      "quote",          // Quotes/testimonials
-      "address",        // Addresses often have multiple lines
-      "subtitle",       // Subtitles can be multi-line
-      "paragraph",      // Paragraphs
-      "body",           // Body text
-      "message",        // Messages
-      "details",        // Details
-      "notes",          // Notes
+      "text", // General text content
+      "description", // Descriptions
+      "content", // Rich content
+      "answer", // FAQ answers
+      "bio", // Biographies
+      "quote", // Quotes/testimonials
+      "address", // Addresses often have multiple lines
+      "subtitle", // Subtitles can be multi-line
+      "paragraph", // Paragraphs
+      "body", // Body text
+      "message", // Messages
+      "details", // Details
+      "notes", // Notes
     ];
     return multilineFields.includes(lastPart);
   }, []);
@@ -376,7 +391,8 @@ function InlineEditableBlock({
     const content = block.content as Record<string, unknown>;
 
     // Cleanup existing editables
-    container.querySelectorAll<HTMLElement>("[data-inline-editable]")
+    container
+      .querySelectorAll<HTMLElement>("[data-inline-editable]")
       .forEach(cleanupEditableElement);
 
     // Create handlers for a field
@@ -416,11 +432,14 @@ function InlineEditableBlock({
     const findElementByText = (
       parent: Element,
       selector: string,
-      text: string
+      text: string,
     ): HTMLElement | null => {
       const elements = parent.querySelectorAll<HTMLElement>(selector);
       for (const el of elements) {
-        if (el.textContent?.trim() === text.trim() && !el.getAttribute("data-inline-editable")) {
+        if (
+          el.textContent?.trim() === text.trim() &&
+          !el.getAttribute("data-inline-editable")
+        ) {
           return el;
         }
       }
@@ -430,7 +449,7 @@ function InlineEditableBlock({
     // Setup a single field
     const setupField = (fieldPath: string, textValue: string) => {
       const selectors = getSelectorsForField(fieldPath.split(".").pop() || "");
-      
+
       for (const selector of selectors.split(", ")) {
         const el = findElementByText(container, selector.trim(), textValue);
         if (el) {
@@ -452,7 +471,9 @@ function InlineEditableBlock({
     // 2. Setup array-based editable fields
     const arrayConfigs = ARRAY_EDITABLE_FIELDS[block.type] || [];
     arrayConfigs.forEach(({ arrayField, textFields }) => {
-      const items = content[arrayField] as Array<Record<string, unknown>> | undefined;
+      const items = content[arrayField] as
+        | Array<Record<string, unknown>>
+        | undefined;
       if (!items?.length) return;
 
       items.forEach((item, index) => {
@@ -461,22 +482,37 @@ function InlineEditableBlock({
           if (!value || typeof value !== "string") return;
 
           const fieldPath = `${arrayField}.${index}.${textField}`;
-          
+
           // Try data-item-index containers first (most accurate)
-          const itemContainer = container.querySelector(`[data-item-index="${index}"]`);
-          
+          const itemContainer = container.querySelector(
+            `[data-item-index="${index}"]`,
+          );
+
           if (itemContainer) {
             // Try data-field attribute first
-            const dataFieldEl = itemContainer.querySelector<HTMLElement>(`[data-field="${textField}"]`);
-            if (dataFieldEl && !dataFieldEl.getAttribute("data-inline-editable")) {
-              makeElementEditable(dataFieldEl, fieldPath, createHandlers(fieldPath));
+            const dataFieldEl = itemContainer.querySelector<HTMLElement>(
+              `[data-field="${textField}"]`,
+            );
+            if (
+              dataFieldEl &&
+              !dataFieldEl.getAttribute("data-inline-editable")
+            ) {
+              makeElementEditable(
+                dataFieldEl,
+                fieldPath,
+                createHandlers(fieldPath),
+              );
               return;
             }
-            
+
             // Fallback to selectors within item
             const selectors = getSelectorsForField(textField);
             for (const selector of selectors.split(", ")) {
-              const el = findElementByText(itemContainer, selector.trim(), value);
+              const el = findElementByText(
+                itemContainer,
+                selector.trim(),
+                value,
+              );
               if (el) {
                 makeElementEditable(el, fieldPath, createHandlers(fieldPath));
                 return;
@@ -492,7 +528,8 @@ function InlineEditableBlock({
 
     // Cleanup on unmount
     return () => {
-      container.querySelectorAll<HTMLElement>("[data-inline-editable]")
+      container
+        .querySelectorAll<HTMLElement>("[data-inline-editable]")
         .forEach(cleanupEditableElement);
     };
   }, [block, isEditing, saveChanges, isMultilineField]);
@@ -519,18 +556,18 @@ function InlineEditableBlock({
 
       // Find closest element with data-child-type
       const target = e.target as HTMLElement;
-      const childElement = target.closest<HTMLElement>('[data-child-type]');
-      
+      const childElement = target.closest<HTMLElement>("[data-child-type]");
+
       if (!childElement) return;
 
-      const childType = childElement.getAttribute('data-child-type');
-      const itemIndex = childElement.getAttribute('data-item-index');
-      
+      const childType = childElement.getAttribute("data-child-type");
+      const itemIndex = childElement.getAttribute("data-item-index");
+
       if (!childType || itemIndex === null) return;
 
       // Get the arrayField for this child type from config
       const arrayConfigs = ARRAY_EDITABLE_FIELDS[block.type] || [];
-      let arrayField = 'items';
+      let arrayField = "items";
       for (const config of arrayConfigs) {
         if (config.childType === childType) {
           arrayField = config.arrayField;
@@ -540,12 +577,18 @@ function InlineEditableBlock({
 
       e.preventDefault();
       e.stopPropagation();
-      
-      onChildClick(e, childElement, childType, parseInt(itemIndex, 10), arrayField);
+
+      onChildClick(
+        e,
+        childElement,
+        childType,
+        parseInt(itemIndex, 10),
+        arrayField,
+      );
     };
 
-    container.addEventListener('click', handleClick, true);
-    return () => container.removeEventListener('click', handleClick, true);
+    container.addEventListener("click", handleClick, true);
+    return () => container.removeEventListener("click", handleClick, true);
   }, [block.type, isEditing, onChildClick, isStyleMode]);
 
   // ALT key listener - toggle style mode on/off with single press
@@ -555,7 +598,7 @@ function InlineEditableBlock({
     let altKeyHeld = false;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Alt' && !e.repeat && !altKeyHeld) {
+      if (e.key === "Alt" && !e.repeat && !altKeyHeld) {
         altKeyHeld = true;
         // Toggle style mode on ALT press
         toggleStyleMode();
@@ -564,7 +607,7 @@ function InlineEditableBlock({
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Alt') {
+      if (e.key === "Alt") {
         altKeyHeld = false;
       }
     };
@@ -578,26 +621,32 @@ function InlineEditableBlock({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('blur', handleBlur);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
     };
-  }, [isEditing, onChildClick, toggleStyleMode, isStyleMode, onStyleModeChange]);
+  }, [
+    isEditing,
+    onChildClick,
+    toggleStyleMode,
+    isStyleMode,
+    onStyleModeChange,
+  ]);
 
   // Add CSS for style mode highlighting
   useEffect(() => {
     if (!isEditing) return;
 
-    const styleId = 'alt-mode-highlight-styles';
+    const styleId = "alt-mode-highlight-styles";
     let styleEl = document.getElementById(styleId) as HTMLStyleElement;
-    
+
     if (!styleEl) {
-      styleEl = document.createElement('style');
+      styleEl = document.createElement("style");
       styleEl.id = styleId;
       document.head.appendChild(styleEl);
     }
@@ -629,7 +678,7 @@ function InlineEditableBlock({
         }
       `;
     } else {
-      styleEl.textContent = '';
+      styleEl.textContent = "";
     }
 
     return () => {
@@ -638,9 +687,9 @@ function InlineEditableBlock({
   }, [isEditing, isStyleMode]);
 
   return (
-    <div 
-      ref={containerRef} 
-      className={`relative group ${isStyleMode ? 'style-mode-active' : ''}`}
+    <div
+      ref={containerRef}
+      className={`relative group ${isStyleMode ? "style-mode-active" : ""}`}
     >
       <BlockRenderer block={block} />
 
@@ -667,8 +716,8 @@ function InlineEditableBlock({
         </div>
       )}
 
-      {/* Edit hints - show only on hover, hide when block selected */}
-      {!isEditing && !isStyleMode && (
+      {/* Edit hints - show only on hover, hide when block selected or in preview mode */}
+      {!isEditing && !isStyleMode && !isPreviewMode && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
           <div className="bg-black/80 text-white text-xs px-3 py-1.5 rounded-full whitespace-nowrap shadow-lg backdrop-blur-sm">
             ✎ Cliquez pour éditer · Alt+Clic pour styler

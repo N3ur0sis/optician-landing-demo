@@ -20,18 +20,18 @@ export const INLINE_EDITABLE_FIELDS: Record<string, string[]> = {
   SPACER: [],
   HTML: [],
   EMBED: [],
-  
+
   // Media blocks
   VIDEO: ["caption", "title"],
   GALLERY: [],
   IFRAME: [],
-  
+
   // Layout blocks
   COLUMNS: [],
   CONTAINER: [],
   GRID: [],
   BENTO: [],
-  
+
   // Content blocks
   STATS: ["title", "subtitle"],
   CARDS: ["title", "subtitle"],
@@ -39,11 +39,11 @@ export const INLINE_EDITABLE_FIELDS: Record<string, string[]> = {
   ACCORDION: ["title"],
   TABS: [],
   TABLE: [],
-  
+
   // Forms & CTA
   NEWSLETTER: ["title", "description", "buttonText"],
   CONTACT_FORM: ["title", "description", "submitText"],
-  
+
   // Rich content
   FAQ: ["title", "subtitle"],
   TEAM: ["title", "subtitle"],
@@ -52,7 +52,7 @@ export const INLINE_EDITABLE_FIELDS: Record<string, string[]> = {
   PRICING: ["title", "subtitle", "description"],
   FEATURES: ["title", "subtitle", "description"],
   SERVICES_LIST: ["title", "subtitle"],
-  
+
   // Info blocks
   INFO_BOX: ["title", "content", "linkLabel"],
   HOURS_TABLE: ["title"],
@@ -60,11 +60,11 @@ export const INLINE_EDITABLE_FIELDS: Record<string, string[]> = {
   REVIEW_BADGE: ["title", "source"],
   LOCATION_CARD: ["title", "address"],
   ICON_FEATURE: ["title", "description"],
-  
+
   // Links & Files
   LINK_BLOCK: ["title", "description"],
   FILE: ["name", "description"],
-  
+
   // Store blocks
   STORE_HERO: ["title", "subtitle", "description"],
   STORE_CONTACT: ["title", "address", "phone", "email"],
@@ -74,15 +74,15 @@ export const INLINE_EDITABLE_FIELDS: Record<string, string[]> = {
   STORE_MAP: ["title", "address"],
   STORE_LIST: ["title", "subtitle"],
   STORE_LAYOUT: ["storeName", "tagline", "description"],
-  
+
   // Navigation & Menus
   NAVIGATION: [],
   FOOTER: [],
-  
+
   // Maps
   MAP: ["title"],
   MAP_INTERACTIVE: ["title"],
-  
+
   // Other
   LOGO: [],
   ICON: [],
@@ -106,60 +106,142 @@ export interface ArrayFieldConfig {
 export const ARRAY_EDITABLE_FIELDS: Record<string, ArrayFieldConfig[]> = {
   // Hero buttons
   HERO: [{ arrayField: "buttons", textFields: ["text"], childType: "button" }],
-  
+
   // FAQ
-  FAQ: [{ arrayField: "questions", textFields: ["question", "answer"], childType: "faq" }],
-  
+  FAQ: [
+    {
+      arrayField: "questions",
+      textFields: ["question", "answer"],
+      childType: "faq",
+    },
+  ],
+
   // Features
-  FEATURES: [{ arrayField: "features", textFields: ["title", "description"], childType: "feature" }],
-  
+  FEATURES: [
+    {
+      arrayField: "features",
+      textFields: ["title", "description"],
+      childType: "feature",
+    },
+  ],
+
   // Cards
-  CARDS: [{ arrayField: "cards", textFields: ["title", "description", "buttonText"], childType: "card" }],
-  
+  CARDS: [
+    {
+      arrayField: "cards",
+      textFields: ["title", "description", "buttonText"],
+      childType: "card",
+    },
+  ],
+
   // Stats
-  STATS: [{ arrayField: "stats", textFields: ["value", "label", "prefix", "suffix"], childType: "stat" }],
-  
+  STATS: [
+    {
+      arrayField: "stats",
+      textFields: ["value", "label", "prefix", "suffix"],
+      childType: "stat",
+    },
+  ],
+
   // Team
-  TEAM: [{ arrayField: "members", textFields: ["name", "role", "bio"], childType: "member" }],
-  
+  TEAM: [
+    {
+      arrayField: "members",
+      textFields: ["name", "role", "bio"],
+      childType: "member",
+    },
+  ],
+
   // Testimonials
-  TESTIMONIALS: [{ arrayField: "testimonials", textFields: ["text", "quote", "author", "role", "company"], childType: "testimonial" }],
-  
+  TESTIMONIALS: [
+    {
+      arrayField: "testimonials",
+      textFields: ["text", "quote", "author", "role", "company"],
+      childType: "testimonial",
+    },
+  ],
+
   // Timeline
-  TIMELINE: [{ arrayField: "items", textFields: ["title", "description", "date"], childType: "timeline-item" }],
-  
+  TIMELINE: [
+    {
+      arrayField: "items",
+      textFields: ["title", "description", "date"],
+      childType: "timeline-item",
+    },
+  ],
+
   // Pricing with nested features
   PRICING: [
-    { arrayField: "plans", textFields: ["name", "price", "period", "description", "buttonText"], childType: "plan" },
-    { arrayField: "plans.features", textFields: ["feature"], childType: "feature" },
+    {
+      arrayField: "plans",
+      textFields: ["name", "price", "period", "description", "buttonText"],
+      childType: "plan",
+    },
+    {
+      arrayField: "plans.features",
+      textFields: ["feature"],
+      childType: "feature",
+    },
   ],
-  
+
   // Accordion
-  ACCORDION: [{ arrayField: "items", textFields: ["title", "content"], childType: "accordion-item" }],
-  
+  ACCORDION: [
+    {
+      arrayField: "items",
+      textFields: ["title", "content"],
+      childType: "accordion-item",
+    },
+  ],
+
   // List
   LIST: [{ arrayField: "items", textFields: ["text"], childType: "list-item" }],
-  
+
   // Services List
-  SERVICES_LIST: [{ arrayField: "services", textFields: ["title", "description", "price"], childType: "service" }],
-  
-  // Tabs
-  TABS: [{ arrayField: "tabs", textFields: ["label", "content"], childType: "tab" }],
-  
-  // Gallery
-  GALLERY: [{ arrayField: "images", textFields: ["alt", "caption"], childType: "image" }],
-  
-  // Table
-  TABLE: [
-    { arrayField: "headers", textFields: ["text"], childType: "header" },
+  SERVICES_LIST: [
+    {
+      arrayField: "services",
+      textFields: ["title", "description", "price"],
+      childType: "service",
+    },
   ],
-  
+
+  // Tabs
+  TABS: [
+    { arrayField: "tabs", textFields: ["label", "content"], childType: "tab" },
+  ],
+
+  // Gallery
+  GALLERY: [
+    {
+      arrayField: "images",
+      textFields: ["alt", "caption"],
+      childType: "image",
+    },
+  ],
+
+  // Table
+  TABLE: [{ arrayField: "headers", textFields: ["text"], childType: "header" }],
+
   // Buttons group
-  BUTTONS: [{ arrayField: "buttons", textFields: ["text"], childType: "button" }],
-  
+  BUTTONS: [
+    { arrayField: "buttons", textFields: ["text"], childType: "button" },
+  ],
+
   // Store blocks with items
-  STORE_SERVICES: [{ arrayField: "services", textFields: ["name", "description"], childType: "service" }],
-  STORE_REVIEWS: [{ arrayField: "reviews", textFields: ["text", "author", "rating"], childType: "review" }],
+  STORE_SERVICES: [
+    {
+      arrayField: "services",
+      textFields: ["name", "description"],
+      childType: "service",
+    },
+  ],
+  STORE_REVIEWS: [
+    {
+      arrayField: "reviews",
+      textFields: ["text", "author", "rating"],
+      childType: "review",
+    },
+  ],
 };
 
 // ============================================================================
@@ -172,20 +254,20 @@ export const FIELD_SELECTORS: Record<string, string> = {
   question: "[data-field='question'], h3, h4, button, summary",
   label: "[data-field='label'], span, p",
   subtitle: "[data-field='subtitle'], p, span",
-  
+
   // Text content
   description: "[data-field='description'], p, span",
   content: "[data-field='content'], p, div",
   answer: "[data-field='answer'], p, div",
   text: "[data-field='text'], p, span, a",
   bio: "[data-field='bio'], p",
-  
+
   // Quotes and testimonials
   quote: "[data-field='quote'], blockquote, p",
   author: "[data-field='author'], cite, span, div",
   role: "[data-field='role'], span, p, div",
   company: "[data-field='company'], span, p",
-  
+
   // Values and numbers
   value: "[data-field='value'], span, h2, h3",
   price: "[data-field='price'], span",
@@ -193,31 +275,31 @@ export const FIELD_SELECTORS: Record<string, string> = {
   date: "[data-field='date'], span, time",
   prefix: "[data-field='prefix'], span",
   suffix: "[data-field='suffix'], span",
-  
+
   // Captions and alt text
   caption: "[data-field='caption'], figcaption, span, p",
   alt: "[data-field='alt']",
-  
+
   // Buttons and links
   buttonText: "[data-field='buttonText'], button, a, span",
   submitText: "[data-field='submitText'], button",
   linkLabel: "[data-field='linkLabel'], a, span",
-  
+
   // Store/Contact
   address: "[data-field='address'], address, p, span",
   phone: "[data-field='phone'], a[href^='tel:'], span, p",
   email: "[data-field='email'], a[href^='mailto:'], span, p",
   storeName: "[data-field='storeName'], h1, h2, h3",
   tagline: "[data-field='tagline'], p, span",
-  
+
   // Table
   header: "[data-field='header'], th",
   cell: "[data-field='cell'], td",
-  
+
   // List
   item: "[data-field='item'], span, li",
   feature: "[data-field='feature'], span, li",
-  
+
   // Default fallback
   default: "p, span, h1, h2, h3, h4, h5, h6, div, a, button",
 };
@@ -250,25 +332,27 @@ export function hasArrayEditableFields(blockType: string): boolean {
  */
 export function getAllEditableFieldPaths(
   blockType: string,
-  content: Record<string, unknown>
+  content: Record<string, unknown>,
 ): string[] {
   const paths: string[] = [];
-  
+
   // Add simple fields
   const simpleFields = INLINE_EDITABLE_FIELDS[blockType] || [];
-  simpleFields.forEach(field => {
+  simpleFields.forEach((field) => {
     if (content[field]) {
       paths.push(field);
     }
   });
-  
+
   // Add array fields
   const arrayConfigs = ARRAY_EDITABLE_FIELDS[blockType] || [];
   arrayConfigs.forEach(({ arrayField, textFields }) => {
-    const items = content[arrayField] as Array<Record<string, unknown>> | undefined;
+    const items = content[arrayField] as
+      | Array<Record<string, unknown>>
+      | undefined;
     if (items && Array.isArray(items)) {
       items.forEach((item, index) => {
-        textFields.forEach(field => {
+        textFields.forEach((field) => {
           if (item[field]) {
             paths.push(`${arrayField}.${index}.${field}`);
           }
@@ -276,7 +360,7 @@ export function getAllEditableFieldPaths(
       });
     }
   });
-  
+
   return paths;
 }
 
