@@ -140,17 +140,17 @@ export default function PagesListClient({
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
       {/* Header */}
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Pages</h1>
-            <p className="text-gray-600 mt-1">Gérez les pages de votre site</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pages</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Gérez les pages de votre site</p>
           </div>
           <Link
             href="/admin/dashboard/pages/new"
-            className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             Nouvelle page
@@ -158,7 +158,7 @@ export default function PagesListClient({
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             <input
@@ -169,12 +169,12 @@ export default function PagesListClient({
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10 text-gray-900 placeholder:text-gray-500"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {(["all", "published", "draft"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                   filter === f
                     ? "bg-black text-white"
                     : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"

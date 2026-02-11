@@ -994,9 +994,9 @@ export default function ApparenceClient() {
 
         {/* LOADING TAB */}
         {activeTab === "loading" && (
-          <div className="flex flex-col h-full min-h-0">
+          <div className="flex flex-col overflow-y-auto lg:overflow-visible lg:h-full lg:min-h-0">
             {/* Fixed Preview Section */}
-            <div className="shrink-0 mb-5">
+            <div className="lg:shrink-0 mb-5">
               {/* Preview Mode Selector */}
               <PreviewModeSelector
                 mode={loadingPreviewMode}
@@ -1072,7 +1072,7 @@ export default function ApparenceClient() {
             </div>
 
             {/* Scrollable Options */}
-            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+            <div className="lg:flex-1 lg:overflow-y-auto pr-2 -mr-2">
               <div className="flex flex-col gap-4">
                 <CollapsibleSection
                   title="Apparence"
@@ -1152,9 +1152,9 @@ export default function ApparenceClient() {
 
         {/* INTRODUCTION TAB */}
         {activeTab === "intro" && (
-          <div className="flex flex-col h-full min-h-0">
+          <div className="flex flex-col overflow-y-auto lg:overflow-visible lg:h-full lg:min-h-0">
             {/* Fixed Preview Section */}
-            <div className="shrink-0 mb-5">
+            <div className="lg:shrink-0 mb-5">
               {/* Responsive Preview Selector */}
               <PreviewModeSelector
                 mode={introPreviewMode}
@@ -1363,7 +1363,7 @@ export default function ApparenceClient() {
             </div>
 
             {/* Scrollable Options */}
-            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+            <div className="lg:flex-1 lg:overflow-y-auto pr-2 -mr-2">
               <div className="flex flex-col gap-4">
                 <CollapsibleSection
                   title="Textes"
@@ -1475,9 +1475,9 @@ export default function ApparenceClient() {
 
         {/* GRID TAB */}
         {activeTab === "grid" && (
-          <div className="flex flex-col h-full min-h-0">
+          <div className="flex flex-col overflow-y-auto lg:overflow-visible lg:h-full lg:min-h-0">
             {/* Preview Section - Scrollable container for responsive */}
-            <div className="shrink-0 mb-4 sm:mb-5">
+            <div className="lg:shrink-0 mb-4 sm:mb-5">
               <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <h3 className="text-xs sm:text-sm font-medium text-gray-700">
@@ -1548,7 +1548,7 @@ export default function ApparenceClient() {
             </div>
 
             {/* Settings Section */}
-            <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="lg:flex-1 lg:overflow-y-auto min-h-0">
               <div className="space-y-3 sm:space-y-4">
                 {/* Horizontal Padding */}
                 <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
@@ -1640,9 +1640,9 @@ export default function ApparenceClient() {
 
         {/* FOOTER TAB */}
         {activeTab === "footer" && (
-          <div className="flex flex-col h-full min-h-0">
+          <div className="flex flex-col overflow-y-auto lg:overflow-visible lg:h-full lg:min-h-0">
             {/* Fixed Preview Section */}
-            <div className="shrink-0 mb-5">
+            <div className="lg:shrink-0 mb-5">
               {/* Responsive Preview Selector */}
               <PreviewModeSelector
                 mode={footerPreviewMode}
@@ -1968,7 +1968,7 @@ export default function ApparenceClient() {
             </div>
 
             {/* Scrollable Options */}
-            <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+            <div className="lg:flex-1 lg:overflow-y-auto pr-2 -mr-2">
               <div className="flex flex-col gap-4">
                 <CollapsibleSection
                   title="Apparence"

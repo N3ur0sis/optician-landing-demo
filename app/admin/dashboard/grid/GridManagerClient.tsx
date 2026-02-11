@@ -185,22 +185,22 @@ export default function GridManagerClient() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Header with Title and Actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-black mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-black mb-2">
             Gestionnaire de Grille
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Glissez pour repositionner • Redimensionnez en tirant les coins •
             Cliquez pour éditer
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <button
             onClick={handleAddTile}
-            className="px-6 py-3 text-base font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-md"
+            className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-md">
           >
             <svg
               className="w-5 h-5"
@@ -215,22 +215,23 @@ export default function GridManagerClient() {
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            Ajouter une Tuile
+            <span className="hidden sm:inline">Ajouter une Tuile</span>
+            <span className="sm:hidden">Ajouter</span>
           </button>
           <button
             onClick={handlePublishClick}
             disabled={isSaving}
-            className="px-8 py-3 text-base font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
+            className="px-4 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
           >
             {isSaving ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Publication...
+                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span className="hidden sm:inline">Publication...</span>
               </>
             ) : (
               <>
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -242,7 +243,8 @@ export default function GridManagerClient() {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                Publier les Modifications
+                <span className="hidden sm:inline">Publier les Modifications</span>
+                <span className="sm:hidden">Publier</span>
               </>
             )}
           </button>

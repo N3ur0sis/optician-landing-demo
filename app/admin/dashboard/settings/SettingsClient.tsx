@@ -49,6 +49,7 @@ const defaultSettings: SiteSettings = {
 
 export default function SettingsClient() {
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
+  const [initialSettings, setInitialSettings] = useState<SiteSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "seo" | "backup">(
@@ -63,6 +64,9 @@ export default function SettingsClient() {
     { slug: string; title: string }[]
   >([]);
 
+  // Check for unsaved changes
+  const hasChanges = JSON.stringify(settings) !== JSON.stringify(initialSettings);
+
   useEffect(() => {
     fetchSettings();
     fetchPages();
@@ -73,7 +77,9 @@ export default function SettingsClient() {
       const response = await fetch("/api/settings");
       if (response.ok) {
         const data = await response.json();
-        setSettings({ ...defaultSettings, ...data });
+        const mergedSettings = { ...defaultSettings, ...data };
+        setSettings(mergedSettings);
+        setInitialSettings(mergedSettings);
       }
     } catch (error) {
       console.error("Failed to fetch settings:", error);
@@ -109,6 +115,7 @@ export default function SettingsClient() {
         body: JSON.stringify({ settings }),
       });
       if (response.ok) {
+        setInitialSettings(settings);
         setMessage({
           type: "success",
           text: "Paramètres sauvegardés avec succès",
@@ -256,9 +263,37 @@ export default function SettingsClient() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
-        <p className="text-gray-600 mt-1">Configuration générale du site</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
+          <p className="text-gray-600 mt-1">Configuration générale du site</p>
+        </div>
+        {activeTab !== "backup" && (
+          <div className="flex items-center gap-3">
+            {hasChanges && (
+              <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full text-sm font-medium">
+                <AlertCircle className="h-4 w-4" />
+                Non sauvegardé
+              </div>
+            )}
+            <button
+              onClick={saveSettings}
+              disabled={saving || !hasChanges}
+              className={`flex items-center gap-2 px-5 py-2 rounded-lg transition-colors ${
+                hasChanges
+                  ? "bg-black text-white hover:bg-gray-800"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Sauvegarder
+            </button>
+          </div>
+        )}
       </div>
 
       {message && (
@@ -595,24 +630,6 @@ export default function SettingsClient() {
               Assurez-vous d&apos;avoir une sauvegarde avant d&apos;importer.
             </p>
           </div>
-        </div>
-      )}
-
-      {/* Save Button */}
-      {activeTab !== "backup" && (
-        <div className="mt-8 flex justify-end">
-          <button
-            onClick={saveSettings}
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
-          >
-            {saving ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Save className="h-5 w-5" />
-            )}
-            Sauvegarder
-          </button>
         </div>
       )}
     </div>
