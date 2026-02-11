@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Save,
   Globe,
@@ -14,6 +14,14 @@ import {
   Building2,
   Mail,
   RefreshCw,
+  Trash2,
+  History,
+  Shield,
+  ShieldOff,
+  Clock,
+  RotateCcw,
+  Plus,
+  HardDrive,
 } from "lucide-react";
 
 interface SiteSettings {
@@ -30,6 +38,21 @@ interface SiteSettings {
   google_analytics_id: string;
   google_search_console: string;
   homepage_slug: string;
+}
+
+interface DatabaseBackup {
+  id: string;
+  name: string;
+  type: "MANUAL" | "AUTO_PRE_IMPORT" | "AUTO_PRE_EXPORT" | "SCHEDULED";
+  size: number;
+  compressedSize: number | null;
+  version: string;
+  stats: Record<string, number>;
+  description: string | null;
+  createdBy: string | null;
+  createdAt: string;
+  isProtected: boolean;
+  expiresAt: string | null;
 }
 
 const defaultSettings: SiteSettings = {
@@ -64,14 +87,46 @@ export default function SettingsClient() {
   const [availablePages, setAvailablePages] = useState<
     { slug: string; title: string }[]
   >([]);
+  
+  // Backup management state
+  const [backups, setBackups] = useState<DatabaseBackup[]>([]);
+  const [backupsLoading, setBackupsLoading] = useState(false);
+  const [creatingBackup, setCreatingBackup] = useState(false);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmRestore, setConfirmRestore] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   // Check for unsaved changes
   const hasChanges = JSON.stringify(settings) !== JSON.stringify(initialSettings);
+
+  // Fetch backups
+  const fetchBackups = useCallback(async () => {
+    setBackupsLoading(true);
+    try {
+      const response = await fetch("/api/backups");
+      if (response.ok) {
+        const data = await response.json();
+        setBackups(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch backups:", error);
+    } finally {
+      setBackupsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchSettings();
     fetchPages();
   }, []);
+
+  // Fetch backups when backup tab is active
+  useEffect(() => {
+    if (activeTab === "backup") {
+      fetchBackups();
+    }
+  }, [activeTab, fetchBackups]);
 
   const fetchSettings = async () => {
     try {
@@ -203,6 +258,124 @@ export default function SettingsClient() {
 
   const updateSetting = (key: keyof SiteSettings, value: string) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Backup management functions
+  const createManualBackup = async () => {
+    setCreatingBackup(true);
+    try {
+      const response = await fetch("/api/backups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "MANUAL",
+          isProtected: false,
+        }),
+      });
+      const result = await response.json();
+      if (response.ok && !result.skipped) {
+        setMessage({ type: "success", text: "Sauvegarde créée avec succès" });
+        fetchBackups();
+      } else if (result.skipped) {
+        setMessage({ type: "error", text: "Une sauvegarde récente existe déjà" });
+      } else {
+        throw new Error(result.error || "Erreur");
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: error instanceof Error ? error.message : "Erreur lors de la création" });
+    } finally {
+      setCreatingBackup(false);
+    }
+  };
+
+  const handleDeleteBackup = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const response = await fetch(`/api/backups/${id}`, { method: "DELETE" });
+      if (response.ok) {
+        setMessage({ type: "success", text: "Sauvegarde supprimée" });
+        fetchBackups();
+      } else {
+        const result = await response.json();
+        throw new Error(result.error || "Erreur");
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: error instanceof Error ? error.message : "Erreur lors de la suppression" });
+    } finally {
+      setDeletingId(null);
+      setConfirmDelete(null);
+    }
+  };
+
+  const handleRestoreBackup = async (id: string) => {
+    setRestoringId(id);
+    try {
+      const response = await fetch(`/api/backups/${id}/restore`, { method: "POST" });
+      const result = await response.json();
+      if (response.ok) {
+        setMessage({ type: "success", text: "Restauration réussie. Rechargement..." });
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        throw new Error(result.error || "Erreur");
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: error instanceof Error ? error.message : "Erreur lors de la restauration" });
+    } finally {
+      setRestoringId(null);
+      setConfirmRestore(null);
+    }
+  };
+
+  const toggleProtected = async (backup: DatabaseBackup) => {
+    try {
+      const response = await fetch(`/api/backups/${backup.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isProtected: !backup.isProtected }),
+      });
+      if (response.ok) {
+        fetchBackups();
+      }
+    } catch (error) {
+      console.error("Failed to toggle protection:", error);
+    }
+  };
+
+  const downloadBackup = async (id: string) => {
+    try {
+      const response = await fetch(`/api/backups/${id}?download=true`);
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `backup-${id.slice(0, 8)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      }
+    } catch (error) {
+      console.error("Failed to download backup:", error);
+    }
+  };
+
+  // Helper to format bytes
+  const formatBytes = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  // Helper to format backup type
+  const formatBackupType = (type: DatabaseBackup["type"]): string => {
+    switch (type) {
+      case "MANUAL": return "Manuelle";
+      case "AUTO_PRE_IMPORT": return "Avant import";
+      case "AUTO_PRE_EXPORT": return "Avant export";
+      case "SCHEDULED": return "Planifiée";
+      default: return type;
+    }
   };
 
   if (loading) {
@@ -686,9 +859,204 @@ export default function SettingsClient() {
             </h3>
             <ul className="text-amber-700 text-sm space-y-1">
               <li>• L&apos;import remplacera <strong>toutes</strong> les données existantes</li>
-              <li>• Faites toujours un export avant d&apos;importer</li>
+              <li>• Une sauvegarde automatique est créée avant chaque import</li>
               <li>• Les backups d&apos;anciennes versions sont automatiquement migrés</li>
             </ul>
+          </div>
+
+          {/* Backup History Section */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Historique des sauvegardes
+              </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={fetchBackups}
+                  disabled={backupsLoading}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Actualiser"
+                >
+                  <RefreshCw className={`h-4 w-4 ${backupsLoading ? "animate-spin" : ""}`} />
+                </button>
+                <button
+                  onClick={createManualBackup}
+                  disabled={creatingBackup}
+                  className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                >
+                  {creatingBackup ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  Nouvelle sauvegarde
+                </button>
+              </div>
+            </div>
+
+            {backupsLoading && backups.length === 0 ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            ) : backups.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <HardDrive className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>Aucune sauvegarde disponible</p>
+                <p className="text-sm mt-1">Créez votre première sauvegarde manuellement ou elle sera créée automatiquement lors du prochain import/export.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                {backups.map((backup) => (
+                  <div
+                    key={backup.id}
+                    className={`border rounded-lg p-4 ${
+                      backup.isProtected ? "border-blue-200 bg-blue-50/30" : "border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-medium text-gray-900 truncate">
+                            {backup.name}
+                          </h3>
+                          {backup.isProtected && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                              <Shield className="h-3 w-3" />
+                              Protégée
+                            </span>
+                          )}
+                          <span className={`inline-flex px-2 py-0.5 text-xs rounded-full ${
+                            backup.type === "MANUAL" 
+                              ? "bg-green-100 text-green-700"
+                              : backup.type === "AUTO_PRE_IMPORT"
+                              ? "bg-orange-100 text-orange-700"
+                              : backup.type === "AUTO_PRE_EXPORT"
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}>
+                            {formatBackupType(backup.type)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5" />
+                            {new Date(backup.createdAt).toLocaleString("fr-FR")}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <HardDrive className="h-3.5 w-3.5" />
+                            {formatBytes(backup.compressedSize || backup.size)}
+                            {backup.compressedSize && backup.compressedSize < backup.size && (
+                              <span className="text-xs text-gray-400">
+                                ({Math.round((1 - backup.compressedSize / backup.size) * 100)}% compressé)
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        {backup.stats && (
+                          <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                            <span>{(backup.stats as Record<string, number>).pages || 0} pages</span>
+                            <span>{(backup.stats as Record<string, number>).blocks || 0} blocs</span>
+                            <span>{(backup.stats as Record<string, number>).media || 0} médias</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => toggleProtected(backup)}
+                          className={`p-2 rounded-lg transition-colors ${
+                            backup.isProtected
+                              ? "text-blue-600 hover:bg-blue-100"
+                              : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                          }`}
+                          title={backup.isProtected ? "Retirer la protection" : "Protéger"}
+                        >
+                          {backup.isProtected ? <Shield className="h-4 w-4" /> : <ShieldOff className="h-4 w-4" />}
+                        </button>
+                        <button
+                          onClick={() => downloadBackup(backup.id)}
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Télécharger"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                        {confirmRestore === backup.id ? (
+                          <div className="flex items-center gap-1 bg-orange-50 rounded-lg px-2 py-1">
+                            <span className="text-xs text-orange-600">Confirmer ?</span>
+                            <button
+                              onClick={() => handleRestoreBackup(backup.id)}
+                              disabled={restoringId === backup.id}
+                              className="p-1 text-orange-600 hover:bg-orange-100 rounded"
+                            >
+                              {restoringId === backup.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Check className="h-4 w-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => setConfirmRestore(null)}
+                              className="p-1 text-gray-400 hover:bg-gray-100 rounded"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmRestore(backup.id)}
+                            className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                            title="Restaurer"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </button>
+                        )}
+                        {!backup.isProtected && (
+                          confirmDelete === backup.id ? (
+                            <div className="flex items-center gap-1 bg-red-50 rounded-lg px-2 py-1">
+                              <span className="text-xs text-red-600">Supprimer ?</span>
+                              <button
+                                onClick={() => handleDeleteBackup(backup.id)}
+                                disabled={deletingId === backup.id}
+                                className="p-1 text-red-600 hover:bg-red-100 rounded"
+                              >
+                                {deletingId === backup.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Check className="h-4 w-4" />
+                                )}
+                              </button>
+                              <button
+                                onClick={() => setConfirmDelete(null)}
+                                className="p-1 text-gray-400 hover:bg-gray-100 rounded"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setConfirmDelete(backup.id)}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Supprimer"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {backups.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-500">
+                  Les sauvegardes automatiques sont limitées à 20 et les plus anciennes sont supprimées automatiquement.
+                  Protégez les sauvegardes importantes pour éviter leur suppression automatique.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

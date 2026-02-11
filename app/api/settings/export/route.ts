@@ -5,6 +5,7 @@ import archiver from "archiver"
 import path from "path"
 import fs from "fs"
 import { PassThrough } from "stream"
+import { createAutoBackup } from "@/app/api/backups/route"
 
 // Current backup version - increment when schema changes
 const BACKUP_VERSION = "2.0"
@@ -20,6 +21,17 @@ export async function GET(request: Request) {
     // Check for format parameter (json or zip)
     const url = new URL(request.url)
     const format = url.searchParams.get("format") || "zip"
+    const skipAutoBackup = url.searchParams.get("skipBackup") === "true"
+
+    // Create automatic backup before export (optional, can be skipped)
+    if (!skipAutoBackup) {
+      try {
+        await createAutoBackup("AUTO_PRE_EXPORT", session.user.id)
+      } catch (backupError) {
+        console.warn("Failed to create pre-export backup:", backupError)
+        // Continue with export even if backup fails
+      }
+    }
 
     // Fetch all data for backup
     const [pages, blocks, pageRevisions, navigationMenus, navigationItems, gridTiles, media, settings, stores] = 

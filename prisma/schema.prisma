@@ -511,3 +511,48 @@ model ActiveSession {
   @@index([lastSeenAt])
   @@index([path])
 }
+
+// ============================================
+// Backup & Versioning System
+// ============================================
+
+enum BackupType {
+  MANUAL           // User-triggered backup
+  AUTO_PRE_IMPORT  // Automatic backup before import
+  AUTO_PRE_EXPORT  // Automatic backup before export (optional)
+  SCHEDULED        // Scheduled automatic backup
+}
+
+// Database backups stored securely in the database
+model DatabaseBackup {
+  id          String     @id @default(cuid())
+  name        String     // Human-readable name
+  type        BackupType @default(MANUAL)
+  
+  // Compressed backup data stored as base64
+  // This is secure as it's stored in the DB, not accessible via public URL
+  data        String     @db.Text // Compressed JSON backup data
+  
+  // Metadata
+  size        Int        // Uncompressed size in bytes
+  compressedSize Int?    // Compressed size in bytes
+  version     String     @default("2.0") // Backup format version
+  
+  // What's included
+  stats       Json       // { pages: 10, blocks: 50, ... }
+  
+  // Optional notes
+  description String?
+  
+  // Tracking
+  createdBy   String?    // User ID who created the backup
+  createdAt   DateTime   @default(now())
+  
+  // Retention
+  isProtected Boolean    @default(false) // Protected backups won't be auto-deleted
+  expiresAt   DateTime?  // Optional expiration date for auto-cleanup
+  
+  @@index([type])
+  @@index([createdAt])
+  @@index([isProtected])
+}

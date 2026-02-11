@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import AdmZip from "adm-zip"
 import path from "path"
 import fs from "fs"
+import { createAutoBackup } from "@/app/api/backups/route"
 
 // Supported backup versions for migration
 const SUPPORTED_VERSIONS = ["1.0", "2.0"]
@@ -115,6 +116,18 @@ export async function POST(request: Request) {
 
     // Migrate backup to current version
     backup = migrateBackup(backup)
+
+    // Create automatic backup before import (safety net)
+    let autoBackupId: string | null = null
+    try {
+      const autoBackup = await createAutoBackup("AUTO_PRE_IMPORT", session.user.id)
+      if (!autoBackup.skipped) {
+        autoBackupId = autoBackup.id
+      }
+    } catch (backupError) {
+      console.warn("Failed to create pre-import backup:", backupError)
+      // Continue with import even if backup fails
+    }
 
     // Import data in transaction
     await prisma.$transaction(async (tx) => {
@@ -546,6 +559,8 @@ export async function POST(request: Request) {
       },
       originalVersion: backup.version,
       migratedFrom: backup.version !== "2.0" ? backup.version : undefined,
+      autoBackupCreated: autoBackupId ? true : false,
+      autoBackupId: autoBackupId,
     })
   } catch (error) {
     console.error("Error importing backup:", error)
