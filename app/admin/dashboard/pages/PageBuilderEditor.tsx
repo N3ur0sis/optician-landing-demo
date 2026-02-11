@@ -51,6 +51,7 @@ import SpacingOverlay from "./block-editor/SpacingOverlay";
 import ResizeHandles from "./block-editor/ResizeHandles";
 import { spacingToCss } from "./block-editor/types";
 import { PageBuilderProvider } from "@/components/page-builder/PageBuilderContext";
+import BlockRenderer from "@/components/page-builder/BlockRenderer";
 
 // Migrate legacy style properties to new format
 function migrateBlockStyles(styles: BlockStyles): BlockStyles {
@@ -1042,6 +1043,27 @@ export default function PageBuilderEditor({
               </div>
             ) : (
               <PageBuilderProvider isEditing={viewMode === "edit"}>
+                {viewMode === "preview" ? (
+                  /* Preview mode: render like DynamicPageRenderer for accurate styling */
+                  <div className="page-blocks-container @container overflow-hidden w-full min-h-full">
+                    {blocks
+                      .filter((block) => block.visible)
+                      .map((block) => {
+                        const isInline = block.styles?.inline === true;
+                        if (isInline) {
+                          return <BlockRenderer key={block.id} block={block} />;
+                        }
+                        return (
+                          <div
+                            key={block.id}
+                            className="overflow-hidden max-w-full"
+                          >
+                            <BlockRenderer block={block} />
+                          </div>
+                        );
+                      })}
+                  </div>
+                ) : (
                 <div className="min-h-full relative">
                   {blocks.map((block) => {
                     const isInline = block.styles?.inline === true;
@@ -1449,7 +1471,7 @@ export default function PageBuilderEditor({
                           isEditing={
                             viewMode === "edit" && selectedBlockId === block.id
                           }
-                          isPreviewMode={viewMode === "preview"}
+                          isPreviewMode={false}
                           onUpdate={(updates) =>
                             handleUpdateBlock(block.id, updates)
                           }
@@ -1478,6 +1500,7 @@ export default function PageBuilderEditor({
                     );
                   })}
                 </div>
+                )}
               </PageBuilderProvider>
             )}
           </div>
