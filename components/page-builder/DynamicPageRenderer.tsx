@@ -23,7 +23,7 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
 
   return (
     <main
-      className="min-h-screen"
+      className="min-h-screen overflow-x-hidden"
       style={{
         backgroundColor: page.backgroundColor,
         color: page.textColor,
@@ -38,9 +38,9 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
         />
       )}
 
-      {/* Page Content - no padding needed, navbar has spacer */}
+      {/* Page Content - overflow hidden to prevent blocks from exceeding page width */}
       <PageBuilderProvider isEditing={false}>
-        <div className="page-blocks-container @container">
+        <div className="page-blocks-container @container overflow-hidden w-full">
           {page.blocks
             .filter(block => block.visible)
             .map((block, index) => {
@@ -59,6 +59,7 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="overflow-hidden max-w-full"
                 >
                   <BlockRenderer block={block} />
                 </motion.div>

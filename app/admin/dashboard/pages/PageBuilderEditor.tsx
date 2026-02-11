@@ -47,6 +47,7 @@ import InlineEditableBlock from "./InlineEditableBlock";
 import ChildElementEditor, { useChildElementEditor } from "./ChildElementEditor";
 import SpacingOverlay from "./block-editor/SpacingOverlay";
 import ResizeHandles from "./block-editor/ResizeHandles";
+import { spacingToCss } from "./block-editor/types";
 import { PageBuilderProvider } from "@/components/page-builder/PageBuilderContext";
 
 // Migrate legacy style properties to new format
@@ -1035,6 +1036,15 @@ export default function PageBuilderEditor({
                         wrapperStyle.justifyContent = "flex-end";
                       }
                     }
+
+                    // Apply vertical margins as PADDING on wrapper for edit mode visualization
+                    // This makes the blue border encompass the margin zone
+                    // SpacingOverlay shows orange zones at wrapper edges = margin
+                    // In render mode, BlockRenderer applies REAL CSS margins instead
+                    const marginTopCss = spacingToCss(blockStyles.marginTop);
+                    const marginBottomCss = spacingToCss(blockStyles.marginBottom);
+                    if (marginTopCss) wrapperStyle.paddingTop = marginTopCss;
+                    if (marginBottomCss) wrapperStyle.paddingBottom = marginBottomCss;
                   }
 
                   return (

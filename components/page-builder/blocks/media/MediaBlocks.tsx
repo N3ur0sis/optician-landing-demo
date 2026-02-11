@@ -85,14 +85,14 @@ export function ImageBlock({ content }: BlockContentProps<ImageContent>) {
   }
 
   const imageElement = (
-    <figure className={hoverMap[hoverEffect]}>
+    <figure className={`${hoverMap[hoverEffect]} max-w-full`}>
       <div
-        className={`relative overflow-hidden ${aspectRatioMap[aspectRatio]} ${radiusMap[borderRadius]} ${shadowMap[shadow]}`}
+        className={`relative overflow-hidden ${aspectRatioMap[aspectRatio]} ${radiusMap[borderRadius]} ${shadowMap[shadow]} max-w-full`}
       >
         <img
           src={src}
           alt={alt}
-          className={`w-full h-auto ${aspectRatio !== "auto" ? "object-cover w-full h-full absolute inset-0" : ""}`}
+          className={`w-full h-auto max-w-full ${aspectRatio !== "auto" ? "object-cover w-full h-full absolute inset-0" : ""}`}
           style={{ objectFit: content.objectFit || "cover" }}
         />
       </div>
@@ -243,7 +243,7 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
     return (
       <>
         <div
-          className={`columns-1 @md:columns-2 @lg:columns-${columns} ${gapMap[gap]}`}
+          className={`columns-1 @md:columns-2 @lg:columns-${columns} ${gapMap[gap]} w-full max-w-full`}
           style={{
             columnGap:
               gap === "none"
@@ -258,7 +258,7 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
           {images.map((img, idx) => (
             <div
               key={idx}
-              className={`mb-4 break-inside-avoid overflow-hidden ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
+              className={`mb-4 break-inside-avoid overflow-hidden ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""} max-w-full`}
               onClick={
                 isEditing
                   ? undefined
@@ -268,7 +268,7 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
               <img
                 src={img.src}
                 alt={img.alt || `Gallery image ${idx + 1}`}
-                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105 max-w-full"
               />
               {img.caption && (
                 <div className="p-3 bg-white/5">
@@ -288,23 +288,23 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
     return (
       <>
         <div
-          className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}
+          className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]} w-full max-w-full`}
         >
           {images.map((img, idx) => (
             <div
               key={idx}
-              className={`bg-white p-3 pb-12 shadow-lg transform hover:rotate-0 transition-transform ${idx % 2 === 0 ? "rotate-2" : "-rotate-2"} ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
+              className={`bg-white p-3 pb-12 shadow-lg transform hover:rotate-0 transition-transform ${idx % 2 === 0 ? "rotate-2" : "-rotate-2"} ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""} max-w-full overflow-hidden`}
               onClick={
                 isEditing
                   ? undefined
                   : () => lightboxEnabled && setSelectedImage(img)
               }
             >
-              <div className={`${aspectMap[aspectRatio]} overflow-hidden`}>
+              <div className={`${aspectMap[aspectRatio]} overflow-hidden max-w-full`}>
                 <img
                   src={img.src}
                   alt={img.alt || `Gallery image ${idx + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover max-w-full"
                 />
               </div>
               {img.caption && (
@@ -324,22 +324,22 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
   if (style === "carousel") {
     return (
       <>
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide">
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 scrollbar-hide w-full max-w-full">
           {images.map((img, idx) => (
             <div
               key={idx}
-              className={`flex-shrink-0 w-80 snap-center overflow-hidden ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
+              className={`flex-shrink-0 w-80 max-w-[80vw] snap-center overflow-hidden ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
               onClick={
                 isEditing
                   ? undefined
                   : () => lightboxEnabled && setSelectedImage(img)
               }
             >
-              <div className={`${aspectMap[aspectRatio]} relative`}>
+              <div className={`${aspectMap[aspectRatio]} relative overflow-hidden`}>
                 <img
                   src={img.src}
                   alt={img.alt || `Gallery image ${idx + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 max-w-full"
                 />
                 {img.caption && (
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -360,18 +360,18 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
     return (
       <>
         <div
-          className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}
+          className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]} w-full max-w-full`}
         >
           {images.map((img, idx) => (
             <div
               key={idx}
-              className={`relative overflow-hidden ${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} group cursor-pointer`}
+              className={`relative overflow-hidden ${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} group cursor-pointer max-w-full`}
               onClick={isEditing ? undefined : () => setSelectedImage(img)}
             >
               <img
                 src={img.src}
                 alt={img.alt || `Gallery image ${idx + 1}`}
-                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:brightness-75"
+                className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105 group-hover:brightness-75 max-w-full"
               />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -419,12 +419,12 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
   return (
     <>
       <div
-        className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]}`}
+        className={`grid ${columnsMap[columns] || columnsMap[3]} ${gapMap[gap]} w-full max-w-full`}
       >
         {images.map((img, idx) => (
           <div
             key={idx}
-            className={`relative overflow-hidden ${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""}`}
+            className={`relative overflow-hidden ${aspectMap[aspectRatio]} ${radiusMap[borderRadius]} group ${lightboxEnabled && !isEditing ? "cursor-pointer" : ""} max-w-full`}
             onClick={
               isEditing
                 ? undefined
@@ -434,7 +434,7 @@ export function GalleryBlock({ content }: BlockContentProps<GalleryContent>) {
             <img
               src={img.src}
               alt={img.alt || `Gallery image ${idx + 1}`}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 max-w-full"
             />
             {img.caption && (
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">

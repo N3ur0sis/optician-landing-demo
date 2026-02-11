@@ -69,21 +69,28 @@ function needsSectionWrapper(styles: BlockStyles): boolean {
 // Block Styles - Convert BlockStyles to CSS classes/inline styles
 // ============================================================================
 
-function getBlockStyles(styles: BlockStyles, skipDimensionStyles = false): {
+function getBlockStyles(styles: BlockStyles, isEditing = false): {
   className: string;
   style: React.CSSProperties;
 } {
-  const classNames: string[] = [];
+  // Base classes to prevent overflow - blocks should never exceed page width
+  const classNames: string[] = ["max-w-full", "overflow-hidden"];
   const inlineStyles: React.CSSProperties = {};
 
   let hasCustomWidth = false;
+  let requestedFullWidth = false; // Track if 100% width was requested
 
-  if (!skipDimensionStyles) {
+  if (!isEditing) {
     // New width system
     if (styles.widthMode === "custom" && styles.widthValue) {
       const unit = styles.widthUnit || "%";
-      inlineStyles.width = `${styles.widthValue}${unit}`;
-      hasCustomWidth = styles.widthValue < 100 || unit === "px";
+      const widthVal = Number(styles.widthValue);
+      if (widthVal === 100 && unit === "%") {
+        requestedFullWidth = true; // Will handle after margins are processed
+      } else {
+        inlineStyles.width = `${widthVal}${unit}`;
+        hasCustomWidth = widthVal < 100 || unit === "px";
+      }
     } else if (styles.widthPercent && styles.widthPercent > 0 && styles.widthPercent < 100) {
       inlineStyles.width = `${styles.widthPercent}%`;
       hasCustomWidth = true;
@@ -149,13 +156,35 @@ function getBlockStyles(styles: BlockStyles, skipDimensionStyles = false): {
   const hasManualMarginLeft = styles.marginLeft && styles.marginLeft !== "none";
   const hasManualMarginRight = styles.marginRight && styles.marginRight !== "none";
 
+  let marginLeftPx = "";
+  let marginRightPx = "";
+
   if (hasManualMarginLeft) {
     const resolved = spacingToCss(styles.marginLeft);
-    if (resolved) inlineStyles.marginLeft = resolved;
+    if (resolved) {
+      inlineStyles.marginLeft = resolved;
+      marginLeftPx = resolved;
+    }
   }
   if (hasManualMarginRight) {
     const resolved = spacingToCss(styles.marginRight);
-    if (resolved) inlineStyles.marginRight = resolved;
+    if (resolved) {
+      inlineStyles.marginRight = resolved;
+      marginRightPx = resolved;
+    }
+  }
+
+  // Handle full width with margins - use calc() to prevent overflow
+  if (requestedFullWidth && !isEditing) {
+    if (marginLeftPx || marginRightPx) {
+      // Calculate width = 100% - margins to prevent overflow
+      let calcParts = ["100%"];
+      if (marginLeftPx) calcParts.push(marginLeftPx);
+      if (marginRightPx) calcParts.push(marginRightPx);
+      inlineStyles.width = `calc(${calcParts.join(" - ")})`;
+    } else {
+      inlineStyles.width = "100%";
+    }
   }
 
   // Vertical alignment
@@ -190,11 +219,16 @@ function getBlockStyles(styles: BlockStyles, skipDimensionStyles = false): {
   }
 
   // Margins & Paddings
-  const marginTopResolved = spacingToCss(styles.marginTop);
-  if (marginTopResolved) inlineStyles.marginTop = marginTopResolved;
-  const marginBottomResolved = spacingToCss(styles.marginBottom);
-  if (marginBottomResolved) inlineStyles.marginBottom = marginBottomResolved;
+  // In edit mode: margins are visualized via wrapper padding in PageBuilderEditor
+  // In render mode: apply REAL CSS margins for actual spacing between blocks
+  if (!isEditing) {
+    const marginTopResolved = spacingToCss(styles.marginTop);
+    if (marginTopResolved) inlineStyles.marginTop = marginTopResolved;
+    const marginBottomResolved = spacingToCss(styles.marginBottom);
+    if (marginBottomResolved) inlineStyles.marginBottom = marginBottomResolved;
+  }
 
+  // Paddings are always applied (internal spacing)
   const paddingTopResolved = spacingToCss(styles.paddingTop);
   if (paddingTopResolved) inlineStyles.paddingTop = paddingTopResolved;
   const paddingBottomResolved = spacingToCss(styles.paddingBottom);
@@ -261,6 +295,15 @@ function getBlockStyles(styles: BlockStyles, skipDimensionStyles = false): {
 
   // Custom class
   if (styles.customClass) classNames.push(styles.customClass);
+
+  // Final safeguard: if width is 100% and there are horizontal margins, use calc()
+  // This prevents overflow when width: 100% + margins would exceed parent width
+  if (!isEditing && inlineStyles.width === "100%" && (marginLeftPx || marginRightPx)) {
+    let calcParts = ["100%"];
+    if (marginLeftPx) calcParts.push(marginLeftPx);
+    if (marginRightPx) calcParts.push(marginRightPx);
+    inlineStyles.width = `calc(${calcParts.join(" - ")})`;
+  }
 
   return { className: classNames.join(" "), style: inlineStyles };
 }
