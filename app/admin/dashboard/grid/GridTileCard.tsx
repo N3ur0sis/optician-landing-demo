@@ -57,7 +57,18 @@ export default function GridTileCard({ tile, onEdit, onDelete, isDragging = fals
                 : `url(${tile.backgroundUrl})`,
             }}
           >
-            <div className={`absolute inset-0 ${tile.overlayType === 'DARK' ? 'bg-black/60' : 'bg-white/60'}`} />
+            {(() => {
+              const hexToRgb = (hex: string) => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result
+                  ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+                  : { r: 0, g: 0, b: 0 };
+              };
+              const baseHex = tile.overlayColor || (tile.overlayType === 'DARK' ? '#000000' : '#ffffff');
+              const { r, g, b } = hexToRgb(baseHex);
+              const alpha = (tile.overlayOpacity ?? 60) / 100;
+              return <div className="absolute inset-0" style={{ backgroundColor: `rgba(${r}, ${g}, ${b}, ${alpha})` }} />;
+            })()}
           </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

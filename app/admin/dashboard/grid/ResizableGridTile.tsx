@@ -114,13 +114,30 @@ export default function ResizableGridTile({ tile, onResize, onClick, isDragging 
       />
 
       {/* Overlay */}
-      <div
-        className={`absolute inset-0 transition-all duration-300 ${
-          tile.overlayType === 'DARK'
-            ? 'bg-black/60 group-hover:bg-black/40'
-            : 'bg-white/60 group-hover:bg-white/40'
-        }`}
-      />
+      {(() => {
+        const hexToRgb = (hex: string) => {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+          return result
+            ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+            : { r: 0, g: 0, b: 0 };
+        };
+        const baseHex = tile.overlayColor || (tile.overlayType === 'DARK' ? '#000000' : '#ffffff');
+        const { r, g, b } = hexToRgb(baseHex);
+        const baseAlpha = (tile.overlayOpacity ?? 60) / 100;
+        const hoverAlpha = Math.max(0, (tile.overlayOpacity ?? 60) - 20) / 100;
+        return (
+          <>
+            <div
+              className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
+              style={{ backgroundColor: `rgba(${r}, ${g}, ${b}, ${baseAlpha})` }}
+            />
+            <div
+              className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+              style={{ backgroundColor: `rgba(${r}, ${g}, ${b}, ${hoverAlpha})` }}
+            />
+          </>
+        );
+      })()}
 
       {/* Grid Pattern */}
       <div
