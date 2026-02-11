@@ -66,7 +66,7 @@ function StyleOption({
 }
 
 // ============================================================================
-// COLOR INPUT - Minimal style
+// COLOR INPUT - Minimal style with debouncing for smooth dragging
 // ============================================================================
 function ColorInput({ 
   label, 
@@ -77,25 +77,66 @@ function ColorInput({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const [localValue, setLocalValue] = useState(value);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync local value when external value changes
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  // Debounced color change handler for color picker
+  const handleColorChange = useCallback((newValue: string) => {
+    setLocalValue(newValue);
+    
+    // Debounce the upstream update to prevent UI lag during fast dragging
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      onChange(newValue);
+    }, 50); // 50ms debounce for smooth dragging
+  }, [onChange]);
+
+  // Immediate update for text input (on blur or enter)
+  const handleTextChange = useCallback((newValue: string) => {
+    setLocalValue(newValue);
+  }, []);
+
+  const handleTextBlur = useCallback(() => {
+    onChange(localValue);
+  }, [localValue, onChange]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div>
       <label className="block text-[11px] font-medium text-gray-600 mb-1.5">{label}</label>
       <div className="flex items-center gap-2">
         <input
           type="color"
-          value={value || "#ffffff"}
-          onChange={(e) => onChange(e.target.value)}
+          value={localValue || "#ffffff"}
+          onChange={(e) => handleColorChange(e.target.value)}
           className="w-8 h-8 rounded border border-gray-200 cursor-pointer"
         />
         <input
           type="text"
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
+          value={localValue || ""}
+          onChange={(e) => handleTextChange(e.target.value)}
+          onBlur={handleTextBlur}
+          onKeyDown={(e) => e.key === "Enter" && handleTextBlur()}
           className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded focus:border-black focus:outline-none"
           placeholder="transparent"
         />
-        {value && (
-          <button onClick={() => onChange("")} className="p-1 text-gray-400 hover:text-black">
+        {localValue && (
+          <button onClick={() => { setLocalValue(""); onChange(""); }} className="p-1 text-gray-400 hover:text-black">
             <X className="w-3.5 h-3.5" />
           </button>
         )}
@@ -200,6 +241,9 @@ export default function ChildElementEditor({
     };
   }, [isDragging]);
 
+  // Debounce timer for color updates
+  const colorDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Update style
   const updateStyle = useCallback((key: keyof ChildElementStyles, value: string) => {
     const newStyles = { ...localStyles, [key]: value || undefined };
@@ -211,6 +255,35 @@ export default function ChildElementEditor({
     setLocalStyles(newStyles);
     onUpdateStyles(newStyles);
   }, [localStyles, onUpdateStyles]);
+
+  // Debounced color update for smooth drag experience
+  const updateColorDebounced = useCallback((key: keyof ChildElementStyles, value: string) => {
+    // Update local state immediately for visual feedback
+    setLocalStyles(prev => ({ ...prev, [key]: value || undefined }));
+    
+    // Debounce the upstream update
+    if (colorDebounceRef.current) {
+      clearTimeout(colorDebounceRef.current);
+    }
+    colorDebounceRef.current = setTimeout(() => {
+      const newStyles = { ...localStyles, [key]: value || undefined };
+      Object.keys(newStyles).forEach(k => {
+        if (newStyles[k as keyof ChildElementStyles] === undefined) {
+          delete newStyles[k as keyof ChildElementStyles];
+        }
+      });
+      onUpdateStyles(newStyles);
+    }, 50);
+  }, [localStyles, onUpdateStyles]);
+
+  // Cleanup debounce timer
+  useEffect(() => {
+    return () => {
+      if (colorDebounceRef.current) {
+        clearTimeout(colorDebounceRef.current);
+      }
+    };
+  }, []);
 
   // Reset styles
   const resetStyles = useCallback(() => {
@@ -426,7 +499,7 @@ export default function ChildElementEditor({
                   <input
                     type="color"
                     value={localStyles.borderColor || "#000000"}
-                    onChange={(e) => updateStyle("borderColor", e.target.value)}
+                    onChange={(e) => updateColorDebounced("borderColor", e.target.value)}
                     className="w-8 h-8 rounded border border-gray-200 cursor-pointer shrink-0"
                   />
                 )}

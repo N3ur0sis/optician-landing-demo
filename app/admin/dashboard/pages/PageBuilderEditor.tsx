@@ -136,6 +136,8 @@ export default function PageBuilderEditor({
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [slugExists, setSlugExists] = useState(false);
+  const [checkingSlug, setCheckingSlug] = useState(false);
   const [insertAfterBlockId, setInsertAfterBlockId] = useState<string | null>(
     null,
   );
@@ -276,6 +278,46 @@ export default function PageBuilderEditor({
     return () => window.removeEventListener("resize", measureContainer);
   }, [deviceMode]);
 
+  // Check if slug already exists (debounced)
+  useEffect(() => {
+    const slug = page.slug;
+    
+    // Don't check default slug for new pages or empty slugs
+    if (!slug || slug === '/nouvelle-page' || slug === '/') {
+      setSlugExists(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setCheckingSlug(true);
+      try {
+        // Check if this slug is already used by another page
+        const response = await fetch(`/api/pages/${slug.replace(/^\//, '')}`, {
+          method: 'HEAD',
+        });
+        
+        // If we get a 200, the slug exists
+        // For existing pages, check if it's our own page
+        if (response.ok) {
+          // If editing existing page and slug is our own, it's fine
+          if (!isNew && page.slug === initialPage.slug) {
+            setSlugExists(false);
+          } else {
+            setSlugExists(true);
+          }
+        } else {
+          setSlugExists(false);
+        }
+      } catch {
+        setSlugExists(false);
+      } finally {
+        setCheckingSlug(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [page.slug, isNew, initialPage.slug]);
+
   // Track changes - skip initial render and post-save updates
   useEffect(() => {
     if (!isInitializedRef.current) {
@@ -384,6 +426,12 @@ export default function PageBuilderEditor({
         setSaveError('Veuillez modifier le titre de la page avant d\'enregistrer');
         return;
       }
+    }
+    
+    // Vérifier si le slug existe déjà
+    if (slugExists) {
+      setSaveError('Ce slug est déjà utilisé par une autre page. Veuillez en choisir un autre.');
+      return;
     }
     
     setSaving(true);
@@ -631,9 +679,11 @@ export default function PageBuilderEditor({
                   });
                 }}
                 className={`bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-black/10 rounded px-1 placeholder:text-gray-500 ${
-                  isNew && page.slug === '/nouvelle-page'
-                    ? 'text-amber-600'
-                    : 'text-gray-700'
+                  slugExists
+                    ? 'text-red-600 ring-2 ring-red-300'
+                    : isNew && page.slug === '/nouvelle-page'
+                      ? 'text-amber-600'
+                      : 'text-gray-700'
                 }`}
                 placeholder="url-de-la-page"
               />
@@ -775,6 +825,13 @@ export default function PageBuilderEditor({
             </div>
           )}
           
+          {slugExists && (
+            <div className="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-1.5 rounded-full text-sm font-medium">
+              <AlertCircle className="h-4 w-4" />
+              Slug déjà utilisé
+            </div>
+          )}
+          
           {hasChanges && (
             <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full text-sm font-medium">
               <AlertCircle className="h-4 w-4" />
@@ -785,11 +842,13 @@ export default function PageBuilderEditor({
           {/* Save Button */}
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || slugExists}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-              hasChanges
-                ? "bg-black text-white hover:bg-gray-800"
-                : "bg-gray-200 text-gray-600"
+              slugExists
+                ? "bg-red-100 text-red-600 cursor-not-allowed"
+                : hasChanges
+                  ? "bg-black text-white hover:bg-gray-800"
+                  : "bg-gray-200 text-gray-600"
             }`}
           >
             {saving ? (

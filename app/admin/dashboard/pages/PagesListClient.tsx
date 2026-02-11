@@ -17,7 +17,6 @@ import {
   Globe,
   Calendar,
   ChevronRight,
-  Palette,
   Home,
   Grid3X3,
   Lock,
@@ -89,18 +88,30 @@ export default function PagesListClient({
 
   const handleDuplicate = async (page: Page) => {
     try {
+      // First, fetch the full page with blocks
+      const fullPageResponse = await fetch(`/api/pages/${encodeURIComponent(page.slug)}?includeBlocks=true`);
+      if (!fullPageResponse.ok) {
+        console.error("Error fetching full page for duplication");
+        setActionMenuOpen(null);
+        return;
+      }
+      const fullPage = await fullPageResponse.json();
+      
       const newSlug = `${page.slug}-copy-${Date.now()}`;
       const response = await fetch("/api/pages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: `${page.title} (copie)`,
+          title: `${fullPage.title} (copie)`,
           slug: newSlug,
-          template: page.template,
-          backgroundColor: page.backgroundColor,
-          textColor: page.textColor,
+          template: fullPage.template,
+          backgroundColor: fullPage.backgroundColor,
+          textColor: fullPage.textColor,
           showInNav: false,
-          blocks: page.blocks || [],
+          metaTitle: fullPage.metaTitle,
+          metaDescription: fullPage.metaDescription,
+          customCSS: fullPage.customCSS,
+          blocks: fullPage.blocks || [],
         }),
       });
 
@@ -359,14 +370,6 @@ export default function PagesListClient({
                         </button>
                         {actionMenuOpen === page.id && (
                           <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                            <Link
-                              href={`/admin/visual-builder?page=${encodeURIComponent(page.slug)}`}
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                              onClick={() => setActionMenuOpen(null)}
-                            >
-                              <Palette className="w-4 h-4" />
-                              Visual Builder
-                            </Link>
                             <button
                               onClick={() => handleDuplicate(page)}
                               className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
