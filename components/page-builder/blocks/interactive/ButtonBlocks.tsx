@@ -305,19 +305,23 @@ export function ListBlock({ content }: BlockContentProps<ListContent>) {
 
   return (
     <ul className="space-y-3">
-      {items.map((item, index) => (
-        <li
-          key={index}
-          data-item-index={index}
-          data-child-type="list-item"
-          className="flex items-start gap-3"
-        >
-          <span className="flex-shrink-0 mt-1" style={{ color: iconColor }}>
-            {style === "number" ? `${index + 1}.` : iconMap[style]}
-          </span>
-          <span data-field="text">{item}</span>
-        </li>
-      ))}
+      {items.map((item, index) => {
+        // Items can be strings or objects with {text, _styles} from ChildElementEditor
+        const itemText = typeof item === "string" ? item : (item as unknown as { text?: string }).text || "";
+        return (
+          <li
+            key={index}
+            data-item-index={index}
+            data-child-type="list-item"
+            className="flex items-start gap-3"
+          >
+            <span className="flex-shrink-0 mt-1" style={{ color: iconColor }}>
+              {style === "number" ? `${index + 1}.` : iconMap[style]}
+            </span>
+            <span data-field="text">{itemText}</span>
+          </li>
+        );
+      })}
     </ul>
   );
 }

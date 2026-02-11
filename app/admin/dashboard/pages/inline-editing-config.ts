@@ -9,34 +9,36 @@
 // ============================================================================
 export const INLINE_EDITABLE_FIELDS: Record<string, string[]> = {
   // Core content blocks
-  HERO: ["title", "subtitle", "buttonText", "description"],
-  TEXT: ["text"],
+  HERO: ["title", "subtitle", "description"],
+  TEXT: [],
   HEADING: ["text"],
   PARAGRAPH: ["text"],
   BUTTON: ["text"],
+  BUTTON_GROUP: [],
   QUOTE: ["text", "author", "role"],
-  IMAGE: ["caption", "alt"],
+  IMAGE: [],
   DIVIDER: [],
   SPACER: [],
   HTML: [],
   EMBED: [],
 
   // Media blocks
-  VIDEO: ["caption", "title"],
+  VIDEO: [],
   GALLERY: [],
   IFRAME: [],
 
   // Layout blocks
   COLUMNS: [],
   CONTAINER: [],
-  GRID: ["title"],
+  GRID: [],
   BENTO: [],
 
-  // Content blocks
-  STATS: ["title", "subtitle"],
-  CARDS: ["title", "subtitle"],
-  LIST: ["title"],
-  ACCORDION: ["title"],
+  // Content blocks — these blocks have no top-level title/subtitle rendering
+  // (data-field="title" is only on child items, not top-level)
+  STATS: [],
+  CARDS: [],
+  LIST: [],
+  ACCORDION: [],
   TABS: [],
   TABLE: [],
 
@@ -44,26 +46,26 @@ export const INLINE_EDITABLE_FIELDS: Record<string, string[]> = {
   NEWSLETTER: ["title", "description", "buttonText"],
   CONTACT_FORM: ["title", "description", "submitText"],
 
-  // Rich content
-  FAQ: ["title", "subtitle"],
-  TEAM: ["title", "subtitle"],
-  TESTIMONIALS: ["title", "subtitle"],
-  TIMELINE: ["title", "subtitle"],
-  PRICING: ["title", "subtitle", "description"],
-  FEATURES: ["title", "subtitle", "description"],
+  // Rich content — no top-level title/subtitle in these components
+  FAQ: [],
+  TEAM: [],
+  TESTIMONIALS: [],
+  TIMELINE: [],
+  PRICING: [],
+  FEATURES: [],
   SERVICES_LIST: ["title", "subtitle"],
 
   // Info blocks
   INFO_BOX: ["title", "content", "linkLabel"],
   HOURS_TABLE: ["title"],
-  CTA_CARD: ["title", "description", "buttonText"],
+  CTA_CARD: ["title", "description"],
   REVIEW_BADGE: ["title", "source"],
   LOCATION_CARD: ["title", "address"],
   ICON_FEATURE: ["title", "description"],
 
   // Links & Files
-  LINK_BLOCK: ["title", "description"],
-  FILE: ["name", "description"],
+  LINK_BLOCK: ["text"],
+  FILE: [],
 
   // Store blocks
   STORE_HERO: ["title", "subtitle", "description"],
@@ -79,9 +81,9 @@ export const INLINE_EDITABLE_FIELDS: Record<string, string[]> = {
   NAVIGATION: [],
   FOOTER: [],
 
-  // Maps
-  MAP: ["title"],
-  MAP_INTERACTIVE: ["title"],
+  // Maps — MapBlock renders only an iframe, no data-field attrs
+  MAP: [],
+  MAP_INTERACTIVE: [],
 
   // Other
   LOGO: [],
@@ -238,7 +240,7 @@ export const ARRAY_EDITABLE_FIELDS: Record<string, ArrayFieldConfig[]> = {
   TABLE: [{ arrayField: "headers", textFields: ["text"], childType: "header" }],
 
   // Buttons group
-  BUTTONS: [
+  BUTTON_GROUP: [
     { arrayField: "buttons", textFields: ["label"], childType: "button" },
   ],
 

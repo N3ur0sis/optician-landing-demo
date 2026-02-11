@@ -191,6 +191,20 @@ export default function ContentEditor({
       );
 
     case "TEXT":
+      return (
+        <div className="space-y-4">
+          <Field label="Contenu HTML">
+            <textarea
+              value={(content.html as string) || ""}
+              onChange={(e) => updateContent("html", e.target.value)}
+              className="input"
+              rows={6}
+              placeholder="Votre contenu HTML ici..."
+            />
+          </Field>
+        </div>
+      );
+
     case "HEADING":
     case "PARAGRAPH":
       return (
@@ -604,25 +618,20 @@ export default function ContentEditor({
     case "SPACER":
       return (
         <div className="space-y-4">
-          <Field label="Hauteur (px)">
-            <input
-              type="number"
-              value={(content.height as number) || 40}
-              onChange={(e) =>
-                updateContent("height", parseInt(e.target.value))
-              }
+          <Field label="Hauteur">
+            <select
+              value={(content.height as string) || "md"}
+              onChange={(e) => updateContent("height", e.target.value)}
               className="input"
-              min="0"
-              max="500"
-              step="10"
-            />
+            >
+              <option value="xs">Très petit (8px)</option>
+              <option value="sm">Petit (16px)</option>
+              <option value="md">Moyen (32px)</option>
+              <option value="lg">Grand (48px)</option>
+              <option value="xl">Très grand (64px)</option>
+              <option value="2xl">Extra grand (96px)</option>
+            </select>
           </Field>
-          <div
-            className="h-8 bg-gray-200 rounded"
-            style={{
-              height: `${Math.min((content.height as number) || 40, 100)}px`,
-            }}
-          />
         </div>
       );
 
@@ -1058,8 +1067,8 @@ export default function ContentEditor({
           />
           <Field label="Style">
             <select
-              value={(content.variant as string) || "bullet"}
-              onChange={(e) => updateContent("variant", e.target.value)}
+              value={(content.style as string) || "bullet"}
+              onChange={(e) => updateContent("style", e.target.value)}
               className="input"
             >
               <option value="bullet">Puces</option>
@@ -1460,8 +1469,8 @@ export default function ContentEditor({
           <Field label="Titre">
             <input
               type="text"
-              value={(content.title as string) || ""}
-              onChange={(e) => updateContent("title", e.target.value)}
+              value={(content.text as string) || ""}
+              onChange={(e) => updateContent("text", e.target.value)}
               className="input"
               placeholder="Titre du lien"
             />
@@ -1478,12 +1487,21 @@ export default function ContentEditor({
           <Field label="URL">
             <input
               type="text"
-              value={(content.href as string) || ""}
-              onChange={(e) => updateContent("href", e.target.value)}
+              value={(content.url as string) || ""}
+              onChange={(e) => updateContent("url", e.target.value)}
               className="input"
               placeholder="https://..."
             />
           </Field>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.newTab as boolean) || false}
+              onChange={(e) => updateContent("newTab", e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-700">Ouvrir dans un nouvel onglet</span>
+          </div>
           <Field label="Image">
             <MediaPicker
               value={(content.image as string) || ""}
@@ -1509,16 +1527,15 @@ export default function ContentEditor({
             }
             onChange={(items) => updateContent("items", items)}
           />
-          <Field label="Comportement">
-            <select
-              value={(content.behavior as string) || "single"}
-              onChange={(e) => updateContent("behavior", e.target.value)}
-              className="input"
-            >
-              <option value="single">Un seul ouvert</option>
-              <option value="multiple">Plusieurs ouverts</option>
-            </select>
-          </Field>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={(content.allowMultiple as boolean) || false}
+              onChange={(e) => updateContent("allowMultiple", e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-700">Autoriser plusieurs ouverts</span>
+          </div>
         </div>
       );
 

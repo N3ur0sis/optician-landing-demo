@@ -989,7 +989,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     icon: "Minus",
     description: "Ligne de séparation horizontale",
     defaultContent: {
-      style: "solid",
+      variant: "solid",
       width: "medium",
     },
     defaultStyles: {
@@ -1059,7 +1059,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     icon: "ExternalLink",
     description: "Lien avec aperçu",
     defaultContent: {
-      title: "En savoir plus",
+      text: "En savoir plus",
       description: "Cliquez pour découvrir notre page",
       url: "#",
       newTab: false,
@@ -1124,7 +1124,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
           icon: "circle",
         },
       ],
-      variant: "line",
+      style: "line",
     },
     defaultStyles: {
       paddingTop: "md",
@@ -1311,7 +1311,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
         },
       ],
       columns: 3,
-      variant: "card",
+      style: "card",
       showBio: true,
       showSocial: false,
     },
@@ -1497,7 +1497,7 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
         },
       ],
       columns: 3,
-      layout: "cards",
+      style: "cards",
       iconStyle: "circle",
     },
     defaultStyles: {
