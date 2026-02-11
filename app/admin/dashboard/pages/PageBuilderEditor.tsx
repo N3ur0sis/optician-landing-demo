@@ -44,7 +44,9 @@ import {
 } from "@/types/page-builder";
 import BlockEditor from "./block-editor";
 import InlineEditableBlock from "./InlineEditableBlock";
-import ChildElementEditor, { useChildElementEditor } from "./ChildElementEditor";
+import ChildElementEditor, {
+  useChildElementEditor,
+} from "./ChildElementEditor";
 import SpacingOverlay from "./block-editor/SpacingOverlay";
 import ResizeHandles from "./block-editor/ResizeHandles";
 import { spacingToCss } from "./block-editor/types";
@@ -53,39 +55,42 @@ import { PageBuilderProvider } from "@/components/page-builder/PageBuilderContex
 // Migrate legacy style properties to new format
 function migrateBlockStyles(styles: BlockStyles): BlockStyles {
   const migrated = { ...styles };
-  
+
   // Migrate width properties
   if (migrated.containerWidth && !migrated.widthMode) {
     migrated.widthMode = "preset";
     migrated.widthPreset = migrated.containerWidth.toLowerCase() as any;
     delete migrated.containerWidth;
   }
-  
+
   if (migrated.widthPercent !== undefined && !migrated.widthMode) {
     migrated.widthMode = "custom";
     migrated.widthValue = migrated.widthPercent;
     migrated.widthUnit = "%";
     delete migrated.widthPercent;
   }
-  
+
   // Migrate deprecated 'full' preset to 'wide'
   if (migrated.widthPreset === "full") {
     migrated.widthPreset = "wide";
   }
-  
+
   // Migrate height properties
   if (migrated.fullHeight && !migrated.heightMode) {
     migrated.heightMode = "viewport";
     delete migrated.fullHeight;
   }
-  
+
   if (migrated.minHeight && !migrated.heightMode) {
     migrated.heightMode = "custom";
-    const heightValue = typeof migrated.minHeight === 'number' ? migrated.minHeight : parseInt(String(migrated.minHeight));
+    const heightValue =
+      typeof migrated.minHeight === "number"
+        ? migrated.minHeight
+        : parseInt(String(migrated.minHeight));
     migrated.heightValue = heightValue;
     migrated.heightUnit = "px";
   }
-  
+
   return migrated;
 }
 
@@ -116,15 +121,15 @@ export default function PageBuilderEditor({
   isNew = false,
 }: PageBuilderEditorProps) {
   const router = useRouter();
-  
+
   // Migrate legacy styles on initial load
   const migratedBlocks = useMemo(() => {
-    return (initialPage.blocks || []).map(block => ({
+    return (initialPage.blocks || []).map((block) => ({
       ...block,
-      styles: block.styles ? migrateBlockStyles(block.styles) : block.styles
+      styles: block.styles ? migrateBlockStyles(block.styles) : block.styles,
     }));
   }, [initialPage.blocks]);
-  
+
   const [page, setPage] = useState<Page>(initialPage);
   const [blocks, setBlocks] = useState<PageBlock[]>(migratedBlocks);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
@@ -156,7 +161,7 @@ export default function PageBuilderEditor({
 
   // Child element editor for styling child elements (cards, items, etc.)
   const childElementEditor = useChildElementEditor();
-  
+
   // Style mode - tracks which block has style mode active
   const [styleModeBlockId, setStyleModeBlockId] = useState<string | null>(null);
 
@@ -281,9 +286,9 @@ export default function PageBuilderEditor({
   // Check if slug already exists (debounced)
   useEffect(() => {
     const slug = page.slug;
-    
+
     // Don't check default slug for new pages or empty slugs
-    if (!slug || slug === '/nouvelle-page' || slug === '/') {
+    if (!slug || slug === "/nouvelle-page" || slug === "/") {
       setSlugExists(false);
       return;
     }
@@ -291,11 +296,12 @@ export default function PageBuilderEditor({
     const timeoutId = setTimeout(async () => {
       setCheckingSlug(true);
       try {
-        // Check if this slug is already used by another page
-        const response = await fetch(`/api/pages/${slug.replace(/^\//, '')}`, {
-          method: 'HEAD',
+        // Check if this slug is already used by another active page
+        // Adding includeDeleted=false to exclude soft-deleted pages
+        const response = await fetch(`/api/pages/${slug.replace(/^\//, "")}?includeDeleted=false`, {
+          method: "HEAD",
         });
-        
+
         // If we get a 200, the slug exists
         // For existing pages, check if it's our own page
         if (response.ok) {
@@ -339,8 +345,9 @@ export default function PageBuilderEditor({
 
     try {
       setLoadingRevisions(true);
+      // Use initialPage.slug (the slug in database) not page.slug (which may have been modified)
       const response = await fetch(
-        `/api/pages/${encodeURIComponent(page.slug)}/revisions`,
+        `/api/pages/${encodeURIComponent(initialPage.slug)}/revisions`,
       );
       if (response.ok) {
         const data = await response.json();
@@ -351,7 +358,7 @@ export default function PageBuilderEditor({
     } finally {
       setLoadingRevisions(false);
     }
-  }, [page.slug, isNew]);
+  }, [initialPage.slug, isNew]);
 
   // Load revisions when panel opens
   useEffect(() => {
@@ -364,7 +371,7 @@ export default function PageBuilderEditor({
   const fetchRevisionDetails = async (revisionId: string) => {
     try {
       const response = await fetch(
-        `/api/pages/${encodeURIComponent(page.slug)}/revisions/${revisionId}`,
+        `/api/pages/${encodeURIComponent(initialPage.slug)}/revisions/${revisionId}`,
       );
       if (response.ok) {
         const revision = await response.json();
@@ -388,7 +395,7 @@ export default function PageBuilderEditor({
     try {
       setRestoringRevision(true);
       const response = await fetch(
-        `/api/pages/${encodeURIComponent(page.slug)}/revisions/${revisionId}`,
+        `/api/pages/${encodeURIComponent(initialPage.slug)}/revisions/${revisionId}`,
         {
           method: "POST",
         },
@@ -414,38 +421,51 @@ export default function PageBuilderEditor({
 
   const handleSave = async () => {
     setSaveError(null);
-    
+
     // Validation pour les nouvelles pages
     if (isNew) {
-      const slug = page.slug.replace(/^\//, '');
-      if (!slug || slug === 'nouvelle-page') {
-        setSaveError('Veuillez modifier le slug de la page avant d\'enregistrer');
+      const slug = page.slug.replace(/^\//, "");
+      if (!slug || slug === "nouvelle-page") {
+        setSaveError(
+          "Veuillez modifier le slug de la page avant d'enregistrer",
+        );
         return;
       }
-      if (!page.title || page.title === 'Nouvelle page') {
-        setSaveError('Veuillez modifier le titre de la page avant d\'enregistrer');
+      if (!page.title || page.title === "Nouvelle page") {
+        setSaveError(
+          "Veuillez modifier le titre de la page avant d'enregistrer",
+        );
         return;
       }
     }
-    
+
     // Vérifier si le slug existe déjà
     if (slugExists) {
-      setSaveError('Ce slug est déjà utilisé par une autre page. Veuillez en choisir un autre.');
+      setSaveError(
+        "Ce slug est déjà utilisé par une autre page. Veuillez en choisir un autre.",
+      );
       return;
     }
-    
+
     setSaving(true);
     try {
+      // For existing pages, use the ORIGINAL slug (initialPage.slug) for the API endpoint
+      // because the page in the database still has the old slug until we save
       const url = isNew
         ? "/api/pages"
-        : `/api/pages/${encodeURIComponent(page.slug)}`;
+        : `/api/pages/${encodeURIComponent(initialPage.slug)}`;
       const method = isNew ? "POST" : "PUT";
 
+      // Check if slug has changed (for existing pages)
+      const slugChanged = !isNew && page.slug !== initialPage.slug;
+      
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...page,
+          // Send newSlug if the slug has changed
+          ...(slugChanged && { newSlug: page.slug }),
           blocks: blocks.map((block, index) => ({
             ...block,
             order: index,
@@ -455,7 +475,25 @@ export default function PageBuilderEditor({
 
       if (response.ok) {
         const updatedPage = await response.json();
-        // Mark that we're updating from save to prevent hasChanges from being set
+        
+        // Check if slug changed
+        const newSlug = updatedPage.slug.replace(/^\//, "");
+        const currentUrlSlug = initialPage.slug.replace(/^\//, "");
+        const slugChanged = !isNew && newSlug !== currentUrlSlug;
+        
+        // If slug changed, do a full page reload to get fresh initialPage
+        if (slugChanged) {
+          window.location.href = `/admin/dashboard/pages/edit/${newSlug}`;
+          return;
+        }
+        
+        // For new pages, redirect to edit page
+        if (isNew) {
+          window.location.href = `/admin/dashboard/pages/edit/${newSlug}`;
+          return;
+        }
+        
+        // Normal save (no slug change) - just update state
         isSavingRef.current = true;
         setPage(updatedPage);
         setBlocks(updatedPage.blocks || []);
@@ -463,18 +501,10 @@ export default function PageBuilderEditor({
         setHasChanges(false);
 
         // Refresh revisions after save
-        if (!isNew) {
-          fetchRevisions();
-        }
-
-        if (isNew) {
-          router.push(
-            `/admin/dashboard/pages/edit/${updatedPage.slug.replace(/^\//, "")}`,
-          );
-        }
+        fetchRevisions();
       } else {
         const errorData = await response.json();
-        setSaveError(errorData.error || 'Erreur lors de la sauvegarde');
+        setSaveError(errorData.error || "Erreur lors de la sauvegarde");
       }
     } catch (error) {
       console.error("Error saving page:", error);
@@ -573,7 +603,7 @@ export default function PageBuilderEditor({
 
   const selectedBlock = useMemo(
     () => blocks.find((b) => b.id === selectedBlockId),
-    [blocks, selectedBlockId]
+    [blocks, selectedBlockId],
   );
 
   // Memoized callback for BlockEditor to prevent infinite loops
@@ -583,7 +613,7 @@ export default function PageBuilderEditor({
         handleUpdateBlock(selectedBlockId, updates);
       }
     },
-    [selectedBlockId, handleUpdateBlock]
+    [selectedBlockId, handleUpdateBlock],
   );
 
   // Live style preview callback - directly manipulates DOM for instant feedback
@@ -593,21 +623,21 @@ export default function PageBuilderEditor({
         const element = blockElementsRef.current.get(selectedBlockId);
         if (element) {
           if (width !== undefined) {
-            element.style.width = width || '';
-            element.style.transition = 'none'; // Disable transition for instant feedback
+            element.style.width = width || "";
+            element.style.transition = "none"; // Disable transition for instant feedback
           }
           if (height !== undefined) {
-            element.style.minHeight = height || '';
-            element.style.transition = 'none';
+            element.style.minHeight = height || "";
+            element.style.transition = "none";
           }
           // Clear both if both are undefined (end of drag)
           if (width === undefined && height === undefined) {
-            element.style.transition = '';
+            element.style.transition = "";
           }
         }
       }
     },
-    [selectedBlockId]
+    [selectedBlockId],
   );
 
   const deviceWidths = {
@@ -660,9 +690,9 @@ export default function PageBuilderEditor({
                 setPage({ ...page, title: e.target.value });
               }}
               className={`font-semibold text-lg bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-black/10 rounded px-2 -mx-2 placeholder:text-gray-500 ${
-                isNew && page.title === 'Nouvelle page'
-                  ? 'text-amber-600'
-                  : 'text-gray-900'
+                isNew && page.title === "Nouvelle page"
+                  ? "text-amber-600"
+                  : "text-gray-900"
               }`}
               placeholder="Titre de la page"
             />
@@ -680,10 +710,10 @@ export default function PageBuilderEditor({
                 }}
                 className={`bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-black/10 rounded px-1 placeholder:text-gray-500 ${
                   slugExists
-                    ? 'text-red-600 ring-2 ring-red-300'
-                    : isNew && page.slug === '/nouvelle-page'
-                      ? 'text-amber-600'
-                      : 'text-gray-700'
+                    ? "text-red-600 ring-2 ring-red-300"
+                    : isNew && page.slug === "/nouvelle-page"
+                      ? "text-amber-600"
+                      : "text-gray-700"
                 }`}
                 placeholder="url-de-la-page"
               />
@@ -818,20 +848,22 @@ export default function PageBuilderEditor({
           </button>
 
           {/* Status Indicators */}
-          {isNew && (page.title === 'Nouvelle page' || page.slug === '/nouvelle-page') && (
-            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full text-sm font-medium">
-              <Info className="h-4 w-4" />
-              Modifier le nom et slug
-            </div>
-          )}
-          
+          {isNew &&
+            (page.title === "Nouvelle page" ||
+              page.slug === "/nouvelle-page") && (
+              <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full text-sm font-medium">
+                <Info className="h-4 w-4" />
+                Modifier le nom et slug
+              </div>
+            )}
+
           {slugExists && (
             <div className="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-1.5 rounded-full text-sm font-medium">
               <AlertCircle className="h-4 w-4" />
               Slug déjà utilisé
             </div>
           )}
-          
+
           {hasChanges && (
             <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full text-sm font-medium">
               <AlertCircle className="h-4 w-4" />
@@ -1010,393 +1042,442 @@ export default function PageBuilderEditor({
               </div>
             ) : (
               <PageBuilderProvider isEditing={viewMode === "edit"}>
-              <div className="min-h-full relative">
-                {blocks.map((block) => {
-                  const isInline = block.styles?.inline === true;
-                  const isSelected = selectedBlockId === block.id;
-                  const blockStyles = block.styles || {};
+                <div className="min-h-full relative">
+                  {blocks.map((block) => {
+                    const isInline = block.styles?.inline === true;
+                    const isSelected = selectedBlockId === block.id;
+                    const blockStyles = block.styles || {};
 
-                  // Preset maps for width and height
-                  // Note: 'full' is deprecated, mapped to 'wide' for backwards compatibility
-                  const widthPresetMap: Record<string, string> = {
-                    narrow: "672px",
-                    medium: "896px",
-                    wide: "1152px",
-                    full: "1152px", // Deprecated: same as wide
-                    edge: "100%",
-                  };
-                  
-                  const heightPresetMap: Record<string, string> = {
-                    small: "200px",
-                    medium: "400px",
-                    large: "600px",
-                    xlarge: "800px",
-                  };
+                    // Preset maps for width and height
+                    // Note: 'full' is deprecated, mapped to 'wide' for backwards compatibility
+                    const widthPresetMap: Record<string, string> = {
+                      narrow: "672px",
+                      medium: "896px",
+                      wide: "1152px",
+                      full: "1152px", // Deprecated: same as wide
+                      edge: "100%",
+                    };
 
-                  // Calculate wrapper styles for proper visual feedback
-                  // Only apply dimension styles in edit mode - in preview mode, BlockRenderer handles them
-                  const wrapperStyle: React.CSSProperties = {
-                    display: isInline ? "inline-block" : "block",
-                    verticalAlign: isInline ? "top" : undefined,
-                  };
+                    const heightPresetMap: Record<string, string> = {
+                      small: "200px",
+                      medium: "400px",
+                      large: "600px",
+                      xlarge: "800px",
+                    };
 
-                  // Only apply dimension styles in edit mode
-                  if (viewMode === "edit") {
-                    wrapperStyle.transition = "width 0.15s ease, min-height 0.15s ease";
-                    
-                    // Apply width from block styles - handle all modes
-                    if (blockStyles.widthMode === "custom" && blockStyles.widthValue) {
-                      const unit = blockStyles.widthUnit || "%";
-                      wrapperStyle.width = `${blockStyles.widthValue}${unit}`;
-                    } else if (blockStyles.widthMode === "preset" && blockStyles.widthPreset) {
-                      wrapperStyle.width = widthPresetMap[blockStyles.widthPreset] || "100%";
-                      wrapperStyle.maxWidth = "100%"; // Ensure it doesn't overflow
-                    } else if (blockStyles.widthPercent && blockStyles.widthPercent < 100) {
-                      wrapperStyle.width = `${blockStyles.widthPercent}%`;
-                    }
+                    // Calculate wrapper styles for proper visual feedback
+                    // Only apply dimension styles in edit mode - in preview mode, BlockRenderer handles them
+                    const wrapperStyle: React.CSSProperties = {
+                      display: isInline ? "inline-block" : "block",
+                      verticalAlign: isInline ? "top" : undefined,
+                    };
 
-                    // Apply height from block styles - handle all modes
-                    if (blockStyles.heightMode === "viewport" || blockStyles.fullHeight) {
-                      wrapperStyle.minHeight = "100vh";
-                    } else if (blockStyles.heightMode === "preset" && blockStyles.heightPreset) {
-                      wrapperStyle.minHeight = heightPresetMap[blockStyles.heightPreset] || "auto";
-                    } else if (blockStyles.heightMode === "custom" && blockStyles.heightValue) {
-                      const unit = blockStyles.heightUnit || "px";
-                      wrapperStyle.minHeight = `${blockStyles.heightValue}${unit}`;
-                    } else if (blockStyles.minHeight) {
-                      wrapperStyle.minHeight = typeof blockStyles.minHeight === "number" 
-                        ? `${blockStyles.minHeight}px` 
-                        : blockStyles.minHeight;
-                    }
+                    // Only apply dimension styles in edit mode
+                    if (viewMode === "edit") {
+                      wrapperStyle.transition =
+                        "width 0.15s ease, min-height 0.15s ease";
 
-                    // Apply alignment (margin auto)
-                    if (wrapperStyle.width && !isInline) {
-                      if (blockStyles.alignment === "center") {
-                        wrapperStyle.marginLeft = "auto";
-                        wrapperStyle.marginRight = "auto";
-                      } else if (blockStyles.alignment === "right") {
-                        wrapperStyle.marginLeft = "auto";
-                        wrapperStyle.marginRight = "0";
-                      } else {
-                        wrapperStyle.marginLeft = "0";
-                        wrapperStyle.marginRight = "auto";
+                      // Apply width from block styles - handle all modes
+                      if (
+                        blockStyles.widthMode === "custom" &&
+                        blockStyles.widthValue
+                      ) {
+                        const unit = blockStyles.widthUnit || "%";
+                        wrapperStyle.width = `${blockStyles.widthValue}${unit}`;
+                      } else if (
+                        blockStyles.widthMode === "preset" &&
+                        blockStyles.widthPreset
+                      ) {
+                        wrapperStyle.width =
+                          widthPresetMap[blockStyles.widthPreset] || "100%";
+                        wrapperStyle.maxWidth = "100%"; // Ensure it doesn't overflow
+                      } else if (
+                        blockStyles.widthPercent &&
+                        blockStyles.widthPercent < 100
+                      ) {
+                        wrapperStyle.width = `${blockStyles.widthPercent}%`;
                       }
+
+                      // Apply height from block styles - handle all modes
+                      if (
+                        blockStyles.heightMode === "viewport" ||
+                        blockStyles.fullHeight
+                      ) {
+                        wrapperStyle.minHeight = "100vh";
+                      } else if (
+                        blockStyles.heightMode === "preset" &&
+                        blockStyles.heightPreset
+                      ) {
+                        wrapperStyle.minHeight =
+                          heightPresetMap[blockStyles.heightPreset] || "auto";
+                      } else if (
+                        blockStyles.heightMode === "custom" &&
+                        blockStyles.heightValue
+                      ) {
+                        const unit = blockStyles.heightUnit || "px";
+                        wrapperStyle.minHeight = `${blockStyles.heightValue}${unit}`;
+                      } else if (blockStyles.minHeight) {
+                        wrapperStyle.minHeight =
+                          typeof blockStyles.minHeight === "number"
+                            ? `${blockStyles.minHeight}px`
+                            : blockStyles.minHeight;
+                      }
+
+                      // Apply alignment (margin auto)
+                      if (wrapperStyle.width && !isInline) {
+                        if (blockStyles.alignment === "center") {
+                          wrapperStyle.marginLeft = "auto";
+                          wrapperStyle.marginRight = "auto";
+                        } else if (blockStyles.alignment === "right") {
+                          wrapperStyle.marginLeft = "auto";
+                          wrapperStyle.marginRight = "0";
+                        } else {
+                          wrapperStyle.marginLeft = "0";
+                          wrapperStyle.marginRight = "auto";
+                        }
+                      }
+
+                      // Apply vertical alignment when height is defined
+                      if (wrapperStyle.minHeight && blockStyles.verticalAlign) {
+                        wrapperStyle.display = "flex";
+                        wrapperStyle.flexDirection = "column";
+                        if (blockStyles.verticalAlign === "top") {
+                          wrapperStyle.justifyContent = "flex-start";
+                        } else if (blockStyles.verticalAlign === "center") {
+                          wrapperStyle.justifyContent = "center";
+                        } else if (blockStyles.verticalAlign === "bottom") {
+                          wrapperStyle.justifyContent = "flex-end";
+                        }
+                      }
+
+                      // Apply vertical margins as PADDING on wrapper for edit mode visualization
+                      // This makes the blue border encompass the margin zone
+                      // SpacingOverlay shows orange zones at wrapper edges = margin
+                      // In render mode, BlockRenderer applies REAL CSS margins instead
+                      const marginTopCss = spacingToCss(blockStyles.marginTop);
+                      const marginBottomCss = spacingToCss(
+                        blockStyles.marginBottom,
+                      );
+                      if (marginTopCss) wrapperStyle.paddingTop = marginTopCss;
+                      if (marginBottomCss)
+                        wrapperStyle.paddingBottom = marginBottomCss;
                     }
 
-                    // Apply vertical alignment when height is defined
-                    if (wrapperStyle.minHeight && blockStyles.verticalAlign) {
-                      wrapperStyle.display = "flex";
-                      wrapperStyle.flexDirection = "column";
-                      if (blockStyles.verticalAlign === "top") {
-                        wrapperStyle.justifyContent = "flex-start";
-                      } else if (blockStyles.verticalAlign === "center") {
-                        wrapperStyle.justifyContent = "center";
-                      } else if (blockStyles.verticalAlign === "bottom") {
-                        wrapperStyle.justifyContent = "flex-end";
-                      }
-                    }
+                    return (
+                      <div
+                        key={block.id}
+                        data-page-block={block.type}
+                        ref={(el) => {
+                          if (el) blockElementsRef.current.set(block.id, el);
+                          else blockElementsRef.current.delete(block.id);
+                        }}
+                        className={`relative ${viewMode === "edit" ? "group" : ""} ${
+                          !block.visible ? "opacity-30" : ""
+                        }`}
+                        style={wrapperStyle}
+                        onClick={() =>
+                          viewMode === "edit" && setSelectedBlockId(block.id)
+                        }
+                      >
+                        {/* Spacing Overlay - visible when block is selected */}
+                        {viewMode === "edit" &&
+                          isSelected &&
+                          showSpacingOverlay && (
+                            <SpacingOverlay
+                              blockElement={
+                                blockElementsRef.current.get(block.id) || null
+                              }
+                              styles={block.styles || {}}
+                              onUpdateStyle={(key, value) =>
+                                handleUpdateBlock(block.id, {
+                                  styles: { ...block.styles, [key]: value },
+                                })
+                              }
+                              visible={showSpacingOverlay}
+                            />
+                          )}
 
-                    // Apply vertical margins as PADDING on wrapper for edit mode visualization
-                    // This makes the blue border encompass the margin zone
-                    // SpacingOverlay shows orange zones at wrapper edges = margin
-                    // In render mode, BlockRenderer applies REAL CSS margins instead
-                    const marginTopCss = spacingToCss(blockStyles.marginTop);
-                    const marginBottomCss = spacingToCss(blockStyles.marginBottom);
-                    if (marginTopCss) wrapperStyle.paddingTop = marginTopCss;
-                    if (marginBottomCss) wrapperStyle.paddingBottom = marginBottomCss;
-                  }
-
-                  return (
-                    <div
-                      key={block.id}
-                      data-page-block={block.type}
-                      ref={(el) => {
-                        if (el) blockElementsRef.current.set(block.id, el);
-                        else blockElementsRef.current.delete(block.id);
-                      }}
-                      className={`relative ${viewMode === "edit" ? "group" : ""} ${
-                        !block.visible ? "opacity-30" : ""
-                      }`}
-                      style={wrapperStyle}
-                      onClick={() =>
-                        viewMode === "edit" && setSelectedBlockId(block.id)
-                      }
-                    >
-                      {/* Spacing Overlay - visible when block is selected */}
-                      {viewMode === "edit" &&
-                        isSelected &&
-                        showSpacingOverlay && (
-                          <SpacingOverlay
+                        {/* Resize Handles - visible when block is selected */}
+                        {viewMode === "edit" && isSelected && (
+                          <ResizeHandles
                             blockElement={
                               blockElementsRef.current.get(block.id) || null
                             }
                             styles={block.styles || {}}
-                            onUpdateStyle={(key, value) =>
+                            onUpdateStyle={(styleUpdates) =>
                               handleUpdateBlock(block.id, {
-                                styles: { ...block.styles, [key]: value },
+                                styles: { ...block.styles, ...styleUpdates },
                               })
                             }
-                            visible={showSpacingOverlay}
+                            onLivePreview={handleLiveStylePreview}
+                            visible={true}
+                            containerWidth={containerWidth}
                           />
                         )}
 
-                      {/* Resize Handles - visible when block is selected */}
-                      {viewMode === "edit" && isSelected && (
-                        <ResizeHandles
-                          blockElement={
-                            blockElementsRef.current.get(block.id) || null
-                          }
-                          styles={block.styles || {}}
-                          onUpdateStyle={(styleUpdates) =>
-                            handleUpdateBlock(block.id, {
-                              styles: { ...block.styles, ...styleUpdates },
-                            })
-                          }
-                          onLivePreview={handleLiveStylePreview}
-                          visible={true}
-                          containerWidth={containerWidth}
-                        />
-                      )}
+                        {/* Block Selection Outline */}
+                        {viewMode === "edit" && (
+                          <div
+                            className={`absolute inset-0 border-2 transition-colors pointer-events-none z-10 ${
+                              isSelected
+                                ? "border-blue-500"
+                                : "border-transparent group-hover:border-blue-300"
+                            }`}
+                          />
+                        )}
 
-                      {/* Block Selection Outline */}
-                      {viewMode === "edit" && (
-                        <div
-                          className={`absolute inset-0 border-2 transition-colors pointer-events-none z-10 ${
-                            isSelected
-                              ? "border-blue-500"
-                              : "border-transparent group-hover:border-blue-300"
-                          }`}
-                        />
-                      )}
-
-                      {/* Block Actions */}
-                      {viewMode === "edit" && isSelected && (
-                        <>
-                          {/* Top Toolbar - Compact and Responsive */}
-                          <div className="absolute top-2 right-2 z-20 flex items-center gap-0.5 bg-white rounded-lg shadow-lg p-0.5 border border-gray-200">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setInsertAfterBlockId(block.id);
-                                setShowBlockPicker(true);
-                              }}
-                              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                              title="Ajouter après"
-                            >
-                              <Plus className="w-4 h-4 text-gray-700" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDuplicateBlock(block.id);
-                              }}
-                              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                              title="Dupliquer"
-                            >
-                              <Copy className="w-4 h-4 text-gray-700" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteBlock(block.id);
-                              }}
-                              className="p-1.5 hover:bg-red-100 rounded transition-colors"
-                              title="Supprimer"
-                            >
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </button>
-                          </div>
-
-                          {/* Bottom Quick Toolbar - Size & Alignment - Scrollable on small screens */}
-                          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 max-w-[calc(100%-1rem)] overflow-x-auto">
-                            <div className="flex items-center gap-0.5 bg-white rounded-lg shadow-lg p-0.5 border border-gray-200">
-                              {/* Inline Toggle */}
+                        {/* Block Actions */}
+                        {viewMode === "edit" && isSelected && (
+                          <>
+                            {/* Top Toolbar - Compact and Responsive */}
+                            <div className="absolute top-2 right-2 z-20 flex items-center gap-0.5 bg-white rounded-lg shadow-lg p-0.5 border border-gray-200">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleUpdateBlock(block.id, {
-                                    styles: {
-                                      ...block.styles,
-                                      inline: !block.styles?.inline,
-                                    },
-                                  });
+                                  setInsertAfterBlockId(block.id);
+                                  setShowBlockPicker(true);
                                 }}
-                                className={`p-1.5 rounded transition-colors border-r border-gray-200 mr-1 ${
-                                  block.styles?.inline
-                                    ? "bg-blue-500 text-white"
-                                    : "hover:bg-gray-100 text-gray-700"
-                                }`}
-                                title="Affichage en ligne (côte à côte)"
+                                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                                title="Ajouter après"
                               >
-                                <Columns className="w-3.5 h-3.5" />
+                                <Plus className="w-4 h-4 text-gray-700" />
                               </button>
-
-                              {/* Block Width Quick Selectors - Synced with StyleEditor */}
-                              <div className="flex items-center gap-0.5 border-r border-gray-200 pr-1 mr-1">
-                                {[
-                                  { value: 25, label: "25%" },
-                                  { value: 50, label: "50%" },
-                                  { value: 75, label: "75%" },
-                                  { value: 100, label: "100%" },
-                                ].map((opt) => {
-                                  // Determine if this button is active based on new system only
-                                  const styles = block.styles || {};
-                                  let currentWidthPercent = 100;
-                                  
-                                  if (styles.widthMode === "custom" && styles.widthUnit === "%" && styles.widthValue !== undefined) {
-                                    currentWidthPercent = styles.widthValue;
-                                  } else if (styles.widthMode === "preset" && styles.widthPreset) {
-                                    const presetMap: Record<string, number> = {
-                                      "narrow": 50, "medium": 67, "wide": 85, "full": 95, "edge": 100,
-                                    };
-                                    currentWidthPercent = presetMap[styles.widthPreset] || 100;
-                                  }
-                                  // No longer reading widthPercent - it's legacy
-                                  
-                                  const isActive = Math.abs(currentWidthPercent - opt.value) < 3;
-                                  
-                                  return (
-                                    <button
-                                      key={opt.value}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleUpdateBlock(block.id, {
-                                          styles: {
-                                            ...block.styles,
-                                            widthMode: "custom",
-                                            widthValue: opt.value,
-                                            widthUnit: "%",
-                                            // Clear legacy properties
-                                            widthPercent: undefined,
-                                            containerWidth: undefined,
-                                          },
-                                        });
-                                      }}
-                                      className={`px-2 py-1 text-xs rounded transition-colors ${
-                                        isActive
-                                          ? "bg-black text-white"
-                                          : "hover:bg-gray-100 text-gray-700"
-                                      }`}
-                                      title={`Largeur ${opt.label}`}
-                                    >
-                                      {opt.label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-
-                              {/* Block Alignment */}
-                              <div className="flex items-center gap-0.5">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUpdateBlock(block.id, {
-                                      styles: {
-                                        ...block.styles,
-                                        alignment: "left",
-                                      },
-                                    });
-                                  }}
-                                  className={`p-1.5 rounded transition-colors ${
-                                    block.styles?.alignment === "left"
-                                      ? "bg-black text-white"
-                                      : "hover:bg-gray-100 text-gray-700"
-                                  }`}
-                                  title="Aligner à gauche"
-                                >
-                                  <AlignLeft className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUpdateBlock(block.id, {
-                                      styles: {
-                                        ...block.styles,
-                                        alignment: "center",
-                                      },
-                                    });
-                                  }}
-                                  className={`p-1.5 rounded transition-colors ${
-                                    block.styles?.alignment === "center"
-                                      ? "bg-black text-white"
-                                      : "hover:bg-gray-100 text-gray-700"
-                                  }`}
-                                  title="Centrer le bloc"
-                                >
-                                  <AlignCenter className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleUpdateBlock(block.id, {
-                                      styles: {
-                                        ...block.styles,
-                                        alignment: "right",
-                                      },
-                                    });
-                                  }}
-                                  className={`p-1.5 rounded transition-colors ${
-                                    block.styles?.alignment === "right"
-                                      ? "bg-black text-white"
-                                      : "hover:bg-gray-100 text-gray-700"
-                                  }`}
-                                  title="Aligner à droite"
-                                >
-                                  <AlignRight className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-
-                              {/* Style Mode Toggle */}
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setStyleModeBlockId(
-                                    styleModeBlockId === block.id ? null : block.id
-                                  );
+                                  handleDuplicateBlock(block.id);
                                 }}
-                                className={`p-1.5 rounded transition-colors border-l border-gray-200 ml-1 ${
-                                  styleModeBlockId === block.id
-                                    ? "bg-blue-500 text-white"
-                                    : "hover:bg-gray-100 text-gray-700"
-                                }`}
-                                title="Mode Style (Alt+Clic)"
+                                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                                title="Dupliquer"
                               >
-                                <Palette className="w-3.5 h-3.5" />
+                                <Copy className="w-4 h-4 text-gray-700" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteBlock(block.id);
+                                }}
+                                className="p-1.5 hover:bg-red-100 rounded transition-colors"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-500" />
                               </button>
                             </div>
-                          </div>
-                        </>
-                      )}
 
-                      {/* Block Content - Inline Editable */}
-                      <InlineEditableBlock
-                        block={block}
-                        isEditing={
-                          viewMode === "edit" && selectedBlockId === block.id
-                        }
-                        isPreviewMode={viewMode === "preview"}
-                        onUpdate={(updates) =>
-                          handleUpdateBlock(block.id, updates)
-                        }
-                        onChildClick={(e, element, childType, index, arrayField) => {
-                          childElementEditor.handleChildClick(
+                            {/* Bottom Quick Toolbar - Size & Alignment - Scrollable on small screens */}
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 max-w-[calc(100%-1rem)] overflow-x-auto">
+                              <div className="flex items-center gap-0.5 bg-white rounded-lg shadow-lg p-0.5 border border-gray-200">
+                                {/* Inline Toggle */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateBlock(block.id, {
+                                      styles: {
+                                        ...block.styles,
+                                        inline: !block.styles?.inline,
+                                      },
+                                    });
+                                  }}
+                                  className={`p-1.5 rounded transition-colors border-r border-gray-200 mr-1 ${
+                                    block.styles?.inline
+                                      ? "bg-blue-500 text-white"
+                                      : "hover:bg-gray-100 text-gray-700"
+                                  }`}
+                                  title="Affichage en ligne (côte à côte)"
+                                >
+                                  <Columns className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Block Width Quick Selectors - Synced with StyleEditor */}
+                                <div className="flex items-center gap-0.5 border-r border-gray-200 pr-1 mr-1">
+                                  {[
+                                    { value: 25, label: "25%" },
+                                    { value: 50, label: "50%" },
+                                    { value: 75, label: "75%" },
+                                    { value: 100, label: "100%" },
+                                  ].map((opt) => {
+                                    // Determine if this button is active based on new system only
+                                    const styles = block.styles || {};
+                                    let currentWidthPercent = 100;
+
+                                    if (
+                                      styles.widthMode === "custom" &&
+                                      styles.widthUnit === "%" &&
+                                      styles.widthValue !== undefined
+                                    ) {
+                                      currentWidthPercent = styles.widthValue;
+                                    } else if (
+                                      styles.widthMode === "preset" &&
+                                      styles.widthPreset
+                                    ) {
+                                      const presetMap: Record<string, number> =
+                                        {
+                                          narrow: 50,
+                                          medium: 67,
+                                          wide: 85,
+                                          full: 95,
+                                          edge: 100,
+                                        };
+                                      currentWidthPercent =
+                                        presetMap[styles.widthPreset] || 100;
+                                    }
+                                    // No longer reading widthPercent - it's legacy
+
+                                    const isActive =
+                                      Math.abs(
+                                        currentWidthPercent - opt.value,
+                                      ) < 3;
+
+                                    return (
+                                      <button
+                                        key={opt.value}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleUpdateBlock(block.id, {
+                                            styles: {
+                                              ...block.styles,
+                                              widthMode: "custom",
+                                              widthValue: opt.value,
+                                              widthUnit: "%",
+                                              // Clear legacy properties
+                                              widthPercent: undefined,
+                                              containerWidth: undefined,
+                                            },
+                                          });
+                                        }}
+                                        className={`px-2 py-1 text-xs rounded transition-colors ${
+                                          isActive
+                                            ? "bg-black text-white"
+                                            : "hover:bg-gray-100 text-gray-700"
+                                        }`}
+                                        title={`Largeur ${opt.label}`}
+                                      >
+                                        {opt.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+
+                                {/* Block Alignment */}
+                                <div className="flex items-center gap-0.5">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleUpdateBlock(block.id, {
+                                        styles: {
+                                          ...block.styles,
+                                          alignment: "left",
+                                        },
+                                      });
+                                    }}
+                                    className={`p-1.5 rounded transition-colors ${
+                                      block.styles?.alignment === "left"
+                                        ? "bg-black text-white"
+                                        : "hover:bg-gray-100 text-gray-700"
+                                    }`}
+                                    title="Aligner à gauche"
+                                  >
+                                    <AlignLeft className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleUpdateBlock(block.id, {
+                                        styles: {
+                                          ...block.styles,
+                                          alignment: "center",
+                                        },
+                                      });
+                                    }}
+                                    className={`p-1.5 rounded transition-colors ${
+                                      block.styles?.alignment === "center"
+                                        ? "bg-black text-white"
+                                        : "hover:bg-gray-100 text-gray-700"
+                                    }`}
+                                    title="Centrer le bloc"
+                                  >
+                                    <AlignCenter className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleUpdateBlock(block.id, {
+                                        styles: {
+                                          ...block.styles,
+                                          alignment: "right",
+                                        },
+                                      });
+                                    }}
+                                    className={`p-1.5 rounded transition-colors ${
+                                      block.styles?.alignment === "right"
+                                        ? "bg-black text-white"
+                                        : "hover:bg-gray-100 text-gray-700"
+                                    }`}
+                                    title="Aligner à droite"
+                                  >
+                                    <AlignRight className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+
+                                {/* Style Mode Toggle */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setStyleModeBlockId(
+                                      styleModeBlockId === block.id
+                                        ? null
+                                        : block.id,
+                                    );
+                                  }}
+                                  className={`p-1.5 rounded transition-colors border-l border-gray-200 ml-1 ${
+                                    styleModeBlockId === block.id
+                                      ? "bg-blue-500 text-white"
+                                      : "hover:bg-gray-100 text-gray-700"
+                                  }`}
+                                  title="Mode Style (Alt+Clic)"
+                                >
+                                  <Palette className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {/* Block Content - Inline Editable */}
+                        <InlineEditableBlock
+                          block={block}
+                          isEditing={
+                            viewMode === "edit" && selectedBlockId === block.id
+                          }
+                          isPreviewMode={viewMode === "preview"}
+                          onUpdate={(updates) =>
+                            handleUpdateBlock(block.id, updates)
+                          }
+                          onChildClick={(
                             e,
                             element,
                             childType,
                             index,
-                            block.id,
-                            arrayField
-                          );
-                        }}
-                        styleMode={styleModeBlockId === block.id}
-                        onStyleModeChange={(active) =>
-                          setStyleModeBlockId(active ? block.id : null)
-                        }
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+                            arrayField,
+                          ) => {
+                            childElementEditor.handleChildClick(
+                              e,
+                              element,
+                              childType,
+                              index,
+                              block.id,
+                              arrayField,
+                            );
+                          }}
+                          styleMode={styleModeBlockId === block.id}
+                          onStyleModeChange={(active) =>
+                            setStyleModeBlockId(active ? block.id : null)
+                          }
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </PageBuilderProvider>
             )}
           </div>
@@ -1461,24 +1542,36 @@ export default function PageBuilderEditor({
           targetElement={childElementEditor.selectedChild.element}
           currentStyles={(() => {
             // Get current styles from the block content
-            const block = blocks.find(b => b.id === childElementEditor.selectedChild?.blockId);
+            const block = blocks.find(
+              (b) => b.id === childElementEditor.selectedChild?.blockId,
+            );
             if (block && childElementEditor.selectedChild) {
-              const { arrayField, index: itemIndex } = childElementEditor.selectedChild;
+              const { arrayField, index: itemIndex } =
+                childElementEditor.selectedChild;
               const content = block.content as Record<string, unknown>;
-              const items = content[arrayField] as Array<Record<string, unknown>> | undefined;
+              const items = content[arrayField] as
+                | Array<Record<string, unknown>>
+                | undefined;
               if (items && items[itemIndex]) {
-                return (items[itemIndex]._styles as Record<string, string>) || {};
+                return (
+                  (items[itemIndex]._styles as Record<string, string>) || {}
+                );
               }
             }
             return {};
           })()}
           onUpdateStyles={(styles) => {
             // Update the styles in the block content
-            const block = blocks.find(b => b.id === childElementEditor.selectedChild?.blockId);
+            const block = blocks.find(
+              (b) => b.id === childElementEditor.selectedChild?.blockId,
+            );
             if (block && childElementEditor.selectedChild) {
-              const { arrayField, index: itemIndex } = childElementEditor.selectedChild;
+              const { arrayField, index: itemIndex } =
+                childElementEditor.selectedChild;
               const content = block.content as Record<string, unknown>;
-              const items = content[arrayField] as Array<Record<string, unknown>> | undefined;
+              const items = content[arrayField] as
+                | Array<Record<string, unknown>>
+                | undefined;
               if (items && items[itemIndex]) {
                 const newItems = [...items];
                 newItems[itemIndex] = {
@@ -1651,7 +1744,9 @@ function PageSettings({
 
         {/* Navbar Title Settings */}
         <div className="pt-4 border-t border-gray-200">
-          <h4 className="font-medium mb-3 text-gray-900">Titre dans la navbar</h4>
+          <h4 className="font-medium mb-3 text-gray-900">
+            Titre dans la navbar
+          </h4>
 
           <label className="flex items-center gap-2 mb-3">
             <input
@@ -1666,9 +1761,10 @@ function PageSettings({
               Afficher un titre dans la navbar
             </span>
           </label>
-          
+
           <p className="text-xs text-gray-500 mb-3">
-            Si activé, le titre remplace le menu central de la navbar et un bouton retour s&apos;affiche.
+            Si activé, le titre remplace le menu central de la navbar et un
+            bouton retour s&apos;affiche.
           </p>
 
           {page.showNavbarTitle && (

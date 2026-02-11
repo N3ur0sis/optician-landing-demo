@@ -3,7 +3,11 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, RotateCcw, GripVertical } from "lucide-react";
-import { STYLE_PRESETS, getChildElementName, ARRAY_EDITABLE_FIELDS } from "./inline-editing-config";
+import {
+  STYLE_PRESETS,
+  getChildElementName,
+  ARRAY_EDITABLE_FIELDS,
+} from "./inline-editing-config";
 
 // ============================================================================
 // TYPES
@@ -40,11 +44,11 @@ interface ChildElementEditorProps {
 // ============================================================================
 // STYLE OPTION BUTTON - Minimal black/white style
 // ============================================================================
-function StyleOption({ 
-  label, 
-  selected, 
+function StyleOption({
+  label,
+  selected,
   onClick,
-}: { 
+}: {
   label: string;
   selected: boolean;
   onClick: () => void;
@@ -54,9 +58,10 @@ function StyleOption({
       onClick={onClick}
       className={`
         px-2 py-1.5 text-[11px] font-medium rounded border transition-all
-        ${selected 
-          ? "bg-black text-white border-black" 
-          : "bg-white text-gray-700 border-gray-200 hover:border-black"
+        ${
+          selected
+            ? "bg-black text-white border-black"
+            : "bg-white text-gray-700 border-gray-200 hover:border-black"
         }
       `}
     >
@@ -68,11 +73,11 @@ function StyleOption({
 // ============================================================================
 // COLOR INPUT - Minimal style with debouncing for smooth dragging
 // ============================================================================
-function ColorInput({ 
-  label, 
-  value, 
-  onChange 
-}: { 
+function ColorInput({
+  label,
+  value,
+  onChange,
+}: {
   label: string;
   value: string;
   onChange: (v: string) => void;
@@ -86,17 +91,20 @@ function ColorInput({
   }, [value]);
 
   // Debounced color change handler for color picker
-  const handleColorChange = useCallback((newValue: string) => {
-    setLocalValue(newValue);
-    
-    // Debounce the upstream update to prevent UI lag during fast dragging
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    debounceTimerRef.current = setTimeout(() => {
-      onChange(newValue);
-    }, 50); // 50ms debounce for smooth dragging
-  }, [onChange]);
+  const handleColorChange = useCallback(
+    (newValue: string) => {
+      setLocalValue(newValue);
+
+      // Debounce the upstream update to prevent UI lag during fast dragging
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
+        onChange(newValue);
+      }, 50); // 50ms debounce for smooth dragging
+    },
+    [onChange],
+  );
 
   // Immediate update for text input (on blur or enter)
   const handleTextChange = useCallback((newValue: string) => {
@@ -118,7 +126,9 @@ function ColorInput({
 
   return (
     <div>
-      <label className="block text-[11px] font-medium text-gray-600 mb-1.5">{label}</label>
+      <label className="block text-[11px] font-medium text-gray-600 mb-1.5">
+        {label}
+      </label>
       <div className="flex items-center gap-2">
         <input
           type="color"
@@ -136,7 +146,13 @@ function ColorInput({
           placeholder="transparent"
         />
         {localValue && (
-          <button onClick={() => { setLocalValue(""); onChange(""); }} className="p-1 text-gray-400 hover:text-black">
+          <button
+            onClick={() => {
+              setLocalValue("");
+              onChange("");
+            }}
+            className="p-1 text-gray-400 hover:text-black"
+          >
             <X className="w-3.5 h-3.5" />
           </button>
         )}
@@ -157,7 +173,8 @@ export default function ChildElementEditor({
   onUpdateStyles,
   position,
 }: ChildElementEditorProps) {
-  const [localStyles, setLocalStyles] = useState<ChildElementStyles>(currentStyles);
+  const [localStyles, setLocalStyles] =
+    useState<ChildElementStyles>(currentStyles);
   const [isDragging, setIsDragging] = useState(false);
   const [modalPosition, setModalPosition] = useState(position);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -174,15 +191,17 @@ export default function ChildElementEditor({
       const padding = 16;
       const panelWidth = 280;
       const panelHeight = 400;
-      
+
       let x = position.x + 10;
       let y = position.y + 10;
-      
-      if (x + panelWidth > window.innerWidth - padding) x = position.x - panelWidth - 10;
-      if (y + panelHeight > window.innerHeight - padding) y = window.innerHeight - panelHeight - padding;
+
+      if (x + panelWidth > window.innerWidth - padding)
+        x = position.x - panelWidth - 10;
+      if (y + panelHeight > window.innerHeight - padding)
+        y = window.innerHeight - panelHeight - padding;
       x = Math.max(padding, x);
       y = Math.max(padding, y);
-      
+
       setModalPosition({ x, y });
     }
   }, [isOpen, position]);
@@ -190,8 +209,10 @@ export default function ChildElementEditor({
   // Selection outline on target element (blue for UX consistency)
   useEffect(() => {
     if (!isOpen) return;
-    
-    const el = document.querySelector(`[data-item-index="${elementIndex}"][data-child-type="${elementType}"]`) as HTMLElement;
+
+    const el = document.querySelector(
+      `[data-item-index="${elementIndex}"][data-child-type="${elementType}"]`,
+    ) as HTMLElement;
     if (el) {
       el.style.outline = "2px solid rgb(59, 130, 246)";
       el.style.outlineOffset = "2px";
@@ -208,16 +229,19 @@ export default function ChildElementEditor({
   }, [isOpen, elementIndex, elementType]);
 
   // Drag handlers
-  const handleDragStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      modalX: modalPosition.x,
-      modalY: modalPosition.y,
-    };
-  }, [modalPosition]);
+  const handleDragStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      setIsDragging(true);
+      dragStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        modalX: modalPosition.x,
+        modalY: modalPosition.y,
+      };
+    },
+    [modalPosition],
+  );
 
   useEffect(() => {
     if (!isDragging) return;
@@ -245,36 +269,42 @@ export default function ChildElementEditor({
   const colorDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Update style
-  const updateStyle = useCallback((key: keyof ChildElementStyles, value: string) => {
-    const newStyles = { ...localStyles, [key]: value || undefined };
-    Object.keys(newStyles).forEach(k => {
-      if (newStyles[k as keyof ChildElementStyles] === undefined) {
-        delete newStyles[k as keyof ChildElementStyles];
-      }
-    });
-    setLocalStyles(newStyles);
-    onUpdateStyles(newStyles);
-  }, [localStyles, onUpdateStyles]);
-
-  // Debounced color update for smooth drag experience
-  const updateColorDebounced = useCallback((key: keyof ChildElementStyles, value: string) => {
-    // Update local state immediately for visual feedback
-    setLocalStyles(prev => ({ ...prev, [key]: value || undefined }));
-    
-    // Debounce the upstream update
-    if (colorDebounceRef.current) {
-      clearTimeout(colorDebounceRef.current);
-    }
-    colorDebounceRef.current = setTimeout(() => {
+  const updateStyle = useCallback(
+    (key: keyof ChildElementStyles, value: string) => {
       const newStyles = { ...localStyles, [key]: value || undefined };
-      Object.keys(newStyles).forEach(k => {
+      Object.keys(newStyles).forEach((k) => {
         if (newStyles[k as keyof ChildElementStyles] === undefined) {
           delete newStyles[k as keyof ChildElementStyles];
         }
       });
+      setLocalStyles(newStyles);
       onUpdateStyles(newStyles);
-    }, 50);
-  }, [localStyles, onUpdateStyles]);
+    },
+    [localStyles, onUpdateStyles],
+  );
+
+  // Debounced color update for smooth drag experience
+  const updateColorDebounced = useCallback(
+    (key: keyof ChildElementStyles, value: string) => {
+      // Update local state immediately for visual feedback
+      setLocalStyles((prev) => ({ ...prev, [key]: value || undefined }));
+
+      // Debounce the upstream update
+      if (colorDebounceRef.current) {
+        clearTimeout(colorDebounceRef.current);
+      }
+      colorDebounceRef.current = setTimeout(() => {
+        const newStyles = { ...localStyles, [key]: value || undefined };
+        Object.keys(newStyles).forEach((k) => {
+          if (newStyles[k as keyof ChildElementStyles] === undefined) {
+            delete newStyles[k as keyof ChildElementStyles];
+          }
+        });
+        onUpdateStyles(newStyles);
+      }, 50);
+    },
+    [localStyles, onUpdateStyles],
+  );
 
   // Cleanup debounce timer
   useEffect(() => {
@@ -335,7 +365,10 @@ export default function ChildElementEditor({
                 </span>
               )}
             </div>
-            <button onClick={onClose} className="p-1 hover:bg-white/20 rounded transition-colors">
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-white/20 rounded transition-colors"
+            >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -351,7 +384,9 @@ export default function ChildElementEditor({
 
             {/* Border Radius */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Arrondi</label>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">
+                Arrondi
+              </label>
               <div className="grid grid-cols-6 gap-1">
                 {[
                   { value: "0", label: "0" },
@@ -365,7 +400,12 @@ export default function ChildElementEditor({
                     key={opt.value}
                     label={opt.label}
                     selected={localStyles.borderRadius === opt.value}
-                    onClick={() => updateStyle("borderRadius", localStyles.borderRadius === opt.value ? "" : opt.value)}
+                    onClick={() =>
+                      updateStyle(
+                        "borderRadius",
+                        localStyles.borderRadius === opt.value ? "" : opt.value,
+                      )
+                    }
                   />
                 ))}
               </div>
@@ -373,14 +413,21 @@ export default function ChildElementEditor({
 
             {/* Shadow */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Ombre</label>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">
+                Ombre
+              </label>
               <div className="grid grid-cols-5 gap-1">
                 {["none", "sm", "md", "lg", "xl"].map((val) => (
                   <StyleOption
                     key={val}
                     label={val === "none" ? "0" : val.toUpperCase()}
                     selected={localStyles.shadow === val}
-                    onClick={() => updateStyle("shadow", localStyles.shadow === val ? "" : val)}
+                    onClick={() =>
+                      updateStyle(
+                        "shadow",
+                        localStyles.shadow === val ? "" : val,
+                      )
+                    }
                   />
                 ))}
               </div>
@@ -388,7 +435,9 @@ export default function ChildElementEditor({
 
             {/* Padding */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Padding</label>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">
+                Padding
+              </label>
               <div className="grid grid-cols-5 gap-1">
                 {[
                   { value: "0", label: "0" },
@@ -401,7 +450,12 @@ export default function ChildElementEditor({
                     key={opt.value}
                     label={opt.label}
                     selected={localStyles.padding === opt.value}
-                    onClick={() => updateStyle("padding", localStyles.padding === opt.value ? "" : opt.value)}
+                    onClick={() =>
+                      updateStyle(
+                        "padding",
+                        localStyles.padding === opt.value ? "" : opt.value,
+                      )
+                    }
                   />
                 ))}
               </div>
@@ -416,7 +470,9 @@ export default function ChildElementEditor({
 
             {/* Font Size */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Taille texte</label>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">
+                Taille texte
+              </label>
               <div className="grid grid-cols-5 gap-1">
                 {[
                   { value: "0.75rem", label: "XS" },
@@ -429,7 +485,12 @@ export default function ChildElementEditor({
                     key={opt.value}
                     label={opt.label}
                     selected={localStyles.fontSize === opt.value}
-                    onClick={() => updateStyle("fontSize", localStyles.fontSize === opt.value ? "" : opt.value)}
+                    onClick={() =>
+                      updateStyle(
+                        "fontSize",
+                        localStyles.fontSize === opt.value ? "" : opt.value,
+                      )
+                    }
                   />
                 ))}
               </div>
@@ -437,7 +498,9 @@ export default function ChildElementEditor({
 
             {/* Font Weight */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Épaisseur</label>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">
+                Épaisseur
+              </label>
               <div className="grid grid-cols-4 gap-1">
                 {[
                   { value: "400", label: "Normal" },
@@ -449,7 +512,12 @@ export default function ChildElementEditor({
                     key={opt.value}
                     label={opt.label}
                     selected={localStyles.fontWeight === opt.value}
-                    onClick={() => updateStyle("fontWeight", localStyles.fontWeight === opt.value ? "" : opt.value)}
+                    onClick={() =>
+                      updateStyle(
+                        "fontWeight",
+                        localStyles.fontWeight === opt.value ? "" : opt.value,
+                      )
+                    }
                   />
                 ))}
               </div>
@@ -457,7 +525,9 @@ export default function ChildElementEditor({
 
             {/* Opacity */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Opacité</label>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">
+                Opacité
+              </label>
               <div className="grid grid-cols-5 gap-1">
                 {[
                   { value: "0.25", label: "25%" },
@@ -470,7 +540,12 @@ export default function ChildElementEditor({
                     key={opt.value}
                     label={opt.label}
                     selected={localStyles.opacity === opt.value}
-                    onClick={() => updateStyle("opacity", localStyles.opacity === opt.value ? "" : opt.value)}
+                    onClick={() =>
+                      updateStyle(
+                        "opacity",
+                        localStyles.opacity === opt.value ? "" : opt.value,
+                      )
+                    }
                   />
                 ))}
               </div>
@@ -478,7 +553,9 @@ export default function ChildElementEditor({
 
             {/* Border */}
             <div>
-              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">Bordure</label>
+              <label className="block text-[11px] font-medium text-gray-600 mb-1.5">
+                Bordure
+              </label>
               <div className="flex gap-2">
                 <div className="flex-1 grid grid-cols-4 gap-1">
                   {[
@@ -491,7 +568,14 @@ export default function ChildElementEditor({
                       key={opt.value}
                       label={opt.label}
                       selected={localStyles.borderWidth === opt.value}
-                      onClick={() => updateStyle("borderWidth", localStyles.borderWidth === opt.value ? "" : opt.value)}
+                      onClick={() =>
+                        updateStyle(
+                          "borderWidth",
+                          localStyles.borderWidth === opt.value
+                            ? ""
+                            : opt.value,
+                        )
+                      }
                     />
                   ))}
                 </div>
@@ -499,7 +583,9 @@ export default function ChildElementEditor({
                   <input
                     type="color"
                     value={localStyles.borderColor || "#000000"}
-                    onChange={(e) => updateColorDebounced("borderColor", e.target.value)}
+                    onChange={(e) =>
+                      updateColorDebounced("borderColor", e.target.value)
+                    }
                     className="w-8 h-8 rounded border border-gray-200 cursor-pointer shrink-0"
                   />
                 )}
@@ -513,7 +599,9 @@ export default function ChildElementEditor({
               onClick={resetStyles}
               disabled={!hasStyles}
               className={`flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded transition-colors ${
-                hasStyles ? "text-gray-600 hover:text-black hover:bg-gray-100" : "text-gray-300"
+                hasStyles
+                  ? "text-gray-600 hover:text-black hover:bg-gray-100"
+                  : "text-gray-300"
               }`}
             >
               <RotateCcw className="w-3 h-3" />
@@ -544,44 +632,62 @@ export interface SelectedChild {
 }
 
 export function useChildElementEditor() {
-  const [selectedChild, setSelectedChild] = useState<SelectedChild | null>(null);
+  const [selectedChild, setSelectedChild] = useState<SelectedChild | null>(
+    null,
+  );
   const [editorPosition, setEditorPosition] = useState({ x: 0, y: 0 });
 
-  const handleChildClick = useCallback((
-    e: React.MouseEvent | MouseEvent,
-    element: HTMLElement,
-    type: string,
-    index: number,
-    blockId: string,
-    arrayField: string
-  ) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setSelectedChild({ element, type, index, blockId, arrayField });
-    
-    const rect = element.getBoundingClientRect();
-    setEditorPosition({ x: rect.right + 10, y: rect.top });
-  }, []);
+  const handleChildClick = useCallback(
+    (
+      e: React.MouseEvent | MouseEvent,
+      element: HTMLElement,
+      type: string,
+      index: number,
+      blockId: string,
+      arrayField: string,
+    ) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setSelectedChild({ element, type, index, blockId, arrayField });
+
+      const rect = element.getBoundingClientRect();
+      setEditorPosition({ x: rect.right + 10, y: rect.top });
+    },
+    [],
+  );
 
   const closeEditor = useCallback(() => {
     setSelectedChild(null);
   }, []);
 
-  const getArrayFieldForChildType = useCallback((blockType: string, childType: string): string => {
-    const configs = ARRAY_EDITABLE_FIELDS[blockType] || [];
-    for (const config of configs) {
-      if (config.childType === childType) {
-        return config.arrayField;
+  const getArrayFieldForChildType = useCallback(
+    (blockType: string, childType: string): string => {
+      const configs = ARRAY_EDITABLE_FIELDS[blockType] || [];
+      for (const config of configs) {
+        if (config.childType === childType) {
+          return config.arrayField;
+        }
       }
-    }
-    const fallbacks: Record<string, string> = {
-      card: "cards", stat: "stats", feature: "features", button: "buttons",
-      testimonial: "testimonials", member: "members", plan: "plans",
-      "timeline-item": "items", "accordion-item": "items", "list-item": "items",
-      tab: "tabs", faq: "questions", service: "services", review: "reviews",
-    };
-    return fallbacks[childType] || "items";
-  }, []);
+      const fallbacks: Record<string, string> = {
+        card: "cards",
+        stat: "stats",
+        feature: "features",
+        button: "buttons",
+        testimonial: "testimonials",
+        member: "members",
+        plan: "plans",
+        "timeline-item": "items",
+        "accordion-item": "items",
+        "list-item": "items",
+        tab: "tabs",
+        faq: "questions",
+        service: "services",
+        review: "reviews",
+      };
+      return fallbacks[childType] || "items";
+    },
+    [],
+  );
 
   return {
     selectedChild,

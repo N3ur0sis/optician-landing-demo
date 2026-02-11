@@ -136,21 +136,21 @@ export default function SettingsClient() {
     setSettings(initialSettings);
   };
 
-  const handleExport = async () => {
+  const handleExport = async (format: "zip" | "json" = "zip") => {
     setBackupLoading(true);
     try {
-      const response = await fetch("/api/settings/export");
+      const response = await fetch(`/api/settings/export?format=${format}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `odb-backup-${new Date().toISOString().split("T")[0]}.json`;
+        a.download = `odb-backup-${new Date().toISOString().split("T")[0]}.${format}`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         a.remove();
-        setMessage({ type: "success", text: "Export réussi" });
+        setMessage({ type: "success", text: `Export ${format.toUpperCase()} réussi` });
       }
     } catch {
       setMessage({ type: "error", text: "Erreur lors de l'export" });
@@ -163,6 +163,12 @@ export default function SettingsClient() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.name.endsWith(".zip") && !file.name.endsWith(".json")) {
+      setMessage({ type: "error", text: "Format non supporté. Utilisez .zip ou .json" });
+      return;
+    }
+
     setBackupLoading(true);
     try {
       const formData = new FormData();
@@ -171,19 +177,27 @@ export default function SettingsClient() {
         method: "POST",
         body: formData,
       });
+      
+      const result = await response.json();
+      
       if (response.ok) {
+        const stats = result.stats;
         setMessage({
           type: "success",
-          text: "Import réussi - Rechargez la page",
+          text: `Import réussi: ${stats.pages} pages, ${stats.blocks} blocs, ${stats.mediaFilesRestored || 0} fichiers média`,
         });
         fetchSettings();
+        // Reload page after short delay to reflect changes
+        setTimeout(() => window.location.reload(), 2000);
       } else {
-        throw new Error("Import failed");
+        throw new Error(result.error || "Import failed");
       }
-    } catch {
-      setMessage({ type: "error", text: "Erreur lors de l'import" });
+    } catch (error) {
+      setMessage({ type: "error", text: error instanceof Error ? error.message : "Erreur lors de l'import" });
     } finally {
       setBackupLoading(false);
+      // Reset file input
+      event.target.value = "";
     }
   };
 
@@ -599,50 +613,82 @@ export default function SettingsClient() {
       {/* Backup Tab */}
       {activeTab === "backup" && (
         <div className="space-y-6">
+          {/* Export Section */}
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              Sauvegarde des données
+              <Download className="h-5 w-5" />
+              Exporter les données
             </h2>
             <p className="text-gray-600 mb-6">
-              Exportez ou importez les données du site (pages, navigation,
-              paramètres, grille).
+              Créez une sauvegarde complète du site incluant pages, navigation, paramètres et médias.
             </p>
             <div className="flex flex-wrap gap-4">
               <button
-                onClick={handleExport}
+                onClick={() => handleExport("zip")}
                 disabled={backupLoading}
                 className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
                 {backupLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
-                  <Download className="h-5 w-5" />
+                  <Database className="h-5 w-5" />
                 )}
-                Exporter les données
+                Export complet (ZIP)
               </button>
-              <label className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                <Upload className="h-5 w-5" />
-                Importer des données
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImport}
-                  className="hidden"
-                />
-              </label>
+              <button
+                onClick={() => handleExport("json")}
+                disabled={backupLoading}
+                className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                <Download className="h-5 w-5" />
+                Base de données (JSON)
+              </button>
             </div>
+            <p className="text-xs text-gray-500 mt-3">
+              Le ZIP inclut la base de données et tous les fichiers médias. Le JSON contient uniquement la base de données.
+            </p>
           </div>
 
+          {/* Import Section */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Importer des données
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Restaurez une sauvegarde précédente. Les formats ZIP et JSON sont supportés.
+            </p>
+            <label className="flex items-center justify-center gap-2 px-6 py-4 bg-gray-50 border-2 border-dashed border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-colors cursor-pointer">
+              {backupLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Upload className="h-5 w-5" />
+              )}
+              <span>Sélectionner un fichier .zip ou .json</span>
+              <input
+                type="file"
+                accept=".zip,.json"
+                onChange={handleImport}
+                disabled={backupLoading}
+                className="hidden"
+              />
+            </label>
+            <p className="text-xs text-gray-500 mt-3">
+              L&apos;import ZIP restaurera automatiquement les fichiers médias associés.
+            </p>
+          </div>
+
+          {/* Warning */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
             <h3 className="text-amber-800 font-semibold mb-2 flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               Attention
             </h3>
-            <p className="text-amber-700 text-sm">
-              L&apos;import de données remplacera les données existantes.
-              Assurez-vous d&apos;avoir une sauvegarde avant d&apos;importer.
-            </p>
+            <ul className="text-amber-700 text-sm space-y-1">
+              <li>• L&apos;import remplacera <strong>toutes</strong> les données existantes</li>
+              <li>• Faites toujours un export avant d&apos;importer</li>
+              <li>• Les backups d&apos;anciennes versions sont automatiquement migrés</li>
+            </ul>
           </div>
         </div>
       )}

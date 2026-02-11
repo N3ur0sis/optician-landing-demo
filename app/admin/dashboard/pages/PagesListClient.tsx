@@ -25,8 +25,13 @@ import { Page } from "@/types/page-builder";
 
 // Helper to check if a page is the protected homepage
 const isHomePage = (slug: string): boolean => {
-  const normalized = slug.replace(/^\//, '').toLowerCase();
-  return normalized === '' || normalized === '/' || normalized === 'accueil' || normalized === 'home';
+  const normalized = slug.replace(/^\//, "").toLowerCase();
+  return (
+    normalized === "" ||
+    normalized === "/" ||
+    normalized === "accueil" ||
+    normalized === "home"
+  );
 };
 
 interface PagesListClientProps {
@@ -89,14 +94,16 @@ export default function PagesListClient({
   const handleDuplicate = async (page: Page) => {
     try {
       // First, fetch the full page with blocks
-      const fullPageResponse = await fetch(`/api/pages/${encodeURIComponent(page.slug)}?includeBlocks=true`);
+      const fullPageResponse = await fetch(
+        `/api/pages/${encodeURIComponent(page.slug)}?includeBlocks=true`,
+      );
       if (!fullPageResponse.ok) {
         console.error("Error fetching full page for duplication");
         setActionMenuOpen(null);
         return;
       }
       const fullPage = await fullPageResponse.json();
-      
+
       const newSlug = `${page.slug}-copy-${Date.now()}`;
       const response = await fetch("/api/pages", {
         method: "POST",
@@ -156,8 +163,12 @@ export default function PagesListClient({
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pages</h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">Gérez les pages de votre site</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Pages
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
+              Gérez les pages de votre site
+            </p>
           </div>
           <Link
             href="/admin/dashboard/pages/new"
@@ -247,165 +258,172 @@ export default function PagesListClient({
             <AnimatePresence mode="popLayout">
               {filteredPages.map((page) => {
                 const isHome = isHomePage(page.slug);
-                
+
                 return (
-                <motion.div
-                  key={page.id}
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className={`bg-white rounded-xl p-6 border hover:shadow-lg transition-shadow group ${
-                    isHome ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Icon */}
-                    <div
-                      className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        isHome ? 'bg-amber-100' : ''
-                      }`}
-                      style={isHome ? {} : { backgroundColor: page.backgroundColor + "20" }}
-                    >
-                      {isHome ? (
-                        <Home className="w-6 h-6 text-amber-600" />
-                      ) : (
-                        <FileText
-                          className="w-6 h-6"
-                          style={{ color: page.backgroundColor }}
-                        />
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {page.title}
-                        </h3>
-                        {isHome && (
-                          <span className="flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700">
-                            <Lock className="w-3 h-3" />
-                            Protégée
-                          </span>
-                        )}
-                        <span
-                          className={`px-2 py-0.5 text-xs rounded-full ${
-                            page.published
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {page.published ? "Publié" : "Brouillon"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Globe className="w-3.5 h-3.5" />
-                          {page.slug}
-                        </span>
-                        {page.publishedAt && (
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {new Date(page.publishedAt).toLocaleDateString(
-                              "fr-FR",
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleTogglePublished(page)}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        title={page.published ? "Dépublier" : "Publier"}
+                  <motion.div
+                    key={page.id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`bg-white rounded-xl p-6 border hover:shadow-lg transition-shadow group ${
+                      isHome
+                        ? "border-amber-200 bg-amber-50/30"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Icon */}
+                      <div
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                          isHome ? "bg-amber-100" : ""
+                        }`}
+                        style={
+                          isHome
+                            ? {}
+                            : { backgroundColor: page.backgroundColor + "20" }
+                        }
                       >
-                        {page.published ? (
-                          <EyeOff className="w-4 h-4 text-gray-600" />
+                        {isHome ? (
+                          <Home className="w-6 h-6 text-amber-600" />
                         ) : (
-                          <Eye className="w-4 h-4 text-gray-600" />
+                          <FileText
+                            className="w-6 h-6"
+                            style={{ color: page.backgroundColor }}
+                          />
                         )}
-                      </button>
-                      {isHome ? (
-                        // Homepage: Link to grid manager instead of page builder
-                        <Link
-                          href="/admin/dashboard/grid"
-                          className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
-                          title="Gérer la grille d'accueil"
-                        >
-                          <Grid3X3 className="w-4 h-4 text-amber-600" />
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="Modifier"
-                        >
-                          <Pencil className="w-4 h-4 text-gray-600" />
-                        </Link>
-                      )}
-                      <a
-                        href={`/${page.slug.replace(/^\//, "")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="Voir la page"
-                      >
-                        <ExternalLink className="w-4 h-4 text-gray-600" />
-                      </a>
-                      {/* More actions menu - only for non-homepage */}
-                      {!isHome && (
-                      <div className="relative">
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-semibold text-gray-900 truncate">
+                            {page.title}
+                          </h3>
+                          {isHome && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700">
+                              <Lock className="w-3 h-3" />
+                              Protégée
+                            </span>
+                          )}
+                          <span
+                            className={`px-2 py-0.5 text-xs rounded-full ${
+                              page.published
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-600"
+                            }`}
+                          >
+                            {page.published ? "Publié" : "Brouillon"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Globe className="w-3.5 h-3.5" />
+                            {page.slug}
+                          </span>
+                          {page.publishedAt && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3.5 h-3.5" />
+                              {new Date(page.publishedAt).toLocaleDateString(
+                                "fr-FR",
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                          onClick={() =>
-                            setActionMenuOpen(
-                              actionMenuOpen === page.id ? null : page.id,
-                            )
-                          }
+                          onClick={() => handleTogglePublished(page)}
                           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          title={page.published ? "Dépublier" : "Publier"}
                         >
-                          <MoreHorizontal className="w-4 h-4 text-gray-600" />
+                          {page.published ? (
+                            <EyeOff className="w-4 h-4 text-gray-600" />
+                          ) : (
+                            <Eye className="w-4 h-4 text-gray-600" />
+                          )}
                         </button>
-                        {actionMenuOpen === page.id && (
-                          <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        {isHome ? (
+                          // Homepage: Link to grid manager instead of page builder
+                          <Link
+                            href="/admin/dashboard/grid"
+                            className="p-2 hover:bg-amber-100 rounded-lg transition-colors"
+                            title="Gérer la grille d'accueil"
+                          >
+                            <Grid3X3 className="w-4 h-4 text-amber-600" />
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="Modifier"
+                          >
+                            <Pencil className="w-4 h-4 text-gray-600" />
+                          </Link>
+                        )}
+                        <a
+                          href={`/${page.slug.replace(/^\//, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Voir la page"
+                        >
+                          <ExternalLink className="w-4 h-4 text-gray-600" />
+                        </a>
+                        {/* More actions menu - only for non-homepage */}
+                        {!isHome && (
+                          <div className="relative">
                             <button
-                              onClick={() => handleDuplicate(page)}
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                              onClick={() =>
+                                setActionMenuOpen(
+                                  actionMenuOpen === page.id ? null : page.id,
+                                )
+                              }
+                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                             >
-                              <Copy className="w-4 h-4" />
-                              Dupliquer
+                              <MoreHorizontal className="w-4 h-4 text-gray-600" />
                             </button>
-                            <button
-                              onClick={() => {
-                                setShowDeleteModal(page.slug);
-                                setActionMenuOpen(null);
-                              }}
-                              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Supprimer
-                            </button>
+                            {actionMenuOpen === page.id && (
+                              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                                <button
+                                  onClick={() => handleDuplicate(page)}
+                                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                  Dupliquer
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setShowDeleteModal(page.slug);
+                                    setActionMenuOpen(null);
+                                  }}
+                                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Supprimer
+                                </button>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                      )}
-                    </div>
 
-                    {/* Arrow - link to grid for homepage, page editor for others */}
-                    <Link
-                      href={isHome 
-                        ? "/admin/dashboard/grid"
-                        : `/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`
-                      }
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      <ChevronRight className="w-5 h-5 text-gray-500" />
-                    </Link>
-                  </div>
-                </motion.div>
-              );
+                      {/* Arrow - link to grid for homepage, page editor for others */}
+                      <Link
+                        href={
+                          isHome
+                            ? "/admin/dashboard/grid"
+                            : `/admin/dashboard/pages/edit/${page.slug.replace(/^\//, "")}`
+                        }
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <ChevronRight className="w-5 h-5 text-gray-500" />
+                      </Link>
+                    </div>
+                  </motion.div>
+                );
               })}
             </AnimatePresence>
           </div>

@@ -108,8 +108,10 @@ export async function POST(request: Request) {
     }
 
     // Check if slug already exists (check both with and without leading slash)
+    // Exclude soft-deleted pages from conflict check
     const existingPage = await prisma.page.findFirst({
       where: {
+        deletedAt: null,
         OR: [
           { slug: normalizedSlug },
           { slug: `/${normalizedSlug}` },

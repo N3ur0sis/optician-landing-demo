@@ -94,6 +94,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const {
       title,
       newSlug,
+      slug: bodySlug, // Also capture slug from body for backward compatibility
       metaTitle,
       metaDescription,
       template,
@@ -112,6 +113,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
       createRevision = true, // Auto-create revision by default
       changeNote,
     } = body;
+    
+    // Determine the intended new slug (prefer newSlug over bodySlug)
+    const intendedNewSlug = newSlug || bodySlug;
 
     // Check if page exists (including soft-deleted for recovery)
     const existingPage = await findPageBySlug(slug, true);
@@ -133,8 +137,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     // Protect homepage slug from being changed
-    if (isHomePage && newSlug) {
-      const normalizedNewSlug = newSlug.replace(/^\//, '').toLowerCase();
+    if (isHomePage && intendedNewSlug) {
+      const normalizedNewSlug = intendedNewSlug.replace(/^\//, '').toLowerCase();
       if (normalizedNewSlug !== normalizedExistingSlug) {
         return NextResponse.json(
           { error: 'Le slug de la page d\'accueil ne peut pas être modifié' },
@@ -144,11 +148,13 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     // If slug is changing, check for conflicts
-    if (newSlug) {
-      const normalizedNewSlug = newSlug.replace(/^\//, '');
+    // Exclude soft-deleted pages from conflict check
+    if (intendedNewSlug) {
+      const normalizedNewSlug = intendedNewSlug.replace(/^\//, '');
       if (normalizedNewSlug !== existingPage.slug.replace(/^\//, '')) {
         const slugConflict = await prisma.page.findFirst({
           where: {
+            deletedAt: null,
             OR: [
               { slug: normalizedNewSlug },
               { slug: `/${normalizedNewSlug}` },
@@ -219,7 +225,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       }
 
       // Normalize the new slug (remove leading slash)
-      const finalSlug = newSlug ? newSlug.replace(/^\//, '') : existingPage.slug;
+      const finalSlug = intendedNewSlug ? intendedNewSlug.replace(/^\//, '') : existingPage.slug;
 
       // Update page metadata
       const page = await tx.page.update({
@@ -334,6 +340,26 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     
     // Restore from trash
     if (body.restore === true) {
+      // Check if another active page has taken this slug
+      const slugConflict = await prisma.page.findFirst({
+        where: {
+          deletedAt: null,
+          id: { not: existingPage.id },
+          OR: [
+            { slug: existingPage.slug },
+            { slug: existingPage.slug.replace(/^\//, '') },
+            { slug: `/${existingPage.slug.replace(/^\//, '')}` },
+          ],
+        },
+      });
+      
+      if (slugConflict) {
+        return NextResponse.json(
+          { error: 'Impossible de restaurer: une autre page utilise déjà ce slug' },
+          { status: 400 }
+        );
+      }
+      
       updateData.deletedAt = null;
     }
     
