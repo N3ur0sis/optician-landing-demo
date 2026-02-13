@@ -345,18 +345,18 @@ export function GridBlock({ content }: BlockContentProps<GridContent>) {
                   />
                 </div>
                 <div className={`flex-1 ${paddingMap[itemPadding]} ${textAlignClass}`}>
-                  <h3 className={titleSizeMap[titleSize]} data-field="title">{item.title}</h3>
+                  <h3 className={`${titleSizeMap[titleSize]} whitespace-pre-line`} data-field="title">{item.title}</h3>
                   {item.description && showDescription && (
-                    <p className="text-sm opacity-70 mt-1 line-clamp-2" data-field="description">{item.description}</p>
+                    <p className="text-sm opacity-70 mt-1 line-clamp-2 whitespace-pre-line" data-field="description">{item.description}</p>
                   )}
                 </div>
               </div>
             ) : (
               /* Standard vertical layout (top or background) */
               <div className={`${paddingMap[itemPadding]} ${textAlignClass} ${isBackgroundImage ? "relative z-10 text-white" : ""}`}>
-                <h3 className={titleSizeMap[titleSize]} data-field="title">{item.title}</h3>
+                <h3 className={`${titleSizeMap[titleSize]} whitespace-pre-line`} data-field="title">{item.title}</h3>
                 {item.description && showDescription && (
-                  <p className={`text-sm mt-1 line-clamp-2 ${isBackgroundImage ? "text-white/80" : "opacity-70"}`} data-field="description">{item.description}</p>
+                  <p className={`text-sm mt-1 line-clamp-2 whitespace-pre-line ${isBackgroundImage ? "text-white/80" : "opacity-70"}`} data-field="description">{item.description}</p>
                 )}
               </div>
             )}

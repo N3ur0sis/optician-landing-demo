@@ -219,7 +219,7 @@ export function CardsBlock({ content }: BlockContentProps<CardsContent>) {
               </div>
             )}
             <div className="p-6">
-              <h3 className="text-xl font-semibold mb-2" data-field="title">
+              <h3 className="text-xl font-semibold mb-2 whitespace-pre-line" data-field="title">
                 {card.title}
               </h3>
               {showDescription && card.description && (
@@ -367,7 +367,7 @@ export function FeaturesBlock({ content }: BlockContentProps<FeaturesContent>) {
             </div>
           )}
           <div>
-            <h3 className="font-semibold text-lg mb-1" data-field="title">
+            <h3 className="font-semibold text-lg mb-1 whitespace-pre-line" data-field="title">
               {feature.title}
             </h3>
             <p
@@ -409,7 +409,7 @@ export function FeaturesBlock({ content }: BlockContentProps<FeaturesContent>) {
             />
           </div>
         )}
-        <h3 className="font-semibold text-lg mb-2" data-field="title">
+        <h3 className="font-semibold text-lg mb-2 whitespace-pre-line" data-field="title">
           {feature.title}
         </h3>
         <p

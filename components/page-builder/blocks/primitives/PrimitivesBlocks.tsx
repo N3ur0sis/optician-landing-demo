@@ -169,7 +169,7 @@ export function InfoBoxBlock({ content }: BlockContentProps<InfoBoxBlockContent>
         {renderIcon()}
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold mb-1" style={{ color: textColor || "#171717" }} data-field="title">{title}</h3>
+        <h3 className="font-semibold mb-1 whitespace-pre-line" style={{ color: textColor || "#171717" }} data-field="title">{title}</h3>
         {mainContent && (
           <p className="whitespace-pre-line" style={{ color: textColor ? `${textColor}cc` : "#525252" }} data-field="content">{mainContent}</p>
         )}
@@ -296,7 +296,7 @@ export function HoursTableBlock({ content }: BlockContentProps<HoursTableBlockCo
               <LucideIcon name="Clock" className="w-5 h-5" style={{ color: accentColor }} />
             </div>
           )}
-          <h3 className="font-semibold" style={{ color: textColor || "#171717" }} data-field="title">{title}</h3>
+          <h3 className="font-semibold whitespace-pre-line" style={{ color: textColor || "#171717" }} data-field="title">{title}</h3>
         </div>
       )}
       <div className={`space-y-2 ${title ? "" : "pt-0"}`}>
@@ -445,12 +445,12 @@ export function ServicesListBlock({ content }: BlockContentProps<ServicesListBlo
       animate={{ opacity: 1, y: 0 }}
     >
       {showTitle && title && (
-        <h3 className="text-xl font-bold mb-2 flex items-center" style={{ color: textColor || "#171717" }} data-field="title">
+        <h3 className="text-xl font-bold mb-2 flex items-center whitespace-pre-line" style={{ color: textColor || "#171717" }} data-field="title">
           <span className="w-1.5 h-5 rounded-full mr-3" style={{ backgroundColor: bulletColor }}></span>
           {title}
         </h3>
       )}
-      {showTitle && subtitle && <p className="mb-4 ml-5" style={{ color: textColor ? `${textColor}cc` : "#525252" }} data-field="subtitle">{subtitle}</p>}
+      {showTitle && subtitle && <p className="mb-4 ml-5 whitespace-pre-line" style={{ color: textColor ? `${textColor}cc` : "#525252" }} data-field="subtitle">{subtitle}</p>}
       <div className={`grid gap-3 ${gridCols[columns] || gridCols[2]}`}>
         {services.map((service, idx) => {
           // Apply child element styles if present
@@ -579,7 +579,7 @@ export function CtaCardBlock({ content }: BlockContentProps<CtaCardBlockContent>
       {title && (
         <h3
           data-field="title"
-          className="text-xl font-bold mb-3 flex items-center gap-2"
+          className="text-xl font-bold mb-3 flex items-center gap-2 whitespace-pre-line"
           style={titleStyle}
         >
           {showIcon && renderIcon(icon, "w-5 h-5", { color: iconColor })}
@@ -587,7 +587,7 @@ export function CtaCardBlock({ content }: BlockContentProps<CtaCardBlockContent>
         </h3>
       )}
       {description && (
-        <p data-field="description" className="mb-4" style={descStyle}>
+        <p data-field="description" className="mb-4 whitespace-pre-line" style={descStyle}>
           {description}
         </p>
       )}
@@ -705,7 +705,7 @@ export function ReviewBadgeBlock({ content }: BlockContentProps<ReviewBadgeBlock
       ) : (
         <>
           {title && (
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: textColor || "#171717" }} data-field="title">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 whitespace-pre-line" style={{ color: textColor || "#171717" }} data-field="title">
               <Star className="w-5 h-5" style={{ color: starColor, fill: starColor }} />
               {title}
             </h3>
@@ -795,13 +795,13 @@ export function LocationCardBlock({ content }: BlockContentProps<LocationCardBlo
       {variant !== "map-only" && (
         <div className={`${variant === "compact" ? "" : "p-6"}`}>
           {title && (
-            <h3 className="text-lg font-bold flex items-center gap-2 mb-3" style={{ color: textColor || "#171717" }} data-field="title">
+            <h3 className="text-lg font-bold flex items-center gap-2 mb-3 whitespace-pre-line" style={{ color: textColor || "#171717" }} data-field="title">
               {showIcon && <LucideIcon name="MapPin" className="w-5 h-5" style={{ color: accentColor }} />}
               {title}
             </h3>
           )}
           {variant === "compact" && address && (
-            <p className="text-sm mb-2" style={{ color: textColor ? `${textColor}aa` : "#525252" }} data-field="address">{address}</p>
+            <p className="text-sm mb-2 whitespace-pre-line" style={{ color: textColor ? `${textColor}aa` : "#525252" }} data-field="address">{address}</p>
           )}
           {variant === "compact" && mapUrl && (
             <a
@@ -930,11 +930,11 @@ export function IconFeatureBlock({ content }: BlockContentProps<IconFeatureBlock
         <LucideIcon name={icon} className="w-6 h-6" style={{ color: colors.text }} fallback={<Star className="w-6 h-6" style={{ color: colors.text }} />} />
       </div>
       <div className={variant === "centered" ? "" : "flex-1"}>
-        <h4 className="font-bold mb-1 transition-colors" style={{ color: titleColor || "#171717" }} data-field="title">
+        <h4 className="font-bold mb-1 transition-colors whitespace-pre-line" style={{ color: titleColor || "#171717" }} data-field="title">
           {title}
         </h4>
         {description && (
-          <p className="text-sm" style={{ color: descriptionColor || "#525252" }} data-field="description">{description}</p>
+          <p className="text-sm whitespace-pre-line" style={{ color: descriptionColor || "#525252" }} data-field="description">{description}</p>
         )}
         {link && (
           <span className="text-sm font-medium inline-flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: colors.text }}>

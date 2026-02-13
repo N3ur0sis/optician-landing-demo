@@ -70,7 +70,7 @@ export function StoreListBlock({ content }: BlockContentProps<StoreListBlockCont
         {title && (
           <div className="text-center">
             <h2 className="text-3xl font-bold mb-2">{title}</h2>
-            {subtitle && <p className="text-lg opacity-70">{subtitle}</p>}
+            {subtitle && <p className="text-lg opacity-70 whitespace-pre-line">{subtitle}</p>}
           </div>
         )}
         <div className={`grid ${columnClasses[columns] || columnClasses[3]} gap-6`}>
@@ -94,7 +94,7 @@ export function StoreListBlock({ content }: BlockContentProps<StoreListBlockCont
       {title && (
         <div className="text-center">
           <h2 className="text-3xl font-bold mb-2">{title}</h2>
-          {subtitle && <p className="text-lg opacity-70">{subtitle}</p>}
+          {subtitle && <p className="text-lg opacity-70 whitespace-pre-line">{subtitle}</p>}
         </div>
       )}
       <div className={`grid ${columnClasses[columns] || columnClasses[3]} gap-6`}>
@@ -256,7 +256,7 @@ export function StoreHeroBlock({ content }: BlockContentProps<StoreHeroBlockCont
             <span className="text-lg opacity-90">Votre magasin</span>
           </motion.div>
           <motion.h1
-            className="text-5xl md:text-6xl font-bold mb-4 tracking-tight"
+            className="text-5xl md:text-6xl font-bold mb-4 tracking-tight whitespace-pre-line"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -266,7 +266,7 @@ export function StoreHeroBlock({ content }: BlockContentProps<StoreHeroBlockCont
           </motion.h1>
           {subtitle && (
             <motion.p
-              className="text-xl opacity-90 mb-2"
+              className="text-xl opacity-90 mb-2 whitespace-pre-line"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
@@ -277,7 +277,7 @@ export function StoreHeroBlock({ content }: BlockContentProps<StoreHeroBlockCont
           )}
           {description && (
             <motion.p
-              className="text-lg opacity-80 max-w-2xl"
+              className="text-lg opacity-80 max-w-2xl whitespace-pre-line"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -361,7 +361,7 @@ export function StoreContactBlock({ content }: BlockContentProps<StoreContactBlo
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
     >
-      <h2 className="text-2xl font-bold mb-6 text-neutral-900 flex items-center" data-field="title">
+      <h2 className="text-2xl font-bold mb-6 text-neutral-900 flex items-center whitespace-pre-line" data-field="title">
         <span className="inline-block w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
         {title}
       </h2>
@@ -486,7 +486,7 @@ export function StoreServicesBlock({ content }: BlockContentProps<StoreServicesB
         <span className="inline-block w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
         {title}
       </h2>
-      {subtitle && <p className="text-neutral-600 mb-4" data-field="subtitle">{subtitle}</p>}
+      {subtitle && <p className="text-neutral-600 mb-4 whitespace-pre-line" data-field="subtitle">{subtitle}</p>}
       <div className="h-px w-16 bg-linear-to-r from-amber-300 to-amber-100 mb-6"></div>
       <div className="grid @md:grid-cols-2 gap-4">
         {services.map((service, index) => (
@@ -537,7 +537,7 @@ export function StoreCtaBlock({ content }: BlockContentProps<StoreCtaBlockConten
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
     >
-      <h3 className="text-xl font-bold mb-6 text-neutral-900 flex items-center" data-field="title">
+      <h3 className="text-xl font-bold mb-6 text-neutral-900 flex items-center whitespace-pre-line" data-field="title">
         <span className="inline-block w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
         {title}
       </h3>
@@ -595,7 +595,7 @@ export function StoreReviewsBlock({ content }: BlockContentProps<StoreReviewsBlo
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
     >
-      <h3 className="text-xl font-bold mb-6 text-neutral-900 flex items-center" data-field="title">
+      <h3 className="text-xl font-bold mb-6 text-neutral-900 flex items-center whitespace-pre-line" data-field="title">
         <span className="inline-block w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
         {title}
       </h3>
@@ -650,7 +650,7 @@ export function StoreMapBlock({ content }: BlockContentProps<StoreMapBlockConten
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
     >
-      <h3 className="text-xl font-bold mb-6 text-neutral-900 flex items-center" data-field="title">
+      <h3 className="text-xl font-bold mb-6 text-neutral-900 flex items-center whitespace-pre-line" data-field="title">
         <span className="inline-block w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
         {title}
       </h3>
