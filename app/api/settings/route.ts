@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 
+// Force dynamic rendering to prevent Next.js from caching this route
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface SettingRecord {
   id: string
   key: string
@@ -13,7 +17,7 @@ interface SettingRecord {
 const PUBLIC_SETTING_KEYS = [
   "site_name", "site_description", "logo_url", "logo_dark_url",
   "footer_", "social_", "contact_", "newsletter_",
-  "intro_", "loading_", "grid_",
+  "intro_", "loading_", "grid_", "navbar_",
   "apparence",
 ]
 
@@ -52,7 +56,12 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ error: check.error }, { status: 403 })
         }
       }
-      return NextResponse.json(setting?.value ?? null)
+      const response = NextResponse.json(setting?.value ?? null)
+      // Disable caching to ensure fresh settings are always fetched
+      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.headers.set('Pragma', 'no-cache')
+      response.headers.set('Expires', '0')
+      return response
     }
     
     const settings: SettingRecord[] = await prisma.settings.findMany()
@@ -70,7 +79,12 @@ export async function GET(request: NextRequest) {
       return acc
     }, {} as Record<string, unknown>)
     
-    return NextResponse.json(settingsObject)
+    const response = NextResponse.json(settingsObject)
+    // Disable caching to ensure fresh settings are always fetched
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    return response
   } catch (error) {
     console.error("Error fetching settings:", error)
     return NextResponse.json(
