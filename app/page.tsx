@@ -197,7 +197,7 @@ export default function Page() {
 
   return (
     <main
-      className="relative h-screen w-full overflow-hidden cursor-custom"
+      className="relative h-screen h-[100dvh] w-full overflow-hidden cursor-custom"
       ref={heroRef}
     >
       {isNavVisible && (
@@ -594,7 +594,7 @@ export default function Page() {
         </motion.div>
       </motion.div>
 
-      <section className="fixed inset-0 w-full h-screen z-10">
+      <section className="fixed inset-0 w-full h-screen h-[100dvh] z-10">
         {/* Content that appears behind glasses - blurred initially, sharp when glasses are on */}
         <ContentReveal
           scrollProgress={modelScroll}
@@ -670,7 +670,7 @@ export default function Page() {
         <motion.div
           className="absolute select-none pointer-events-none
                      md:top-1/2 md:-translate-y-1/2 md:right-0 hero-spacing-right
-                     max-md:bottom-16 max-md:left-0 max-md:right-0 max-md:flex max-md:justify-center"
+                     max-md:bottom-[max(4rem,calc(4rem+env(safe-area-inset-bottom)))] max-md:left-0 max-md:right-0 max-md:flex max-md:justify-center"
           initial={{ opacity: 0, x: isMobile ? 0 : 60, y: isMobile ? 30 : 0 }}
           animate={
             isLoaded
