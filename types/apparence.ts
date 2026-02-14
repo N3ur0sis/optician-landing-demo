@@ -35,6 +35,12 @@ export interface ApparenceSettings {
   intro_right_text: string;
   intro_scroll_indicator_enabled: boolean;
 
+  // Introduction - Mobile adjustments
+  intro_mobile_logo_offset_y: number;   // Logo vertical offset on mobile (% from default)
+  intro_mobile_logo_scale: number;      // Logo scale on mobile (% of default size)
+  intro_mobile_text_offset_y: number;   // Tagline vertical offset on mobile (% from default)
+  intro_mobile_text_scale: number;      // Tagline text scale on mobile (% of default size)
+
   // Footer - Main
   footer_bg_color: string;
   footer_text_color: string;
@@ -93,6 +99,10 @@ export type LandingPageSettings = Pick<
   | "intro_left_text"
   | "intro_right_text"
   | "intro_scroll_indicator_enabled"
+  | "intro_mobile_logo_offset_y"
+  | "intro_mobile_logo_scale"
+  | "intro_mobile_text_offset_y"
+  | "intro_mobile_text_scale"
   | "social_facebook"
   | "social_instagram"
 >;
@@ -153,6 +163,12 @@ export const defaultApparenceSettings: ApparenceSettings = {
   intro_left_text: "SCROLL DOWN",
   intro_right_text: "SCROLL DOWN",
   intro_scroll_indicator_enabled: true,
+
+  // Introduction - Mobile adjustments (defaults = no change)
+  intro_mobile_logo_offset_y: 0,    // 0 = default position, negative = up, positive = down
+  intro_mobile_logo_scale: 100,     // 100 = default size (100%)
+  intro_mobile_text_offset_y: 0,    // 0 = default position, negative = up, positive = down
+  intro_mobile_text_scale: 100,     // 100 = default size (100%)
 
   // Footer - Main
   footer_bg_color: "#171717",
@@ -290,6 +306,19 @@ export function parseSettingsFromAPI(
     intro_scroll_indicator_enabled:
       (data.intro_scroll_indicator_enabled as boolean) ??
       defaultApparenceSettings.intro_scroll_indicator_enabled,
+
+    intro_mobile_logo_offset_y:
+      (data.intro_mobile_logo_offset_y as number) ??
+      defaultApparenceSettings.intro_mobile_logo_offset_y,
+    intro_mobile_logo_scale:
+      (data.intro_mobile_logo_scale as number) ??
+      defaultApparenceSettings.intro_mobile_logo_scale,
+    intro_mobile_text_offset_y:
+      (data.intro_mobile_text_offset_y as number) ??
+      defaultApparenceSettings.intro_mobile_text_offset_y,
+    intro_mobile_text_scale:
+      (data.intro_mobile_text_scale as number) ??
+      defaultApparenceSettings.intro_mobile_text_scale,
 
     footer_bg_color:
       (data.footer_bg_color as string) ??

@@ -52,6 +52,10 @@ export default function Page() {
     intro_right_text: apparenceSettings.intro_right_text,
     intro_scroll_indicator_enabled:
       apparenceSettings.intro_scroll_indicator_enabled,
+    intro_mobile_logo_offset_y: apparenceSettings.intro_mobile_logo_offset_y,
+    intro_mobile_logo_scale: apparenceSettings.intro_mobile_logo_scale,
+    intro_mobile_text_offset_y: apparenceSettings.intro_mobile_text_offset_y,
+    intro_mobile_text_scale: apparenceSettings.intro_mobile_text_scale,
     social_facebook: apparenceSettings.social_facebook,
     social_instagram: apparenceSettings.social_instagram,
   };
@@ -629,7 +633,7 @@ export default function Page() {
         <motion.div
           className="absolute select-none pointer-events-none
                      md:top-1/2 md:-translate-y-1/2 md:left-0 hero-spacing-left
-                     max-md:top-8 max-md:left-0 max-md:right-0 max-md:flex max-md:justify-center"
+                     max-md:left-0 max-md:right-0 max-md:flex max-md:justify-center"
           initial={{ opacity: 0, x: isMobile ? 0 : -60, y: isMobile ? -30 : 0 }}
           animate={
             isLoaded
@@ -640,17 +644,19 @@ export default function Page() {
           style={{
             zIndex: scroll.get() > 0.1 ? -1 : 12,
             pointerEvents: "none",
+            ...(isMobile ? { top: `calc(2rem + ${branding.intro_mobile_logo_offset_y}vh)` } : {}),
           }}
         >
           <motion.div
             className="overflow-hidden"
             style={{
               y: isMobile ? mobileLogoY : leftY,
+              ...(isMobile ? { transform: `scale(${branding.intro_mobile_logo_scale / 100})` } : {}),
             }}
             initial={{ y: isMobile ? "-50%" : "100%", scale: 0.8 }}
             animate={
               isLoaded
-                ? { y: "0%", scale: 1 }
+                ? { y: "0%", scale: isMobile ? branding.intro_mobile_logo_scale / 100 : 1 }
                 : { y: isMobile ? "-50%" : "100%", scale: 0.8 }
             }
             transition={{ duration: 1.0, ease: "easeOut", delay: 1.7 }}
@@ -670,7 +676,7 @@ export default function Page() {
         <motion.div
           className="absolute select-none pointer-events-none
                      md:top-1/2 md:-translate-y-1/2 md:right-0 hero-spacing-right
-                     max-md:bottom-[max(4rem,calc(4rem+env(safe-area-inset-bottom)))] max-md:left-0 max-md:right-0 max-md:flex max-md:justify-center"
+                     max-md:left-0 max-md:right-0 max-md:flex max-md:justify-center"
           initial={{ opacity: 0, x: isMobile ? 0 : 60, y: isMobile ? 30 : 0 }}
           animate={
             isLoaded
@@ -681,6 +687,7 @@ export default function Page() {
           style={{
             zIndex: scroll.get() > 0.1 ? -1 : 12,
             pointerEvents: "none",
+            ...(isMobile ? { bottom: `calc(4rem + ${-branding.intro_mobile_text_offset_y}vh + env(safe-area-inset-bottom, 0px))` } : {}),
           }}
         >
           <motion.div
@@ -693,6 +700,7 @@ export default function Page() {
               lineHeight: "1.2",
               y: isMobile ? mobileTextY : rightY,
               color: branding.intro_text_color,
+              ...(isMobile ? { fontSize: `${branding.intro_mobile_text_scale}%` } : {}),
             }}
           >
             <motion.div

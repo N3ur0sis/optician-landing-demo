@@ -27,6 +27,7 @@ import {
   Layout,
   Sliders,
   Grid,
+  Smartphone,
 } from "lucide-react";
 import {
   FaFacebook,
@@ -1189,6 +1190,9 @@ export default function ApparenceClient() {
                         {/* Top/Left: Logo - centered on mobile */}
                         <div
                           className={`shrink-0 ${introPreviewMode === "mobile" ? "flex justify-center w-full" : ""}`}
+                          style={introPreviewMode === "mobile" ? {
+                            transform: `translateY(${settings.intro_mobile_logo_offset_y * 1.5}px) scale(${settings.intro_mobile_logo_scale / 100})`,
+                          } : {}}
                         >
                           {settings.intro_logo_url ? (
                             <img
@@ -1241,6 +1245,9 @@ export default function ApparenceClient() {
                         {/* Bottom/Right: Tagline text - centered on mobile */}
                         <div
                           className={`shrink-0 ${introPreviewMode === "mobile" ? "w-full text-center" : "text-right"}`}
+                          style={introPreviewMode === "mobile" ? {
+                            transform: `translateY(${-settings.intro_mobile_text_offset_y * 1.5}px) scale(${settings.intro_mobile_text_scale / 100})`,
+                          } : {}}
                         >
                           <div
                             className={`font-bold leading-tight ${
@@ -1466,6 +1473,66 @@ export default function ApparenceClient() {
                       }
                       description="Indicateurs SCROLL sur les côtés"
                     />
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  title="Ajustements mobile"
+                  icon={Smartphone}
+                  defaultOpen={false}
+                >
+                  <div className="flex flex-col gap-4 mt-4">
+                    <p className="text-xs text-gray-500">
+                      Ajustez la position et la taille du logo et du texte sur mobile pour un affichage optimal.
+                    </p>
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-700 mb-3">Logo</p>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Position verticale du logo"
+                          value={settings.intro_mobile_logo_offset_y}
+                          onChange={(val) => updateSetting("intro_mobile_logo_offset_y", val)}
+                          min={-15}
+                          max={25}
+                          step={0.5}
+                          unit="vh"
+                        />
+                        <RangeInput
+                          label="Taille du logo"
+                          value={settings.intro_mobile_logo_scale}
+                          onChange={(val) => updateSetting("intro_mobile_logo_scale", val)}
+                          min={50}
+                          max={200}
+                          step={5}
+                          unit="%"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-700 mb-3">Texte (tagline)</p>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Position verticale du texte"
+                          value={settings.intro_mobile_text_offset_y}
+                          onChange={(val) => updateSetting("intro_mobile_text_offset_y", val)}
+                          min={-15}
+                          max={15}
+                          step={0.5}
+                          unit="vh"
+                        />
+                        <RangeInput
+                          label="Taille du texte"
+                          value={settings.intro_mobile_text_scale}
+                          onChange={(val) => updateSetting("intro_mobile_text_scale", val)}
+                          min={50}
+                          max={200}
+                          step={5}
+                          unit="%"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </CollapsibleSection>
               </div>
