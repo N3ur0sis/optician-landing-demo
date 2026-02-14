@@ -90,7 +90,7 @@ export function AccordionBlock({
             >
               <span
                 data-field="title"
-                className="font-medium"
+                className="font-medium whitespace-pre-line"
                 style={
                   openItems.has(index) ? { color: accentColor } : undefined
                 }
@@ -540,12 +540,12 @@ export function TimelineBlock({ content }: BlockContentProps<TimelineContent>) {
                 </span>
               )}
               <div>
-                <h3 className="text-lg font-semibold" data-field="title">
+                <h3 className="text-lg font-semibold whitespace-pre-line" data-field="title">
                   {item.title}
                 </h3>
                 {item.description && (
                   <p
-                    className="text-sm opacity-70 mt-1"
+                    className="text-sm opacity-70 mt-1 whitespace-pre-line"
                     data-field="description"
                   >
                     {item.description}

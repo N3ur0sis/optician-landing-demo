@@ -87,6 +87,20 @@ wait_for_database() {
 }
 
 # =================================
+# Generate Prisma Client
+# =================================
+generate_prisma_client() {
+    log_info "Generating Prisma Client..."
+    
+    if npx prisma generate 2>&1; then
+        log_success "Prisma Client generated successfully"
+    else
+        log_error "Failed to generate Prisma Client"
+        exit 1
+    fi
+}
+
+# =================================
 # Run Database Migrations
 # =================================
 run_migrations() {
@@ -120,6 +134,11 @@ seed_database() {
 main() {
     # Wait for database to be ready
     wait_for_database
+    
+    echo ""
+    
+    # Generate Prisma Client
+    generate_prisma_client
     
     echo ""
     

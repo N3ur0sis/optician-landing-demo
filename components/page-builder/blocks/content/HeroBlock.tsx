@@ -110,7 +110,7 @@ export function HeroBlock({ content }: BlockContentProps<HeroContent>) {
         {Boolean(content.subtitle) && (
           <p 
             data-field="subtitle"
-            className={`text-sm tracking-[0.3em] uppercase mb-4 opacity-70 ${style === "elegant" ? "font-light" : ""}`}
+            className={`text-sm tracking-[0.3em] uppercase mb-4 opacity-70 whitespace-pre-line ${style === "elegant" ? "font-light" : ""}`}
           >
             {content.subtitle}
           </p>
