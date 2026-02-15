@@ -38,6 +38,8 @@ const Footer = () => {
     contact_email: apparenceSettings.contact_email,
     contact_phone: apparenceSettings.contact_phone,
     contact_address: apparenceSettings.contact_address,
+    footer_contact_title: apparenceSettings.footer_contact_title,
+    footer_navigation_title: apparenceSettings.footer_navigation_title,
     newsletter_enabled: apparenceSettings.newsletter_enabled,
     newsletter_title: apparenceSettings.newsletter_title,
     newsletter_description: apparenceSettings.newsletter_description,
@@ -189,7 +191,7 @@ const Footer = () => {
               className="text-sm font-bold tracking-wider uppercase mb-3 lg:mb-4"
               style={{ color: settings.footer_text_color }}
             >
-              Navigation
+              {settings.footer_navigation_title}
             </h3>
             <ul className="space-y-2 text-sm flex flex-col items-center sm:items-start">
               {settings.footer_nav_links.map((link) => (
@@ -219,7 +221,7 @@ const Footer = () => {
               className="text-sm font-bold tracking-wider uppercase mb-3 lg:mb-4"
               style={{ color: settings.footer_text_color }}
             >
-              Contact
+              {settings.footer_contact_title}
             </h3>
             <ul
               className="space-y-2 text-sm flex flex-col items-center sm:items-start"

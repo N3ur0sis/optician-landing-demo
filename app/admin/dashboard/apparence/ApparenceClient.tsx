@@ -2316,7 +2316,12 @@ export default function ApparenceClient() {
                           }
                         >
                           <h3 className="text-[10px] font-bold tracking-wider uppercase mb-1 opacity-80">
-                            Navigation
+                            <EditableText
+                              value={settings.footer_navigation_title}
+                              onChange={(val) =>
+                                updateSetting("footer_navigation_title", val)
+                              }
+                            />
                           </h3>
                           <ul className={`space-y-0.5 text-[10px] opacity-60`}>
                             {settings.footer_nav_links.map((link) => (
@@ -2352,7 +2357,12 @@ export default function ApparenceClient() {
                           }
                         >
                           <h3 className="text-[10px] font-bold tracking-wider uppercase mb-1 opacity-80">
-                            Contact
+                            <EditableText
+                              value={settings.footer_contact_title}
+                              onChange={(val) =>
+                                updateSetting("footer_contact_title", val)
+                              }
+                            />
                           </h3>
                           <ul className={`space-y-0.5 text-[10px] opacity-60`}>
                             {settings.contact_phone && (
@@ -2584,6 +2594,16 @@ export default function ApparenceClient() {
                   defaultOpen={false}
                   badge={`${settings.footer_nav_links.length}`}
                 >
+                  <div className="mb-4">
+                    <TextInput
+                      label="Titre de la section"
+                      value={settings.footer_navigation_title}
+                      onChange={(val) =>
+                        updateSetting("footer_navigation_title", val)
+                      }
+                      description="Titre affiché au-dessus des liens de navigation"
+                    />
+                  </div>
                   <DraggableLinkEditor
                     links={settings.footer_nav_links}
                     onChange={(links) =>
@@ -2684,11 +2704,22 @@ export default function ApparenceClient() {
                 >
                   <div className="flex flex-col gap-4 mt-4">
                     <TextInput
-                      label="Email"
-                      value={settings.contact_email}
-                      onChange={(val) => updateSetting("contact_email", val)}
-                      type="email"
+                      label="Titre de la section"
+                      value={settings.footer_contact_title}
+                      onChange={(val) =>
+                        updateSetting("footer_contact_title", val)
+                      }
+                      description="Titre affiché au-dessus des informations de contact"
                     />
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <TextInput
+                        label="Email"
+                        value={settings.contact_email}
+                        onChange={(val) => updateSetting("contact_email", val)}
+                        type="email"
+                      />
+                    </div>
 
                     <div className="pt-2 border-t border-gray-100">
                       <TextInput

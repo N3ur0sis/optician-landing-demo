@@ -87,6 +87,8 @@ export interface ApparenceSettings {
   contact_email: string;
   contact_phone: string;
   contact_address: string;
+  footer_contact_title: string; // Titre de la section Contact
+  footer_navigation_title: string; // Titre de la section Navigation
 
   // Footer - Newsletter
   newsletter_enabled: boolean;
@@ -172,6 +174,8 @@ export type FooterSettings = Pick<
   | "contact_email"
   | "contact_phone"
   | "contact_address"
+  | "footer_contact_title"
+  | "footer_navigation_title"
   | "newsletter_enabled"
   | "newsletter_title"
   | "newsletter_description"
@@ -273,6 +277,8 @@ export const defaultApparenceSettings: ApparenceSettings = {
   contact_email: "contact@optiquedebourbon.re",
   contact_phone: "0262 XX XX XX",
   contact_address: "",
+  footer_contact_title: "Contact",
+  footer_navigation_title: "Navigation",
 
   // Footer - Newsletter
   newsletter_enabled: true,
@@ -488,6 +494,12 @@ export function parseSettingsFromAPI(
     contact_address:
       (data.contact_address as string) ??
       defaultApparenceSettings.contact_address,
+    footer_contact_title:
+      (data.footer_contact_title as string) ??
+      defaultApparenceSettings.footer_contact_title,
+    footer_navigation_title:
+      (data.footer_navigation_title as string) ??
+      defaultApparenceSettings.footer_navigation_title,
 
     newsletter_enabled:
       (data.newsletter_enabled as boolean) ??
