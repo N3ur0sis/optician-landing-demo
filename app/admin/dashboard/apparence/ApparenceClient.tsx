@@ -1258,13 +1258,55 @@ export default function ApparenceClient() {
                           >
                             <Model3DPreview
                               modelUrl={settings.intro_3d_model_url}
-                              scale={settings.intro_3d_model_scale}
-                              positionX={settings.intro_3d_model_position_x}
-                              positionY={settings.intro_3d_model_position_y}
-                              positionZ={settings.intro_3d_model_position_z}
-                              rotationX={settings.intro_3d_model_rotation_x}
-                              rotationY={settings.intro_3d_model_rotation_y}
-                              rotationZ={settings.intro_3d_model_rotation_z}
+                              scale={
+                                introPreviewMode === "mobile"
+                                  ? settings.intro_3d_model_scale_mobile
+                                  : introPreviewMode === "tablet"
+                                    ? settings.intro_3d_model_scale_tablet
+                                    : settings.intro_3d_model_scale
+                              }
+                              positionX={
+                                introPreviewMode === "mobile"
+                                  ? settings.intro_3d_model_position_x_mobile
+                                  : introPreviewMode === "tablet"
+                                    ? settings.intro_3d_model_position_x_tablet
+                                    : settings.intro_3d_model_position_x
+                              }
+                              positionY={
+                                introPreviewMode === "mobile"
+                                  ? settings.intro_3d_model_position_y_mobile
+                                  : introPreviewMode === "tablet"
+                                    ? settings.intro_3d_model_position_y_tablet
+                                    : settings.intro_3d_model_position_y
+                              }
+                              positionZ={
+                                introPreviewMode === "mobile"
+                                  ? settings.intro_3d_model_position_z_mobile
+                                  : introPreviewMode === "tablet"
+                                    ? settings.intro_3d_model_position_z_tablet
+                                    : settings.intro_3d_model_position_z
+                              }
+                              rotationX={
+                                introPreviewMode === "mobile"
+                                  ? settings.intro_3d_model_rotation_x_mobile
+                                  : introPreviewMode === "tablet"
+                                    ? settings.intro_3d_model_rotation_x_tablet
+                                    : settings.intro_3d_model_rotation_x
+                              }
+                              rotationY={
+                                introPreviewMode === "mobile"
+                                  ? settings.intro_3d_model_rotation_y_mobile
+                                  : introPreviewMode === "tablet"
+                                    ? settings.intro_3d_model_rotation_y_tablet
+                                    : settings.intro_3d_model_rotation_y
+                              }
+                              rotationZ={
+                                introPreviewMode === "mobile"
+                                  ? settings.intro_3d_model_rotation_z_mobile
+                                  : introPreviewMode === "tablet"
+                                    ? settings.intro_3d_model_rotation_z_tablet
+                                    : settings.intro_3d_model_rotation_z
+                              }
                               className="w-full h-full"
                             />
                           </div>
@@ -1572,6 +1614,72 @@ export default function ApparenceClient() {
                         />
                       </div>
                     </div>
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-700 mb-3">Modèle 3D</p>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Échelle"
+                          value={settings.intro_3d_model_scale_mobile}
+                          onChange={(val) => updateSetting("intro_3d_model_scale_mobile", val)}
+                          min={10}
+                          max={1000}
+                          step={10}
+                          unit="%"
+                        />
+                        <RangeInput
+                          label="Position X"
+                          value={settings.intro_3d_model_position_x_mobile}
+                          onChange={(val) => updateSetting("intro_3d_model_position_x_mobile", val)}
+                          min={-20}
+                          max={20}
+                          step={0.5}
+                        />
+                        <RangeInput
+                          label="Position Y"
+                          value={settings.intro_3d_model_position_y_mobile}
+                          onChange={(val) => updateSetting("intro_3d_model_position_y_mobile", val)}
+                          min={-20}
+                          max={20}
+                          step={0.5}
+                        />
+                        <RangeInput
+                          label="Profondeur (Z)"
+                          value={settings.intro_3d_model_position_z_mobile}
+                          onChange={(val) => updateSetting("intro_3d_model_position_z_mobile", val)}
+                          min={-100}
+                          max={200}
+                          step={5}
+                        />
+                        <RangeInput
+                          label="Rotation X"
+                          value={settings.intro_3d_model_rotation_x_mobile}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_x_mobile", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                        <RangeInput
+                          label="Rotation Y"
+                          value={settings.intro_3d_model_rotation_y_mobile}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_y_mobile", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                        <RangeInput
+                          label="Rotation Z"
+                          value={settings.intro_3d_model_rotation_z_mobile}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_z_mobile", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </CollapsibleSection>
 
@@ -1629,6 +1737,72 @@ export default function ApparenceClient() {
                           max={200}
                           step={5}
                           unit="%"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-700 mb-3">Modèle 3D</p>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Échelle"
+                          value={settings.intro_3d_model_scale_tablet}
+                          onChange={(val) => updateSetting("intro_3d_model_scale_tablet", val)}
+                          min={10}
+                          max={1000}
+                          step={10}
+                          unit="%"
+                        />
+                        <RangeInput
+                          label="Position X"
+                          value={settings.intro_3d_model_position_x_tablet}
+                          onChange={(val) => updateSetting("intro_3d_model_position_x_tablet", val)}
+                          min={-20}
+                          max={20}
+                          step={0.5}
+                        />
+                        <RangeInput
+                          label="Position Y"
+                          value={settings.intro_3d_model_position_y_tablet}
+                          onChange={(val) => updateSetting("intro_3d_model_position_y_tablet", val)}
+                          min={-20}
+                          max={20}
+                          step={0.5}
+                        />
+                        <RangeInput
+                          label="Profondeur (Z)"
+                          value={settings.intro_3d_model_position_z_tablet}
+                          onChange={(val) => updateSetting("intro_3d_model_position_z_tablet", val)}
+                          min={-100}
+                          max={200}
+                          step={5}
+                        />
+                        <RangeInput
+                          label="Rotation X"
+                          value={settings.intro_3d_model_rotation_x_tablet}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_x_tablet", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                        <RangeInput
+                          label="Rotation Y"
+                          value={settings.intro_3d_model_rotation_y_tablet}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_y_tablet", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                        <RangeInput
+                          label="Rotation Z"
+                          value={settings.intro_3d_model_rotation_z_tablet}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_z_tablet", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
                         />
                       </div>
                     </div>
@@ -1693,6 +1867,72 @@ export default function ApparenceClient() {
                       </div>
                     </div>
 
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-700 mb-3">Modèle 3D</p>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Échelle"
+                          value={settings.intro_3d_model_scale}
+                          onChange={(val) => updateSetting("intro_3d_model_scale", val)}
+                          min={10}
+                          max={1000}
+                          step={10}
+                          unit="%"
+                        />
+                        <RangeInput
+                          label="Position X"
+                          value={settings.intro_3d_model_position_x}
+                          onChange={(val) => updateSetting("intro_3d_model_position_x", val)}
+                          min={-20}
+                          max={20}
+                          step={0.5}
+                        />
+                        <RangeInput
+                          label="Position Y"
+                          value={settings.intro_3d_model_position_y}
+                          onChange={(val) => updateSetting("intro_3d_model_position_y", val)}
+                          min={-20}
+                          max={20}
+                          step={0.5}
+                        />
+                        <RangeInput
+                          label="Profondeur (Z)"
+                          value={settings.intro_3d_model_position_z}
+                          onChange={(val) => updateSetting("intro_3d_model_position_z", val)}
+                          min={-100}
+                          max={200}
+                          step={5}
+                        />
+                        <RangeInput
+                          label="Rotation X"
+                          value={settings.intro_3d_model_rotation_x}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_x", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                        <RangeInput
+                          label="Rotation Y"
+                          value={settings.intro_3d_model_rotation_y}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_y", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                        <RangeInput
+                          label="Rotation Z"
+                          value={settings.intro_3d_model_rotation_z}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_z", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                      </div>
+                    </div>
+
                     <button
                       onClick={() => {
                         // Reset mobile adjustments
@@ -1700,16 +1940,37 @@ export default function ApparenceClient() {
                         updateSetting("intro_mobile_logo_scale", 100);
                         updateSetting("intro_mobile_text_offset_y", 0);
                         updateSetting("intro_mobile_text_scale", 100);
+                        updateSetting("intro_3d_model_scale_mobile", 100);
+                        updateSetting("intro_3d_model_position_x_mobile", 0);
+                        updateSetting("intro_3d_model_position_y_mobile", 0);
+                        updateSetting("intro_3d_model_position_z_mobile", 0);
+                        updateSetting("intro_3d_model_rotation_x_mobile", 0);
+                        updateSetting("intro_3d_model_rotation_y_mobile", 0);
+                        updateSetting("intro_3d_model_rotation_z_mobile", 0);
                         // Reset tablet adjustments
                         updateSetting("intro_tablet_logo_offset_y", 0);
                         updateSetting("intro_tablet_logo_scale", 100);
                         updateSetting("intro_tablet_text_offset_y", 0);
                         updateSetting("intro_tablet_text_scale", 100);
+                        updateSetting("intro_3d_model_scale_tablet", 100);
+                        updateSetting("intro_3d_model_position_x_tablet", 0);
+                        updateSetting("intro_3d_model_position_y_tablet", 0);
+                        updateSetting("intro_3d_model_position_z_tablet", 0);
+                        updateSetting("intro_3d_model_rotation_x_tablet", 0);
+                        updateSetting("intro_3d_model_rotation_y_tablet", 0);
+                        updateSetting("intro_3d_model_rotation_z_tablet", 0);
                         // Reset desktop adjustments
                         updateSetting("intro_desktop_logo_offset_y", 0);
                         updateSetting("intro_desktop_logo_scale", 100);
                         updateSetting("intro_desktop_text_offset_y", 0);
                         updateSetting("intro_desktop_text_scale", 100);
+                        updateSetting("intro_3d_model_scale", 100);
+                        updateSetting("intro_3d_model_position_x", 0);
+                        updateSetting("intro_3d_model_position_y", 0);
+                        updateSetting("intro_3d_model_position_z", 0);
+                        updateSetting("intro_3d_model_rotation_x", 0);
+                        updateSetting("intro_3d_model_rotation_y", 0);
+                        updateSetting("intro_3d_model_rotation_z", 0);
                       }}
                       className="mt-1 text-xs text-gray-500 hover:text-gray-700 transition-colors underline"
                     >
@@ -1727,6 +1988,8 @@ export default function ApparenceClient() {
                     <p className="text-xs text-gray-500">
                       Changez le modèle 3D de lunettes affiché dans l&apos;animation d&apos;introduction.
                       Uploadez un fichier <strong>.glb</strong> via la médiathèque.
+                      <br/><br/>
+                      Les paramètres de position, rotation et échelle se trouvent dans les sections <strong>Ajustements mobile/tablette/bureau</strong> pour un contrôle responsive.
                     </p>
 
                     <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -1770,93 +2033,6 @@ export default function ApparenceClient() {
                           Réinitialiser au modèle par défaut
                         </button>
                       )}
-                    </div>
-
-                    {/* 3D Model Adjustments */}
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <h4 className="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wider">Ajustements du modèle</h4>
-                      <div className="flex flex-col gap-3">
-                        <RangeInput
-                          label="Échelle"
-                          value={settings.intro_3d_model_scale}
-                          onChange={(val) => updateSetting("intro_3d_model_scale", val)}
-                          min={10}
-                          max={1000}
-                          step={10}
-                          unit="%"
-                        />
-                        <RangeInput
-                          label="Position horizontale (X)"
-                          value={settings.intro_3d_model_position_x}
-                          onChange={(val) => updateSetting("intro_3d_model_position_x", val)}
-                          min={-20}
-                          max={20}
-                          step={0.5}
-                        />
-                        <RangeInput
-                          label="Position verticale (Y)"
-                          value={settings.intro_3d_model_position_y}
-                          onChange={(val) => updateSetting("intro_3d_model_position_y", val)}
-                          min={-20}
-                          max={20}
-                          step={0.5}
-                        />
-                        <RangeInput
-                          label="Profondeur (Z) - Distance caméra"
-                          value={settings.intro_3d_model_position_z}
-                          onChange={(val) => updateSetting("intro_3d_model_position_z", val)}
-                          min={-100}
-                          max={200}
-                          step={5}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <h4 className="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wider">Rotation du modèle</h4>
-                      <div className="flex flex-col gap-3">
-                        <RangeInput
-                          label="Rotation X (inclinaison)"
-                          value={settings.intro_3d_model_rotation_x}
-                          onChange={(val) => updateSetting("intro_3d_model_rotation_x", val)}
-                          min={-180}
-                          max={180}
-                          step={1}
-                          unit="°"
-                        />
-                        <RangeInput
-                          label="Rotation Y (pivotement)"
-                          value={settings.intro_3d_model_rotation_y}
-                          onChange={(val) => updateSetting("intro_3d_model_rotation_y", val)}
-                          min={-180}
-                          max={180}
-                          step={1}
-                          unit="°"
-                        />
-                        <RangeInput
-                          label="Rotation Z (roulis)"
-                          value={settings.intro_3d_model_rotation_z}
-                          onChange={(val) => updateSetting("intro_3d_model_rotation_z", val)}
-                          min={-180}
-                          max={180}
-                          step={1}
-                          unit="°"
-                        />
-                      </div>
-                      <button
-                        onClick={() => {
-                          updateSetting("intro_3d_model_scale", 100);
-                          updateSetting("intro_3d_model_position_x", 0);
-                          updateSetting("intro_3d_model_position_y", 0);
-                          updateSetting("intro_3d_model_position_z", 0);
-                          updateSetting("intro_3d_model_rotation_x", 0);
-                          updateSetting("intro_3d_model_rotation_y", 0);
-                          updateSetting("intro_3d_model_rotation_z", 0);
-                        }}
-                        className="mt-3 text-xs text-gray-500 hover:text-gray-700 transition-colors underline"
-                      >
-                        Réinitialiser tous les ajustements
-                      </button>
                     </div>
                   </div>
                 </CollapsibleSection>

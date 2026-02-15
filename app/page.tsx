@@ -74,8 +74,61 @@ export default function Page() {
     intro_3d_model_rotation_x: apparenceSettings.intro_3d_model_rotation_x,
     intro_3d_model_rotation_y: apparenceSettings.intro_3d_model_rotation_y,
     intro_3d_model_rotation_z: apparenceSettings.intro_3d_model_rotation_z,
+    intro_3d_model_scale_tablet: apparenceSettings.intro_3d_model_scale_tablet,
+    intro_3d_model_position_x_tablet: apparenceSettings.intro_3d_model_position_x_tablet,
+    intro_3d_model_position_y_tablet: apparenceSettings.intro_3d_model_position_y_tablet,
+    intro_3d_model_position_z_tablet: apparenceSettings.intro_3d_model_position_z_tablet,
+    intro_3d_model_rotation_x_tablet: apparenceSettings.intro_3d_model_rotation_x_tablet,
+    intro_3d_model_rotation_y_tablet: apparenceSettings.intro_3d_model_rotation_y_tablet,
+    intro_3d_model_rotation_z_tablet: apparenceSettings.intro_3d_model_rotation_z_tablet,
+    intro_3d_model_scale_mobile: apparenceSettings.intro_3d_model_scale_mobile,
+    intro_3d_model_position_x_mobile: apparenceSettings.intro_3d_model_position_x_mobile,
+    intro_3d_model_position_y_mobile: apparenceSettings.intro_3d_model_position_y_mobile,
+    intro_3d_model_position_z_mobile: apparenceSettings.intro_3d_model_position_z_mobile,
+    intro_3d_model_rotation_x_mobile: apparenceSettings.intro_3d_model_rotation_x_mobile,
+    intro_3d_model_rotation_y_mobile: apparenceSettings.intro_3d_model_rotation_y_mobile,
+    intro_3d_model_rotation_z_mobile: apparenceSettings.intro_3d_model_rotation_z_mobile,
     social_facebook: apparenceSettings.social_facebook,
     social_instagram: apparenceSettings.social_instagram,
+  };
+
+  // Select responsive 3D model parameters based on current breakpoint
+  const model3dAdjustments = {
+    scale: isMobile 
+      ? branding.intro_3d_model_scale_mobile 
+      : isTablet 
+        ? branding.intro_3d_model_scale_tablet 
+        : branding.intro_3d_model_scale,
+    positionX: isMobile 
+      ? branding.intro_3d_model_position_x_mobile 
+      : isTablet 
+        ? branding.intro_3d_model_position_x_tablet 
+        : branding.intro_3d_model_position_x,
+    positionY: isMobile 
+      ? branding.intro_3d_model_position_y_mobile 
+      : isTablet 
+        ? branding.intro_3d_model_position_y_tablet 
+        : branding.intro_3d_model_position_y,
+    positionZ: isMobile 
+      ? branding.intro_3d_model_position_z_mobile 
+      : isTablet 
+        ? branding.intro_3d_model_position_z_tablet 
+        : branding.intro_3d_model_position_z,
+    rotationX: isMobile 
+      ? branding.intro_3d_model_rotation_x_mobile 
+      : isTablet 
+        ? branding.intro_3d_model_rotation_x_tablet 
+        : branding.intro_3d_model_rotation_x,
+    rotationY: isMobile 
+      ? branding.intro_3d_model_rotation_y_mobile 
+      : isTablet 
+        ? branding.intro_3d_model_rotation_y_tablet 
+        : branding.intro_3d_model_rotation_y,
+    rotationZ: isMobile 
+      ? branding.intro_3d_model_rotation_z_mobile 
+      : isTablet 
+        ? branding.intro_3d_model_rotation_z_tablet 
+        : branding.intro_3d_model_rotation_z,
   };
 
   // Detect viewport breakpoints (mobile < 768, tablet 768-1023, desktop >= 1024)
@@ -648,15 +701,7 @@ export default function Page() {
                 scrollProgress={modelScroll}
                 onCameraZChange={setCameraZ}
                 modelUrl={branding.intro_3d_model_url}
-                modelAdjustments={{
-                  scale: branding.intro_3d_model_scale,
-                  positionX: branding.intro_3d_model_position_x,
-                  positionY: branding.intro_3d_model_position_y,
-                  positionZ: branding.intro_3d_model_position_z,
-                  rotationX: branding.intro_3d_model_rotation_x,
-                  rotationY: branding.intro_3d_model_rotation_y,
-                  rotationZ: branding.intro_3d_model_rotation_z,
-                }}
+                modelAdjustments={model3dAdjustments}
               />
             </div>
           </div>
