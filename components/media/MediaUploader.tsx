@@ -29,7 +29,7 @@ interface FileWithProgress {
 export default function MediaUploader({
   onUploadComplete,
   maxFiles = 10,
-  accept = 'image/*,video/*,application/pdf',
+  accept = 'image/*,video/*,application/pdf,.glb,.gltf',
   className = '',
 }: MediaUploaderProps) {
   const [files, setFiles] = useState<FileWithProgress[]>([]);

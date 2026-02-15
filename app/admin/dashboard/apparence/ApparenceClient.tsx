@@ -28,6 +28,8 @@ import {
   Sliders,
   Grid,
   Smartphone,
+  Tablet,
+  Box,
 } from "lucide-react";
 import {
   FaFacebook,
@@ -38,6 +40,7 @@ import {
   FaTiktok,
 } from "react-icons/fa";
 import MediaPicker from "@/components/media/MediaPicker";
+import dynamic from 'next/dynamic';
 import {
   ApparenceSettings,
   FooterLink,
@@ -58,6 +61,16 @@ interface Page {
 
 // Use centralized defaults
 const defaultSettings = defaultApparenceSettings;
+
+// Dynamically import 3D preview to avoid SSR issues and keep bundle lighter
+const Model3DPreview = dynamic(() => import('@/components/Model3DPreview'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+    </div>
+  ),
+});
 
 // =============================================================================
 // HELPER COMPONENTS
@@ -1190,9 +1203,15 @@ export default function ApparenceClient() {
                         {/* Top/Left: Logo - centered on mobile */}
                         <div
                           className={`shrink-0 ${introPreviewMode === "mobile" ? "flex justify-center w-full" : ""}`}
-                          style={introPreviewMode === "mobile" ? {
-                            transform: `translateY(${settings.intro_mobile_logo_offset_y * 1.5}px) scale(${settings.intro_mobile_logo_scale / 100})`,
-                          } : {}}
+                          style={
+                            introPreviewMode === "mobile" ? {
+                              transform: `translateY(${-settings.intro_mobile_logo_offset_y * 1.5}px) scale(${settings.intro_mobile_logo_scale / 100})`,
+                            } : introPreviewMode === "tablet" ? {
+                              transform: `translateY(${-settings.intro_tablet_logo_offset_y * 1.5}px) scale(${settings.intro_tablet_logo_scale / 100})`,
+                            } : {
+                              transform: `translateY(${-settings.intro_desktop_logo_offset_y * 1.5}px) scale(${settings.intro_desktop_logo_scale / 100})`,
+                            }
+                          }
                         >
                           {settings.intro_logo_url ? (
                             <img
@@ -1221,12 +1240,12 @@ export default function ApparenceClient() {
                           )}
                         </div>
 
-                        {/* Center: 3D Glasses placeholder - centered on all modes */}
+                        {/* Center: 3D Model preview - centered on all modes */}
                         <div
-                          className={`shrink-0 ${introPreviewMode === "mobile" ? "flex justify-center w-full" : ""}`}
+                          className={`shrink-0 ${introPreviewMode === "mobile" ? "flex flex-col items-center w-full" : ""}`}
                         >
                           <div
-                            className={`border-2 border-dashed border-white/20 rounded-lg flex items-center justify-center ${
+                            className={`rounded-lg overflow-hidden ${
                               introPreviewMode === "mobile"
                                 ? "w-28 h-20"
                                 : introPreviewMode === "tablet"
@@ -1234,20 +1253,37 @@ export default function ApparenceClient() {
                                   : "w-48 h-28"
                             }`}
                           >
-                            <span
-                              className={`${introPreviewMode === "mobile" ? "text-3xl" : "text-4xl"}`}
-                            >
-                              🕶️
-                            </span>
+                            <Model3DPreview
+                              modelUrl={settings.intro_3d_model_url}
+                              scale={settings.intro_3d_model_scale}
+                              positionX={settings.intro_3d_model_position_x}
+                              positionY={settings.intro_3d_model_position_y}
+                              positionZ={settings.intro_3d_model_position_z}
+                              rotationX={settings.intro_3d_model_rotation_x}
+                              rotationY={settings.intro_3d_model_rotation_y}
+                              rotationZ={settings.intro_3d_model_rotation_z}
+                              className="w-full h-full"
+                            />
                           </div>
+                          {settings.intro_3d_model_url && (
+                            <p className="text-[8px] text-white/40 text-center mt-0.5 truncate max-w-[120px]">
+                              {settings.intro_3d_model_url.split('/').pop()}
+                            </p>
+                          )}
                         </div>
 
                         {/* Bottom/Right: Tagline text - centered on mobile */}
                         <div
                           className={`shrink-0 ${introPreviewMode === "mobile" ? "w-full text-center" : "text-right"}`}
-                          style={introPreviewMode === "mobile" ? {
-                            transform: `translateY(${-settings.intro_mobile_text_offset_y * 1.5}px) scale(${settings.intro_mobile_text_scale / 100})`,
-                          } : {}}
+                          style={
+                            introPreviewMode === "mobile" ? {
+                              transform: `translateY(${-settings.intro_mobile_text_offset_y * 1.5}px) scale(${settings.intro_mobile_text_scale / 100})`,
+                            } : introPreviewMode === "tablet" ? {
+                              transform: `translateY(${-settings.intro_tablet_text_offset_y * 1.5}px) scale(${settings.intro_tablet_text_scale / 100})`,
+                            } : {
+                              transform: `translateY(${-settings.intro_desktop_text_offset_y * 1.5}px) scale(${settings.intro_desktop_text_scale / 100})`,
+                            }
+                          }
                         >
                           <div
                             className={`font-bold leading-tight ${
@@ -1532,6 +1568,292 @@ export default function ApparenceClient() {
                           unit="%"
                         />
                       </div>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  title="Ajustements tablette"
+                  icon={Tablet}
+                  defaultOpen={false}
+                >
+                  <div className="flex flex-col gap-4 mt-4">
+                    <p className="text-xs text-gray-500">
+                      Ajustez la position et la taille du logo et du texte sur tablette pour un affichage optimal.
+                    </p>
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-700 mb-3">Logo</p>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Position verticale du logo"
+                          value={settings.intro_tablet_logo_offset_y}
+                          onChange={(val) => updateSetting("intro_tablet_logo_offset_y", val)}
+                          min={-15}
+                          max={25}
+                          step={0.5}
+                          unit="vh"
+                        />
+                        <RangeInput
+                          label="Taille du logo"
+                          value={settings.intro_tablet_logo_scale}
+                          onChange={(val) => updateSetting("intro_tablet_logo_scale", val)}
+                          min={50}
+                          max={200}
+                          step={5}
+                          unit="%"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-700 mb-3">Texte (tagline)</p>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Position verticale du texte"
+                          value={settings.intro_tablet_text_offset_y}
+                          onChange={(val) => updateSetting("intro_tablet_text_offset_y", val)}
+                          min={-15}
+                          max={15}
+                          step={0.5}
+                          unit="vh"
+                        />
+                        <RangeInput
+                          label="Taille du texte"
+                          value={settings.intro_tablet_text_scale}
+                          onChange={(val) => updateSetting("intro_tablet_text_scale", val)}
+                          min={50}
+                          max={200}
+                          step={5}
+                          unit="%"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  title="Ajustements bureau"
+                  icon={Monitor}
+                  defaultOpen={false}
+                >
+                  <div className="flex flex-col gap-4 mt-4">
+                    <p className="text-xs text-gray-500">
+                      Ajustez la position et la taille du logo et du texte sur desktop pour un affichage optimal.
+                    </p>
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-700 mb-3">Logo</p>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Position verticale du logo"
+                          value={settings.intro_desktop_logo_offset_y}
+                          onChange={(val) => updateSetting("intro_desktop_logo_offset_y", val)}
+                          min={-15}
+                          max={25}
+                          step={0.5}
+                          unit="vh"
+                        />
+                        <RangeInput
+                          label="Taille du logo"
+                          value={settings.intro_desktop_logo_scale}
+                          onChange={(val) => updateSetting("intro_desktop_logo_scale", val)}
+                          min={50}
+                          max={200}
+                          step={5}
+                          unit="%"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-xs font-semibold text-gray-700 mb-3">Texte (tagline)</p>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Position verticale du texte"
+                          value={settings.intro_desktop_text_offset_y}
+                          onChange={(val) => updateSetting("intro_desktop_text_offset_y", val)}
+                          min={-15}
+                          max={15}
+                          step={0.5}
+                          unit="vh"
+                        />
+                        <RangeInput
+                          label="Taille du texte"
+                          value={settings.intro_desktop_text_scale}
+                          onChange={(val) => updateSetting("intro_desktop_text_scale", val)}
+                          min={50}
+                          max={200}
+                          step={5}
+                          unit="%"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        // Reset mobile adjustments
+                        updateSetting("intro_mobile_logo_offset_y", 0);
+                        updateSetting("intro_mobile_logo_scale", 100);
+                        updateSetting("intro_mobile_text_offset_y", 0);
+                        updateSetting("intro_mobile_text_scale", 100);
+                        // Reset tablet adjustments
+                        updateSetting("intro_tablet_logo_offset_y", 0);
+                        updateSetting("intro_tablet_logo_scale", 100);
+                        updateSetting("intro_tablet_text_offset_y", 0);
+                        updateSetting("intro_tablet_text_scale", 100);
+                        // Reset desktop adjustments
+                        updateSetting("intro_desktop_logo_offset_y", 0);
+                        updateSetting("intro_desktop_logo_scale", 100);
+                        updateSetting("intro_desktop_text_offset_y", 0);
+                        updateSetting("intro_desktop_text_scale", 100);
+                      }}
+                      className="mt-1 text-xs text-gray-500 hover:text-gray-700 transition-colors underline"
+                    >
+                      Réinitialiser tous les ajustements responsifs
+                    </button>
+                  </div>
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  title="Modèle 3D"
+                  icon={Box}
+                  defaultOpen={false}
+                >
+                  <div className="flex flex-col gap-4 mt-4">
+                    <p className="text-xs text-gray-500">
+                      Changez le modèle 3D de lunettes affiché dans l&apos;animation d&apos;introduction.
+                      Uploadez un fichier <strong>.glb</strong> via la médiathèque.
+                    </p>
+
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      {settings.intro_3d_model_url ? (
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
+                            <Box className="w-6 h-6 text-gray-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {settings.intro_3d_model_url.split('/').pop()}
+                            </p>
+                            <p className="text-xs text-gray-500">Modèle personnalisé</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center">
+                            <Box className="w-6 h-6 text-blue-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900">glasses.glb</p>
+                            <p className="text-xs text-gray-500">Modèle par défaut</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <MediaPicker
+                        value={settings.intro_3d_model_url}
+                        onChange={(url) => updateSetting("intro_3d_model_url", url)}
+                        acceptTypes="model3d"
+                        placeholder="Sélectionner un modèle 3D (.glb)"
+                        showPreview={false}
+                      />
+
+                      {settings.intro_3d_model_url && (
+                        <button
+                          onClick={() => updateSetting("intro_3d_model_url", "")}
+                          className="mt-2 text-xs text-red-600 hover:text-red-800 transition-colors"
+                        >
+                          Réinitialiser au modèle par défaut
+                        </button>
+                      )}
+                    </div>
+
+                    {/* 3D Model Adjustments */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <h4 className="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wider">Ajustements du modèle</h4>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Échelle"
+                          value={settings.intro_3d_model_scale}
+                          onChange={(val) => updateSetting("intro_3d_model_scale", val)}
+                          min={10}
+                          max={1000}
+                          step={10}
+                          unit="%"
+                        />
+                        <RangeInput
+                          label="Position horizontale (X)"
+                          value={settings.intro_3d_model_position_x}
+                          onChange={(val) => updateSetting("intro_3d_model_position_x", val)}
+                          min={-20}
+                          max={20}
+                          step={0.5}
+                        />
+                        <RangeInput
+                          label="Position verticale (Y)"
+                          value={settings.intro_3d_model_position_y}
+                          onChange={(val) => updateSetting("intro_3d_model_position_y", val)}
+                          min={-20}
+                          max={20}
+                          step={0.5}
+                        />
+                        <RangeInput
+                          label="Profondeur (Z) - Distance caméra"
+                          value={settings.intro_3d_model_position_z}
+                          onChange={(val) => updateSetting("intro_3d_model_position_z", val)}
+                          min={-100}
+                          max={200}
+                          step={5}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <h4 className="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wider">Rotation du modèle</h4>
+                      <div className="flex flex-col gap-3">
+                        <RangeInput
+                          label="Rotation X (inclinaison)"
+                          value={settings.intro_3d_model_rotation_x}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_x", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                        <RangeInput
+                          label="Rotation Y (pivotement)"
+                          value={settings.intro_3d_model_rotation_y}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_y", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                        <RangeInput
+                          label="Rotation Z (roulis)"
+                          value={settings.intro_3d_model_rotation_z}
+                          onChange={(val) => updateSetting("intro_3d_model_rotation_z", val)}
+                          min={-180}
+                          max={180}
+                          step={1}
+                          unit="°"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          updateSetting("intro_3d_model_scale", 100);
+                          updateSetting("intro_3d_model_position_x", 0);
+                          updateSetting("intro_3d_model_position_y", 0);
+                          updateSetting("intro_3d_model_position_z", 0);
+                          updateSetting("intro_3d_model_rotation_x", 0);
+                          updateSetting("intro_3d_model_rotation_y", 0);
+                          updateSetting("intro_3d_model_rotation_z", 0);
+                        }}
+                        className="mt-3 text-xs text-gray-500 hover:text-gray-700 transition-colors underline"
+                      >
+                        Réinitialiser tous les ajustements
+                      </button>
                     </div>
                   </div>
                 </CollapsibleSection>

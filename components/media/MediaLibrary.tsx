@@ -8,6 +8,7 @@ import {
   Image as ImageIcon,
   Video,
   FileText,
+  Box,
   Grid3X3,
   List,
   Trash2,
@@ -39,7 +40,7 @@ interface MediaLibraryProps {
   onClose: () => void;
   onSelect?: (media: MediaItem | MediaItem[]) => void;
   multiple?: boolean;
-  acceptTypes?: 'all' | 'image' | 'video' | 'document';
+  acceptTypes?: 'all' | 'image' | 'video' | 'document' | 'model3d';
 }
 
 export default function MediaLibrary({
@@ -52,7 +53,7 @@ export default function MediaLibrary({
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'image' | 'video' | 'document'>(
+  const [filterType, setFilterType] = useState<'all' | 'image' | 'video' | 'document' | 'model3d'>(
     acceptTypes === 'all' ? 'all' : acceptTypes
   );
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -177,6 +178,7 @@ export default function MediaLibrary({
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('image/')) return ImageIcon;
     if (mimeType.startsWith('video/')) return Video;
+    if (mimeType.startsWith('model/')) return Box;
     return FileText;
   };
 
@@ -264,6 +266,7 @@ export default function MediaLibrary({
                   { value: 'all', label: 'Tous' },
                   { value: 'image', label: 'Images', icon: ImageIcon },
                   { value: 'video', label: 'Vidéos', icon: Video },
+                  { value: 'model3d', label: '3D', icon: Box },
                   { value: 'document', label: 'Documents', icon: FileText },
                 ].map(({ value, label, icon: Icon }) => (
                   <button
@@ -352,6 +355,11 @@ export default function MediaLibrary({
                           src={item.url}
                           className="w-full h-full object-cover"
                         />
+                      ) : item.mimeType.startsWith('model/') ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                          <Box className="w-12 h-12 text-gray-500 mb-1" />
+                          <span className="text-[10px] text-gray-500 font-medium uppercase">{item.filename.split('.').pop()}</span>
+                        </div>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <FileIcon className="w-12 h-12 text-gray-500" />

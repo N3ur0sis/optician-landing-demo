@@ -24,13 +24,54 @@ import { useGLTF, OrbitControls, Environment, ContactShadows } from '@react-thre
 import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
 
+const DEFAULT_MODEL_URL = '/models/glasses.glb';
+
 // Enhanced Glasses 3D Model Component with loading states and responsive scaling
-function Glasses({ onLoad, scrollProgress }: { onLoad?: () => void; scrollProgress?: number }) {
-  const { scene } = useGLTF('/models/glasses.glb');
+function Glasses({ onLoad, scrollProgress, modelUrl, modelAdjustments }: { 
+  onLoad?: () => void; 
+  scrollProgress?: number; 
+  modelUrl: string;
+  modelAdjustments?: {
+    scale: number;
+    positionX: number;
+    positionY: number;
+    positionZ: number;
+    rotationX: number;
+    rotationY: number;
+    rotationZ: number;
+  };
+}) {
+  const { scene } = useGLTF(modelUrl);
   const meshRef = useRef<THREE.Group>(null);
   const [viewportSize, setViewportSize] = useState({ width: 1200, height: 800 });
+  const [autoFitScale, setAutoFitScale] = useState(1);
   
   const MODEL_POSITION_X = 0.0; // Keep X centered
+  
+  // Auto-fit for custom models to make them visible by default
+  useEffect(() => {
+    if (scene) {
+      const isDefaultModel = modelUrl === DEFAULT_MODEL_URL;
+      
+      if (isDefaultModel) {
+        // Default model keeps original scale
+        setAutoFitScale(1);
+      } else {
+        // For custom models, calculate a reasonable base scale
+        const box = new THREE.Box3().setFromObject(scene);
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        
+        // Target size that makes custom models appear at similar size to default
+        // User can then fine-tune with sliders
+        const targetSize = 8;
+        
+        if (maxDim > 0) {
+          setAutoFitScale(targetSize / maxDim);
+        }
+      }
+    }
+  }, [scene, modelUrl]);
   
   // ✨ RESPONSIVE POSITION SYSTEM - Memoized for performance with mobile optimizations
   const responsivePositions = useMemo(() => {
@@ -115,6 +156,51 @@ function Glasses({ onLoad, scrollProgress }: { onLoad?: () => void; scrollProgre
     return Math.min(2.8, 1.8 + (width - 1550) / 1500); // Large desktop: even bigger, better cap
   };
   
+  // 📐 RESPONSIVE Z-DEPTH SCALE CALCULATION
+  // Scale position Z based on viewport width to maintain consistent depth perception
+  // Baseline: >1550px = 1.0 (reference), smaller screens need less depth
+  const getResponsiveZScale = () => {
+    const width = viewportSize.width;
+    
+    // For large screens, use full baseline (reference point)
+    if (width > 1550) return 1.0;
+    
+    // For screens <= 1550, progressively reduce depth
+    // User reported: Z=90 works at >1550px, Z=80 works at <1550px → ratio ~0.89
+    if (width <= 375) return 0.45;     // iPhone: much less depth
+    if (width <= 414) return 0.55;     // iPhone Plus/Pro: slightly more
+    if (width <= 640) return 0.65;     // Mobile: reduced depth
+    if (width <= 768) return 0.75;     // Small tablet: balanced
+    if (width <= 1024) return 0.85;    // Tablet: approaching baseline
+    if (width <= 1200) return 0.89;    // Small desktop: 80/90 ratio
+    if (width <= 1550) return 0.89;    // Medium desktop: same ratio (80/90)
+    
+    return 1.0;
+  };
+  
+  // 📐 RESPONSIVE Y-POSITION SCALE CALCULATION
+  // Scale position Y based on viewport width to compensate for Z depth changes
+  // When model is closer (smaller Z), it appears higher, so we reduce Y offset
+  // Baseline: >1550px = 1.0 (reference Y=8), smaller screens need proportionally less Y
+  const getResponsiveYScale = () => {
+    const width = viewportSize.width;
+    
+    // For large screens, use full baseline (reference point)
+    if (width > 1550) return 1.0;
+    
+    // For screens <= 1550, progressively reduce Y offset to compensate for closer model
+    // Using similar ratios to Z scale for consistent visual positioning
+    if (width <= 375) return 0.45;     // iPhone: much less Y offset
+    if (width <= 414) return 0.55;     // iPhone Plus/Pro
+    if (width <= 640) return 0.65;     // Mobile: Y=8 becomes ~5.2
+    if (width <= 768) return 0.75;     // Small tablet
+    if (width <= 1024) return 0.85;    // Tablet
+    if (width <= 1200) return 0.89;    // Small desktop
+    if (width <= 1550) return 0.89;    // Medium desktop
+    
+    return 1.0;
+  };
+  
   useEffect(() => {
     const updateSize = () => {
       if (typeof window !== 'undefined') {
@@ -152,7 +238,9 @@ function Glasses({ onLoad, scrollProgress }: { onLoad?: () => void; scrollProgre
       const floatingY = Math.sin(state.clock.elapsedTime * 0.6) * floatingIntensity;
 
       // --- SYNCHRONIZED two-phase animation with responsive timing ---
-      let rotationY = Math.PI / 2; // Start at 90 degrees (side view)
+      // Custom Y rotation offset in radians
+      const adjRotYOffset = (modelAdjustments?.rotationY ?? 0) * (Math.PI / 180);
+      let rotationY = Math.PI / 2 + adjRotYOffset; // Start at 90 degrees (side view) + custom offset
       if (scrollProgress !== undefined) {
         // Clamp scroll progress to prevent flipping back
         const clampedProgress = Math.min(Math.max(scrollProgress, 0), 1);
@@ -177,8 +265,8 @@ function Glasses({ onLoad, scrollProgress }: { onLoad?: () => void; scrollProgre
           cameraPhaseStart = 0.8;
         }
         
-        const startRotation = - Math.PI / 2; // 90 degrees - initial position
-        const endRotation = -(3 * Math.PI) / 2; // 270 degrees - final position
+        const startRotation = - Math.PI / 2 + adjRotYOffset; // 90 degrees - initial position + custom offset
+        const endRotation = -(3 * Math.PI) / 2 + adjRotYOffset; // 270 degrees - final position + custom offset
         
         let rotationProgress = 0;
         if (clampedProgress <= rotationPhaseEnd) {
@@ -205,19 +293,33 @@ function Glasses({ onLoad, scrollProgress }: { onLoad?: () => void; scrollProgre
       } else {
         // Very subtle idle rotation when not scrolling (around 90°)
         const idleIntensity = viewportSize.width <= 768 ? 0.01 : 0.015;
-        rotationY = Math.PI / 2 + Math.sin(state.clock.elapsedTime * 0.15) * idleIntensity;
+        rotationY = Math.PI / 2 + adjRotYOffset + Math.sin(state.clock.elapsedTime * 0.15) * idleIntensity;
       }
       
+      // Apply custom position adjustments with responsive scaling
+      const adjustX = modelAdjustments?.positionX ?? 0;
+      const adjustY = (modelAdjustments?.positionY ?? 0) * getResponsiveYScale();
+      const adjustZ = (modelAdjustments?.positionZ ?? 0) * getResponsiveZScale();
+      
       meshRef.current.position.set(
-        baseX,
-        baseY + floatingY,
-        0
+        baseX + adjustX,
+        baseY + floatingY + adjustY,
+        adjustZ
       );
       meshRef.current.rotation.y = rotationY;
+      
+      // Apply custom rotation adjustments (converted from degrees to radians)
+      const adjRotX = (modelAdjustments?.rotationX ?? 0) * (Math.PI / 180);
+      const adjRotZ = (modelAdjustments?.rotationZ ?? 0) * (Math.PI / 180);
+      meshRef.current.rotation.x = adjRotX;
+      meshRef.current.rotation.z = adjRotZ;
     }
   });
 
-  const responsiveScale = getResponsiveScale();
+  // Apply custom scale adjustment (percentage of auto-calculated responsive scale)
+  // Default model uses responsive scale only, custom models get autofit + responsive + user adjustment
+  const scaleMultiplier = (modelAdjustments?.scale ?? 100) / 100;
+  const responsiveScale = getResponsiveScale() * autoFitScale * scaleMultiplier;
 
   return (
     <group ref={meshRef}>
@@ -248,12 +350,26 @@ function Glasses({ onLoad, scrollProgress }: { onLoad?: () => void; scrollProgre
 
 // Main GlassesModel Canvas Component
 import { MotionValue, useMotionValueEvent } from 'framer-motion';
+
+type ModelAdjustments = {
+  scale: number;
+  positionX: number;
+  positionY: number;
+  positionZ: number;
+  rotationX: number;
+  rotationY: number;
+  rotationZ: number;
+};
+
 type GlassesModelProps = {
   scrollProgress?: MotionValue<number>;
   onCameraZChange?: (z: number) => void;
+  modelUrl?: string;
+  modelAdjustments?: ModelAdjustments;
 };
 
-const GlassesModel = ({ scrollProgress, onCameraZChange }: GlassesModelProps) => {
+const GlassesModel = ({ scrollProgress, onCameraZChange, modelUrl, modelAdjustments }: GlassesModelProps) => {
+  const resolvedModelUrl = modelUrl && modelUrl.trim() !== '' ? modelUrl : DEFAULT_MODEL_URL;
   const [isLoading, setIsLoading] = useState(true);
   const [modelLoaded, setModelLoaded] = useState(false);
   const [currentScrollProgress, setCurrentScrollProgress] = useState(0);
@@ -453,7 +569,7 @@ const GlassesModel = ({ scrollProgress, onCameraZChange }: GlassesModelProps) =>
           />
           <pointLight position={[-3, 2, 3]} intensity={0.3} />
           <Environment preset="studio" />
-          <Glasses onLoad={handleModelLoad} scrollProgress={currentScrollProgress} />
+          <Glasses onLoad={handleModelLoad} scrollProgress={currentScrollProgress} modelUrl={resolvedModelUrl} modelAdjustments={modelAdjustments} />
           <ContactShadows 
             position={[0, -1.8, 0]} 
             opacity={0.15} 
@@ -467,7 +583,7 @@ const GlassesModel = ({ scrollProgress, onCameraZChange }: GlassesModelProps) =>
   );
 };
 
-// Preload the model
-useGLTF.preload('/models/glasses.glb');
+// Preload the default model
+useGLTF.preload(DEFAULT_MODEL_URL);
 
 export default GlassesModel;

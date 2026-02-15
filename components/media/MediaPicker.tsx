@@ -21,7 +21,7 @@ interface MediaItem {
 interface MediaPickerProps {
   value?: string;
   onChange: (url: string, media?: MediaItem) => void;
-  acceptTypes?: 'all' | 'image' | 'video' | 'document';
+  acceptTypes?: 'all' | 'image' | 'video' | 'document' | 'model3d';
   label?: string;
   placeholder?: string;
   showPreview?: boolean;

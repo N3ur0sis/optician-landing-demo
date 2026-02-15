@@ -41,6 +41,28 @@ export interface ApparenceSettings {
   intro_mobile_text_offset_y: number;   // Tagline vertical offset on mobile (% from default)
   intro_mobile_text_scale: number;      // Tagline text scale on mobile (% of default size)
 
+  // Introduction - Tablet adjustments
+  intro_tablet_logo_offset_y: number;   // Logo vertical offset on tablet
+  intro_tablet_logo_scale: number;      // Logo scale on tablet
+  intro_tablet_text_offset_y: number;   // Tagline vertical offset on tablet
+  intro_tablet_text_scale: number;      // Tagline text scale on tablet
+
+  // Introduction - Desktop adjustments
+  intro_desktop_logo_offset_y: number;  // Logo vertical offset on desktop
+  intro_desktop_logo_scale: number;     // Logo scale on desktop
+  intro_desktop_text_offset_y: number;  // Tagline vertical offset on desktop
+  intro_desktop_text_scale: number;     // Tagline text scale on desktop
+
+  // Introduction - 3D Model
+  intro_3d_model_url: string;           // URL to the .glb model file (empty = default glasses.glb)
+  intro_3d_model_scale: number;         // Custom scale adjustment (% of auto-calculated scale, default 100)
+  intro_3d_model_position_x: number;    // Horizontal offset (default 0)
+  intro_3d_model_position_y: number;    // Vertical offset (default 0)
+  intro_3d_model_position_z: number;    // Depth offset - closer to camera (+) or further (-), default 0
+  intro_3d_model_rotation_x: number;    // Rotation around X axis in degrees (default 0)
+  intro_3d_model_rotation_y: number;    // Rotation around Y axis in degrees (default 0)
+  intro_3d_model_rotation_z: number;    // Rotation around Z axis in degrees (default 0)
+
   // Footer - Main
   footer_bg_color: string;
   footer_text_color: string;
@@ -103,6 +125,22 @@ export type LandingPageSettings = Pick<
   | "intro_mobile_logo_scale"
   | "intro_mobile_text_offset_y"
   | "intro_mobile_text_scale"
+  | "intro_tablet_logo_offset_y"
+  | "intro_tablet_logo_scale"
+  | "intro_tablet_text_offset_y"
+  | "intro_tablet_text_scale"
+  | "intro_desktop_logo_offset_y"
+  | "intro_desktop_logo_scale"
+  | "intro_desktop_text_offset_y"
+  | "intro_desktop_text_scale"
+  | "intro_3d_model_url"
+  | "intro_3d_model_scale"
+  | "intro_3d_model_position_x"
+  | "intro_3d_model_position_y"
+  | "intro_3d_model_position_z"
+  | "intro_3d_model_rotation_x"
+  | "intro_3d_model_rotation_y"
+  | "intro_3d_model_rotation_z"
   | "social_facebook"
   | "social_instagram"
 >;
@@ -169,6 +207,28 @@ export const defaultApparenceSettings: ApparenceSettings = {
   intro_mobile_logo_scale: 100,     // 100 = default size (100%)
   intro_mobile_text_offset_y: 0,    // 0 = default position, negative = up, positive = down
   intro_mobile_text_scale: 100,     // 100 = default size (100%)
+
+  // Introduction - Tablet adjustments (defaults = no change)
+  intro_tablet_logo_offset_y: 0,
+  intro_tablet_logo_scale: 100,
+  intro_tablet_text_offset_y: 0,
+  intro_tablet_text_scale: 100,
+
+  // Introduction - Desktop adjustments (defaults = no change)
+  intro_desktop_logo_offset_y: 0,
+  intro_desktop_logo_scale: 100,
+  intro_desktop_text_offset_y: 0,
+  intro_desktop_text_scale: 100,
+
+  // Introduction - 3D Model
+  intro_3d_model_url: "",            // Empty = use default /models/glasses.glb
+  intro_3d_model_scale: 100,         // 100 = auto-calculated scale (100%)
+  intro_3d_model_position_x: 0,      // 0 = centered
+  intro_3d_model_position_y: 0,      // 0 = auto-calculated Y
+  intro_3d_model_position_z: 0,      // 0 = default depth
+  intro_3d_model_rotation_x: 0,      // 0 = no extra rotation
+  intro_3d_model_rotation_y: 0,      // 0 = no extra rotation  
+  intro_3d_model_rotation_z: 0,      // 0 = no extra rotation
 
   // Footer - Main
   footer_bg_color: "#171717",
@@ -319,6 +379,54 @@ export function parseSettingsFromAPI(
     intro_mobile_text_scale:
       (data.intro_mobile_text_scale as number) ??
       defaultApparenceSettings.intro_mobile_text_scale,
+    intro_tablet_logo_offset_y:
+      (data.intro_tablet_logo_offset_y as number) ??
+      defaultApparenceSettings.intro_tablet_logo_offset_y,
+    intro_tablet_logo_scale:
+      (data.intro_tablet_logo_scale as number) ??
+      defaultApparenceSettings.intro_tablet_logo_scale,
+    intro_tablet_text_offset_y:
+      (data.intro_tablet_text_offset_y as number) ??
+      defaultApparenceSettings.intro_tablet_text_offset_y,
+    intro_tablet_text_scale:
+      (data.intro_tablet_text_scale as number) ??
+      defaultApparenceSettings.intro_tablet_text_scale,
+    intro_desktop_logo_offset_y:
+      (data.intro_desktop_logo_offset_y as number) ??
+      defaultApparenceSettings.intro_desktop_logo_offset_y,
+    intro_desktop_logo_scale:
+      (data.intro_desktop_logo_scale as number) ??
+      defaultApparenceSettings.intro_desktop_logo_scale,
+    intro_desktop_text_offset_y:
+      (data.intro_desktop_text_offset_y as number) ??
+      defaultApparenceSettings.intro_desktop_text_offset_y,
+    intro_desktop_text_scale:
+      (data.intro_desktop_text_scale as number) ??
+      defaultApparenceSettings.intro_desktop_text_scale,
+    intro_3d_model_url:
+      (data.intro_3d_model_url as string) ??
+      defaultApparenceSettings.intro_3d_model_url,
+    intro_3d_model_scale:
+      (data.intro_3d_model_scale as number) ??
+      defaultApparenceSettings.intro_3d_model_scale,
+    intro_3d_model_position_x:
+      (data.intro_3d_model_position_x as number) ??
+      defaultApparenceSettings.intro_3d_model_position_x,
+    intro_3d_model_position_y:
+      (data.intro_3d_model_position_y as number) ??
+      defaultApparenceSettings.intro_3d_model_position_y,
+    intro_3d_model_position_z:
+      (data.intro_3d_model_position_z as number) ??
+      defaultApparenceSettings.intro_3d_model_position_z,
+    intro_3d_model_rotation_x:
+      (data.intro_3d_model_rotation_x as number) ??
+      defaultApparenceSettings.intro_3d_model_rotation_x,
+    intro_3d_model_rotation_y:
+      (data.intro_3d_model_rotation_y as number) ??
+      defaultApparenceSettings.intro_3d_model_rotation_y,
+    intro_3d_model_rotation_z:
+      (data.intro_3d_model_rotation_z as number) ??
+      defaultApparenceSettings.intro_3d_model_rotation_z,
 
     footer_bg_color:
       (data.footer_bg_color as string) ??

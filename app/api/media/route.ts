@@ -56,9 +56,11 @@ export async function GET(request: NextRequest) {
       where.mimeType = { startsWith: 'image/' };
     } else if (type === 'video') {
       where.mimeType = { startsWith: 'video/' };
+    } else if (type === 'model3d') {
+      where.mimeType = { startsWith: 'model/' };
     } else if (type === 'document') {
       where.mimeType = { 
-        notIn: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'video/mp4', 'video/webm'] 
+        notIn: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'video/mp4', 'video/webm', 'model/gltf-binary', 'model/gltf+json'] 
       };
     }
 
@@ -121,7 +123,12 @@ export async function POST(request: NextRequest) {
       'application/pdf',
       'application/msword',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'model/gltf-binary',
+      'model/gltf+json',
     ];
+
+    // Also allow by extension for 3D models (browsers may not set correct MIME type)
+    const allowedExtensions = ['.glb', '.gltf'];
 
     const maxSize = 50 * 1024 * 1024; // 50MB
 
@@ -129,9 +136,10 @@ export async function POST(request: NextRequest) {
 
     for (const file of files) {
       // Validate file type
-      if (!allowedTypes.includes(file.type)) {
+      const fileExt = path.extname(file.name).toLowerCase();
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExt)) {
         return NextResponse.json(
-          { error: `File type not allowed: ${file.type}` },
+          { error: `File type not allowed: ${file.type} (${file.name})` },
           { status: 400 }
         );
       }
@@ -187,12 +195,18 @@ export async function POST(request: NextRequest) {
 
       // Create database record
       const storagePath = `/uploads/${year}/${month}/${filename}`;
+      // Determine proper MIME type for 3D models
+      let mimeType = file.type;
+      const extLower = path.extname(file.name).toLowerCase();
+      if (extLower === '.glb') mimeType = 'model/gltf-binary';
+      else if (extLower === '.gltf') mimeType = 'model/gltf+json';
+
       const media = await prisma.media.create({
         data: {
           filename: file.name,
           path: storagePath,
           url: storagePath, // Same as path for local storage
-          mimeType: file.type,
+          mimeType,
           size: file.size,
           width,
           height,

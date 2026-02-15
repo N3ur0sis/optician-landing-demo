@@ -18,6 +18,7 @@ import {
   X,
   MoreVertical,
   FolderOpen,
+  Box,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MediaUploader from '@/components/media/MediaUploader';
@@ -40,7 +41,7 @@ export default function MediaDashboard() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'image' | 'video' | 'document'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'image' | 'video' | 'model3d' | 'document'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [showUploader, setShowUploader] = useState(false);
@@ -171,6 +172,7 @@ export default function MediaDashboard() {
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('image/')) return ImageIcon;
     if (mimeType.startsWith('video/')) return Video;
+    if (mimeType.startsWith('model/')) return Box;
     return FileText;
   };
 
@@ -219,6 +221,7 @@ export default function MediaDashboard() {
               { value: 'all', label: 'Tous' },
               { value: 'image', label: 'Images', icon: ImageIcon },
               { value: 'video', label: 'Vidéos', icon: Video },
+              { value: 'model3d', label: '3D', icon: Box },
               { value: 'document', label: 'Documents', icon: FileText },
             ].map(({ value, label, icon: Icon }) => (
               <button
@@ -346,6 +349,11 @@ export default function MediaDashboard() {
                     />
                   ) : item.mimeType.startsWith('video/') ? (
                     <video src={item.url} className="w-full h-full object-cover" />
+                  ) : item.mimeType.startsWith('model/') ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
+                      <Box className="w-12 h-12 text-purple-400" />
+                      <span className="text-[10px] text-purple-500 mt-1 font-medium">.{item.filename.split('.').pop()}</span>
+                    </div>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <FileIcon className="w-12 h-12 text-gray-500" />
@@ -595,6 +603,12 @@ export default function MediaDashboard() {
                   />
                 ) : previewMedia.mimeType.startsWith('video/') ? (
                   <video src={previewMedia.url} controls className="max-w-full max-h-[70vh]" />
+                ) : previewMedia.mimeType.startsWith('model/') ? (
+                  <div className="text-white text-center">
+                    <Box className="w-24 h-24 mx-auto mb-4 text-purple-400" />
+                    <p className="text-lg font-medium">{previewMedia.filename}</p>
+                    <p className="text-sm text-gray-400 mt-1">Modèle 3D</p>
+                  </div>
                 ) : (
                   <div className="text-white text-center">
                     <FileText className="w-24 h-24 mx-auto mb-4 opacity-50" />

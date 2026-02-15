@@ -30,6 +30,8 @@ export default function Page() {
   const [forceContentRevealed, setForceContentRevealed] = useState(false);
   const [isNavVisible, setIsNavVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const heroRef = useRef(null);
   const revealRef = useRef(false);
   const isInView = useInView(heroRef, { once: true, amount: 0.3 });
@@ -56,16 +58,37 @@ export default function Page() {
     intro_mobile_logo_scale: apparenceSettings.intro_mobile_logo_scale,
     intro_mobile_text_offset_y: apparenceSettings.intro_mobile_text_offset_y,
     intro_mobile_text_scale: apparenceSettings.intro_mobile_text_scale,
+    intro_tablet_logo_offset_y: apparenceSettings.intro_tablet_logo_offset_y,
+    intro_tablet_logo_scale: apparenceSettings.intro_tablet_logo_scale,
+    intro_tablet_text_offset_y: apparenceSettings.intro_tablet_text_offset_y,
+    intro_tablet_text_scale: apparenceSettings.intro_tablet_text_scale,
+    intro_desktop_logo_offset_y: apparenceSettings.intro_desktop_logo_offset_y,
+    intro_desktop_logo_scale: apparenceSettings.intro_desktop_logo_scale,
+    intro_desktop_text_offset_y: apparenceSettings.intro_desktop_text_offset_y,
+    intro_desktop_text_scale: apparenceSettings.intro_desktop_text_scale,
+    intro_3d_model_url: apparenceSettings.intro_3d_model_url,
+    intro_3d_model_scale: apparenceSettings.intro_3d_model_scale,
+    intro_3d_model_position_x: apparenceSettings.intro_3d_model_position_x,
+    intro_3d_model_position_y: apparenceSettings.intro_3d_model_position_y,
+    intro_3d_model_position_z: apparenceSettings.intro_3d_model_position_z,
+    intro_3d_model_rotation_x: apparenceSettings.intro_3d_model_rotation_x,
+    intro_3d_model_rotation_y: apparenceSettings.intro_3d_model_rotation_y,
+    intro_3d_model_rotation_z: apparenceSettings.intro_3d_model_rotation_z,
     social_facebook: apparenceSettings.social_facebook,
     social_instagram: apparenceSettings.social_instagram,
   };
 
-  // Detect mobile viewport
+  // Detect viewport breakpoints (mobile < 768, tablet 768-1023, desktop >= 1024)
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const checkBreakpoints = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1024);
+      setIsDesktop(width >= 1024);
+    };
+    checkBreakpoints();
+    window.addEventListener("resize", checkBreakpoints);
+    return () => window.removeEventListener("resize", checkBreakpoints);
   }, []);
 
   // Loading completes when settings are loaded - reflects real page loading
@@ -403,7 +426,7 @@ export default function Page() {
         >
           {/* Top line */}
           <motion.div
-            className="w-px h-6 bg-black/40 group-hover:bg-black/70 transition-colors duration-300"
+            className="w-px h-6 bg-black/40 group-hover:bg-black/70 transition-colors duration-300 mb-3"
             initial={{ scaleY: 0 }}
             animate={isLoaded ? { scaleY: 1 } : { scaleY: 0 }}
             transition={{ duration: 0.6, delay: 1.4 }}
@@ -411,7 +434,7 @@ export default function Page() {
 
           {/* Rotated text - positioned with proper spacing */}
           <motion.div
-            className="flex items-center justify-center py-4"
+            className="flex items-center justify-center my-12 min-h-[120px]"
             initial={{ opacity: 0 }}
             animate={isLoaded ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.8, delay: 1.6 }}
@@ -423,7 +446,7 @@ export default function Page() {
 
           {/* Bottom dot */}
           <motion.div
-            className="w-1.5 h-1.5 bg-black/40 group-hover:bg-black/70 rounded-full transition-all duration-300"
+            className="mt-3 w-1.5 h-1.5 bg-black/40 group-hover:bg-black/70 rounded-full transition-all duration-300"
             initial={{ scale: 0, opacity: 0.4 }}
             animate={
               isLoaded
@@ -484,7 +507,7 @@ export default function Page() {
         >
           {/* Top line */}
           <motion.div
-            className="w-px h-6 bg-black/40 group-hover:bg-black/70 transition-colors duration-300"
+            className="w-px h-6 bg-black/40 group-hover:bg-black/70 transition-colors duration-300 mb-3"
             initial={{ scaleY: 0 }}
             animate={isLoaded ? { scaleY: 1 } : { scaleY: 0 }}
             transition={{ duration: 0.6, delay: 1.4 }}
@@ -492,7 +515,7 @@ export default function Page() {
 
           {/* Rotated text - positioned with proper spacing */}
           <motion.div
-            className="flex items-center justify-center py-4"
+            className="flex items-center justify-center my-12 min-h-[120px]"
             initial={{ opacity: 0 }}
             animate={isLoaded ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.8, delay: 1.6 }}
@@ -504,7 +527,7 @@ export default function Page() {
 
           {/* Bottom dot */}
           <motion.div
-            className="w-1.5 h-1.5 bg-black/40 group-hover:bg-black/70 rounded-full transition-all duration-300"
+            className="mt-3 w-1.5 h-1.5 bg-black/40 group-hover:bg-black/70 rounded-full transition-all duration-300"
             initial={{ scale: 0, opacity: 0.4 }}
             animate={
               isLoaded
@@ -565,7 +588,7 @@ export default function Page() {
         >
           {/* Mouse icon */}
           <motion.div
-            className="w-6 h-10 border-2 border-black/40 group-hover:border-black/70 rounded-full flex justify-center transition-colors duration-300 mb-2"
+            className="w-6 h-10 border-2 border-black/40 group-hover:border-black/70 rounded-full flex justify-center transition-colors duration-300 mb-3"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={
               isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }
@@ -624,6 +647,16 @@ export default function Page() {
               <GlassesModel
                 scrollProgress={modelScroll}
                 onCameraZChange={setCameraZ}
+                modelUrl={branding.intro_3d_model_url}
+                modelAdjustments={{
+                  scale: branding.intro_3d_model_scale,
+                  positionX: branding.intro_3d_model_position_x,
+                  positionY: branding.intro_3d_model_position_y,
+                  positionZ: branding.intro_3d_model_position_z,
+                  rotationX: branding.intro_3d_model_rotation_x,
+                  rotationY: branding.intro_3d_model_rotation_y,
+                  rotationZ: branding.intro_3d_model_rotation_z,
+                }}
               />
             </div>
           </div>
@@ -644,31 +677,41 @@ export default function Page() {
           style={{
             zIndex: scroll.get() > 0.1 ? -1 : 12,
             pointerEvents: "none",
-            ...(isMobile ? { top: `calc(2rem + ${branding.intro_mobile_logo_offset_y}vh)` } : {}),
+            ...(isMobile ? { top: `calc(2rem - ${branding.intro_mobile_logo_offset_y}vh)` } : {}),
           }}
         >
           <motion.div
-            className="overflow-hidden"
-            style={{
-              y: isMobile ? mobileLogoY : leftY,
-              ...(isMobile ? { transform: `scale(${branding.intro_mobile_logo_scale / 100})` } : {}),
-            }}
-            initial={{ y: isMobile ? "-50%" : "100%", scale: 0.8 }}
-            animate={
-              isLoaded
-                ? { y: "0%", scale: isMobile ? branding.intro_mobile_logo_scale / 100 : 1 }
-                : { y: isMobile ? "-50%" : "100%", scale: 0.8 }
-            }
+            className="overflow-visible"
+            initial={{ y: isMobile ? "-50%" : "100%" }}
+            animate={isLoaded ? { y: "0%" } : { y: isMobile ? "-50%" : "100%" }}
             transition={{ duration: 1.0, ease: "easeOut", delay: 1.7 }}
           >
-            <Image
-              src={branding.intro_logo_url}
-              alt="Optique de Bourbon"
-              width={400}
-              height={200}
-              priority
-              className="w-auto h-auto max-w-[140px] sm:max-w-[180px] md:max-w-[300px] lg:max-w-[400px] object-contain"
-            />
+            <div
+              style={{
+                ...(isMobile ? { 
+                  transform: `scale(${branding.intro_mobile_logo_scale / 100})` 
+                } : isTablet ? {
+                  transform: `translateY(${-branding.intro_tablet_logo_offset_y}vh) scale(${branding.intro_tablet_logo_scale / 100})` 
+                } : {
+                  transform: `translateY(${-branding.intro_desktop_logo_offset_y}vh) scale(${branding.intro_desktop_logo_scale / 100})` 
+                }),
+              }}
+            >
+              <motion.div
+                style={{
+                  y: isMobile ? mobileLogoY : leftY,
+                }}
+              >
+                <Image
+                  src={branding.intro_logo_url}
+                  alt="Optique de Bourbon"
+                  width={400}
+                  height={200}
+                  priority
+                  className="w-auto h-auto max-w-[140px] sm:max-w-[180px] md:max-w-[300px] lg:max-w-[400px] object-contain"
+                />
+              </motion.div>
+            </div>
           </motion.div>
         </motion.div>
 
@@ -687,22 +730,32 @@ export default function Page() {
           style={{
             zIndex: scroll.get() > 0.1 ? -1 : 12,
             pointerEvents: "none",
-            ...(isMobile ? { bottom: `calc(4rem + ${-branding.intro_mobile_text_offset_y}vh + env(safe-area-inset-bottom, 0px))` } : {}),
+            ...(isMobile ? { bottom: `calc(4rem + ${branding.intro_mobile_text_offset_y}vh + env(safe-area-inset-bottom, 0px))` } : {}),
           }}
         >
-          <motion.div
-            className="font-bold leading-tight tracking-tight overflow-hidden
-                       md:text-right md:ml-auto hero-text-adaptive hero-text-narrow hero-text-desktop
-                       max-md:text-center max-md:ml-0"
+          <div
             style={{
-              fontFamily: "var(--font-gotham-narrow)",
-              letterSpacing: "0.05em",
-              lineHeight: "1.2",
-              y: isMobile ? mobileTextY : rightY,
-              color: branding.intro_text_color,
-              ...(isMobile ? { fontSize: `${branding.intro_mobile_text_scale}%` } : {}),
+              ...(isMobile ? { 
+                transform: `scale(${branding.intro_mobile_text_scale / 100})` 
+              } : isTablet ? {
+                transform: `translateY(${-branding.intro_tablet_text_offset_y}vh) scale(${branding.intro_tablet_text_scale / 100})`
+              } : {
+                transform: `translateY(${-branding.intro_desktop_text_offset_y}vh) scale(${branding.intro_desktop_text_scale / 100})`
+              }),
             }}
           >
+            <motion.div
+              className="font-bold leading-tight tracking-tight overflow-hidden
+                         md:text-right md:ml-auto hero-text-adaptive hero-text-narrow hero-text-desktop
+                         max-md:text-center max-md:ml-0"
+              style={{
+                fontFamily: "var(--font-gotham-narrow)",
+                letterSpacing: "0.05em",
+                lineHeight: "1.2",
+                y: isMobile ? mobileTextY : rightY,
+                color: branding.intro_text_color,
+              }}
+            >
             <motion.div
               className="overflow-hidden cursor-hover"
               initial={{ y: "100%" }}
@@ -724,6 +777,7 @@ export default function Page() {
               </span>
             </motion.div>
           </motion.div>
+          </div>
         </motion.div>
       </section>
     </main>
