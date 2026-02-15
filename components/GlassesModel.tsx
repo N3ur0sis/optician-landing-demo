@@ -231,7 +231,11 @@ function Glasses({ onLoad, scrollProgress, modelUrl, modelAdjustments }: {
     if (meshRef.current) {
       // Base position with responsive adjustments
       const baseX = MODEL_POSITION_X;
-      const baseY = modelY;
+      
+      // Default model needs centering offset (it's naturally positioned too high)
+      const isDefaultModel = modelUrl === DEFAULT_MODEL_URL;
+      const centeringOffset = isDefaultModel ? -3.0 : 0; // Lower the default model (more negative = down)
+      const baseY = modelY + centeringOffset;
       
       // Responsive floating animation - less intense on smaller screens
       const floatingIntensity = viewportSize.width <= 768 ? 0.04 : 0.08;
@@ -544,13 +548,21 @@ const GlassesModel = ({ scrollProgress, onCameraZChange, modelUrl, modelAdjustme
             far: 1000 
           }}
           shadows
+          gl={{ 
+            antialias: true,
+            alpha: true,
+            powerPreference: 'high-performance',
+            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMappingExposure: 1.2,
+            outputColorSpace: THREE.SRGBColorSpace
+          }}
           style={{ 
             background: 'transparent', 
             width: '100%', 
             height: '100%',
             display: 'block'
           }}
-          dpr={[1, 2]}
+          dpr={typeof window !== 'undefined' && window.devicePixelRatio > 2 ? [1.5, 2] : [1, 2]}
           resize={{ scroll: true, debounce: { scroll: 50, resize: 0 } }}
         >
           <CameraRig 
@@ -559,15 +571,27 @@ const GlassesModel = ({ scrollProgress, onCameraZChange, modelUrl, modelAdjustme
             currentScrollProgress={currentScrollProgress}
             onCameraZChange={onCameraZChange}
           />
-          <ambientLight intensity={0.8} />
+          {/* Enhanced multi-point lighting for smooth edges and rich details */}
+          <ambientLight intensity={0.5} />
           <directionalLight 
-            position={[3, 3, 3]} 
-            intensity={0.6} 
+            position={[5, 5, 5]} 
+            intensity={0.9} 
             castShadow
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            shadow-bias={-0.0001}
+            shadow-radius={4}
           />
+          <directionalLight position={[-5, 3, -5]} intensity={0.5} />
+          <pointLight position={[0, 5, 0]} intensity={0.4} />
           <pointLight position={[-3, 2, 3]} intensity={0.3} />
+          <spotLight 
+            position={[0, 10, 0]} 
+            angle={0.3} 
+            penumbra={1} 
+            intensity={0.6}
+            castShadow
+          />
           <Environment preset="studio" />
           <Glasses onLoad={handleModelLoad} scrollProgress={currentScrollProgress} modelUrl={resolvedModelUrl} modelAdjustments={modelAdjustments} />
           <ContactShadows 

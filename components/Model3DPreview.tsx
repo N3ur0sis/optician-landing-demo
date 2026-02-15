@@ -31,23 +31,19 @@ function PreviewModel({
   const groupRef = useRef<THREE.Group>(null);
   const [autoFitScale, setAutoFitScale] = useState(1);
 
-  // Apply same autofit logic as landing page
+  // Apply autofit logic to all models for consistent preview sizing
   useEffect(() => {
     if (scene) {
-      const isDefaultModel = url === DEFAULT_MODEL_URL;
+      // Calculate bounding box for all models (including default)
+      const box = new THREE.Box3().setFromObject(scene);
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
       
-      if (isDefaultModel) {
-        setAutoFitScale(1);
-      } else {
-        // Same target size as landing page for custom models
-        const box = new THREE.Box3().setFromObject(scene);
-        const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const targetSize = 8;
-        
-        if (maxDim > 0) {
-          setAutoFitScale(targetSize / maxDim);
-        }
+      // Target size that makes models appear well-framed in preview
+      const targetSize = 8;
+      
+      if (maxDim > 0) {
+        setAutoFitScale(targetSize / maxDim);
       }
     }
   }, [scene, url]);
@@ -60,6 +56,10 @@ function PreviewModel({
   // Landing page starts at 90° (Math.PI / 2) on Y axis, flip 180° for preview orientation
   const ryRad = (-Math.PI / 2) + (rotationY * (Math.PI / 180));
   const rzRad = rotationZ * (Math.PI / 180);
+  
+  // Default model centering offset (matching landing page behavior)
+  const isDefaultModel = url === DEFAULT_MODEL_URL;
+  const centeringOffsetY = isDefaultModel ? -1.0 : 0; // Lower the default model in preview
 
   // Gentle idle rotation
   useFrame((state) => {
@@ -73,7 +73,7 @@ function PreviewModel({
       ref={groupRef} 
       position={[
         positionX * 0.12,    // Scale for closer camera
-        positionY * -0.3,    // Reduced from 0.08 - glasses need to be lower
+        (positionY * -0.3) + centeringOffsetY,    // Apply centering offset for default model
         positionZ * 0.015    // Scale for closer camera
       ]} 
       rotation={[rxRad, ryRad, rzRad]}
@@ -150,11 +150,36 @@ export default function Model3DPreview({
         <ErrorBoundary onError={() => setHasError(true)} key={key}>
           <Canvas
             camera={{ position: [0, 0, 15], fov: 25 }}
+            gl={{ 
+              antialias: true,
+              alpha: true,
+              powerPreference: 'high-performance',
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 1.2,
+              outputColorSpace: THREE.SRGBColorSpace
+            }}
             style={{ background: 'transparent' }}
-            dpr={[1, 2]}
+            dpr={typeof window !== 'undefined' && window.devicePixelRatio > 2 ? [1.5, 2] : [1, 2]}
           >
-            <ambientLight intensity={1} />
-            <directionalLight position={[3, 3, 3]} intensity={0.5} />
+            {/* Multi-point lighting for smooth, professional appearance */}
+            <ambientLight intensity={0.6} />
+            <directionalLight 
+              position={[5, 5, 5]} 
+              intensity={0.8} 
+              castShadow
+              shadow-mapSize-width={2048}
+              shadow-mapSize-height={2048}
+              shadow-bias={-0.0001}
+            />
+            <directionalLight position={[-5, 3, -5]} intensity={0.4} />
+            <pointLight position={[0, 5, 0]} intensity={0.3} />
+            <spotLight 
+              position={[0, 10, 0]} 
+              angle={0.3} 
+              penumbra={1} 
+              intensity={0.5}
+              castShadow
+            />
             <Environment preset="studio" />
             <PreviewModel 
               url={resolvedUrl} 
