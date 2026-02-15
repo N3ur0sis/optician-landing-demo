@@ -559,6 +559,9 @@ export default function ApparenceClient() {
   const [introPreviewMode, setIntroPreviewMode] = useState<
     "desktop" | "tablet" | "mobile"
   >("desktop");
+  const [gridPreviewMode, setGridPreviewMode] = useState<
+    "desktop" | "tablet" | "mobile"
+  >("desktop");
   const [footerPreviewMode, setFooterPreviewMode] = useState<
     "desktop" | "tablet" | "mobile"
   >("desktop");
@@ -1865,71 +1868,91 @@ export default function ApparenceClient() {
         {/* GRID TAB */}
         {activeTab === "grid" && (
           <div className="flex flex-col overflow-y-auto lg:overflow-visible lg:h-full lg:min-h-0">
-            {/* Preview Section - Scrollable container for responsive */}
+            {/* Preview Section */}
             <div className="lg:shrink-0 mb-4 sm:mb-5">
-              <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
+              {/* Preview Mode Selector */}
+              <PreviewModeSelector
+                mode={gridPreviewMode}
+                setMode={setGridPreviewMode}
+              />
+
+              {/* Preview */}
+              <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 mt-4">
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
                   <h3 className="text-xs sm:text-sm font-medium text-gray-700">
                     Prévisualisation
                   </h3>
                   <div className="text-[10px] sm:text-xs text-gray-400 font-mono">
-                    {settings.grid_horizontal_padding}px • {settings.grid_gap}px • {settings.grid_row_height}px
+                    {gridPreviewMode === 'mobile' ? 
+                      `${settings.grid_horizontal_padding_mobile}px • ${settings.grid_gap_mobile}px • ${settings.grid_row_height_mobile}px` :
+                      `${settings.grid_horizontal_padding}px • ${settings.grid_gap}px • ${settings.grid_row_height}px`
+                    }
                   </div>
                 </div>
-                <div className="overflow-x-auto">
+                <div className="flex justify-center">
                   <div
-                    className="bg-[#fdfbf7] rounded-lg min-w-[280px]"
+                    className={`bg-[#fdfbf7] rounded-lg transition-all duration-300 ${
+                      gridPreviewMode === "desktop"
+                        ? "w-full"
+                        : gridPreviewMode === "tablet"
+                          ? "w-[600px]"
+                          : "w-[320px]"
+                    }`}
                     style={{ 
                       paddingTop: '12px',
                       paddingBottom: '12px',
-                      paddingLeft: `${(settings.grid_horizontal_padding / 200) * 80 + 4}px`,
-                      paddingRight: `${(settings.grid_horizontal_padding / 200) * 80 + 4}px`,
+                      paddingLeft: `${((gridPreviewMode === 'mobile' ? settings.grid_horizontal_padding_mobile : settings.grid_horizontal_padding) / 200) * 80 + 4}px`,
+                      paddingRight: `${((gridPreviewMode === 'mobile' ? settings.grid_horizontal_padding_mobile : settings.grid_horizontal_padding) / 200) * 80 + 4}px`,
                     }}
                   >
                     <div
-                      className="grid grid-cols-4"
+                      className={`grid ${gridPreviewMode === 'mobile' && settings.grid_force_single_column_mobile ? 'grid-cols-1' : 'grid-cols-4'}`}
                       style={{
-                        gap: `${(settings.grid_gap / 60) * 24 + 2}px`,
+                        gap: `${((gridPreviewMode === 'mobile' ? settings.grid_gap_mobile : settings.grid_gap) / 60) * 24 + 2}px`,
                       }}
                     >
                       {/* Row 1 */}
                       <div
-                        className="col-span-2 bg-gray-300 rounded flex items-center justify-center text-gray-500 text-[10px] font-medium"
-                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
+                        className={`${gridPreviewMode === 'mobile' && settings.grid_force_single_column_mobile ? 'col-span-1' : 'col-span-2'} bg-gray-300 rounded flex items-center justify-center text-gray-500 text-[10px] font-medium`}
+                        style={{ height: `${((gridPreviewMode === 'mobile' ? settings.grid_row_height_mobile : settings.grid_row_height) / 600) * 70 + 30}px` }}
                       >
-                        2×1
+                        {gridPreviewMode === 'mobile' && settings.grid_force_single_column_mobile ? '1×1' : '2×1'}
                       </div>
                       <div
                         className="bg-gray-400 rounded flex items-center justify-center text-gray-600 text-[10px] font-medium"
-                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
+                        style={{ height: `${((gridPreviewMode === 'mobile' ? settings.grid_row_height_mobile : settings.grid_row_height) / 600) * 70 + 30}px` }}
                       >
                         1×1
                       </div>
                       <div
                         className="bg-gray-300 rounded flex items-center justify-center text-gray-500 text-[10px] font-medium"
-                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
+                        style={{ height: `${((gridPreviewMode === 'mobile' ? settings.grid_row_height_mobile : settings.grid_row_height) / 600) * 70 + 30}px` }}
                       >
                         1×1
                       </div>
-                      {/* Row 2 */}
-                      <div
-                        className="bg-gray-400 rounded flex items-center justify-center text-gray-600 text-[10px] font-medium"
-                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
-                      >
-                        1×1
-                      </div>
-                      <div
-                        className="col-span-2 bg-gray-300 rounded flex items-center justify-center text-gray-500 text-[10px] font-medium"
-                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
-                      >
-                        2×1
-                      </div>
-                      <div
-                        className="bg-gray-400 rounded flex items-center justify-center text-gray-600 text-[10px] font-medium"
-                        style={{ height: `${(settings.grid_row_height / 600) * 70 + 30}px` }}
-                      >
-                        1×1
-                      </div>
+                      {!(gridPreviewMode === 'mobile' && settings.grid_force_single_column_mobile) && (
+                        <>
+                          {/* Row 2 */}
+                          <div
+                            className="bg-gray-400 rounded flex items-center justify-center text-gray-600 text-[10px] font-medium"
+                            style={{ height: `${((gridPreviewMode === 'mobile' ? settings.grid_row_height_mobile : settings.grid_row_height) / 600) * 70 + 30}px` }}
+                          >
+                            1×1
+                          </div>
+                          <div
+                            className="col-span-2 bg-gray-300 rounded flex items-center justify-center text-gray-500 text-[10px] font-medium"
+                            style={{ height: `${((gridPreviewMode === 'mobile' ? settings.grid_row_height_mobile : settings.grid_row_height) / 600) * 70 + 30}px` }}
+                          >
+                            2×1
+                          </div>
+                          <div
+                            className="bg-gray-400 rounded flex items-center justify-center text-gray-600 text-[10px] font-medium"
+                            style={{ height: `${((gridPreviewMode === 'mobile' ? settings.grid_row_height_mobile : settings.grid_row_height) / 600) * 70 + 30}px` }}
+                          >
+                            1×1
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1939,89 +1962,205 @@ export default function ApparenceClient() {
             {/* Settings Section */}
             <div className="lg:flex-1 lg:overflow-y-auto min-h-0">
               <div className="space-y-3 sm:space-y-4">
-                {/* Horizontal Padding */}
-                <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                    Marges horizontales
-                  </label>
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <input
-                      type="range"
-                      min="0"
-                      max="200"
-                      step="4"
-                      value={settings.grid_horizontal_padding}
-                      onChange={(e) =>
-                        updateSetting("grid_horizontal_padding", parseInt(e.target.value))
-                      }
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
-                    />
-                    <div className="w-14 sm:w-16 text-right">
-                      <span className="text-xs sm:text-sm font-medium text-gray-700">
-                        {settings.grid_horizontal_padding}px
-                      </span>
+                
+                {/* Desktop Settings */}
+                <CollapsibleSection title="Paramètres Desktop" defaultOpen={true} icon={Monitor}>
+                  <div className="space-y-4">
+                    {/* Horizontal Padding Desktop */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                        Marges horizontales
+                      </label>
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <input
+                          type="range"
+                          min="0"
+                          max="200"
+                          step="4"
+                          value={settings.grid_horizontal_padding}
+                          onChange={(e) =>
+                            updateSetting("grid_horizontal_padding", parseInt(e.target.value))
+                          }
+                          className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                        />
+                        <div className="w-14 sm:w-16 text-right">
+                          <span className="text-xs sm:text-sm font-medium text-gray-700">
+                            {settings.grid_horizontal_padding}px
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                        Espace entre la grille et les bords sur desktop (≥1024px)
+                      </p>
                     </div>
-                  </div>
-                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                    Espace entre la grille et les bords de l&apos;écran
-                  </p>
-                </div>
 
-                {/* Gap */}
-                <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                    Espacement entre les tuiles
-                  </label>
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <input
-                      type="range"
-                      min="0"
-                      max="60"
-                      step="2"
-                      value={settings.grid_gap}
-                      onChange={(e) =>
-                        updateSetting("grid_gap", parseInt(e.target.value))
-                      }
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
-                    />
-                    <div className="w-14 sm:w-16 text-right">
-                      <span className="text-xs sm:text-sm font-medium text-gray-700">
-                        {settings.grid_gap}px
-                      </span>
+                    {/* Gap Desktop */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                        Espacement entre les tuiles
+                      </label>
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <input
+                          type="range"
+                          min="0"
+                          max="60"
+                          step="2"
+                          value={settings.grid_gap}
+                          onChange={(e) =>
+                            updateSetting("grid_gap", parseInt(e.target.value))
+                          }
+                          className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                        />
+                        <div className="w-14 sm:w-16 text-right">
+                          <span className="text-xs sm:text-sm font-medium text-gray-700">
+                            {settings.grid_gap}px
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                        Espace entre chaque tuile sur desktop
+                      </p>
                     </div>
-                  </div>
-                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                    Espace entre chaque tuile de la grille
-                  </p>
-                </div>
 
-                {/* Row Height */}
-                <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                    Hauteur des lignes
-                  </label>
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <input
-                      type="range"
-                      min="150"
-                      max="600"
-                      step="10"
-                      value={settings.grid_row_height}
-                      onChange={(e) =>
-                        updateSetting("grid_row_height", parseInt(e.target.value))
-                      }
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
-                    />
-                    <div className="w-14 sm:w-16 text-right">
-                      <span className="text-xs sm:text-sm font-medium text-gray-700">
-                        {settings.grid_row_height}px
-                      </span>
+                    {/* Row Height Desktop */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                        Hauteur des lignes
+                      </label>
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <input
+                          type="range"
+                          min="150"
+                          max="600"
+                          step="10"
+                          value={settings.grid_row_height}
+                          onChange={(e) =>
+                            updateSetting("grid_row_height", parseInt(e.target.value))
+                          }
+                          className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                        />
+                        <div className="w-14 sm:w-16 text-right">
+                          <span className="text-xs sm:text-sm font-medium text-gray-700">
+                            {settings.grid_row_height}px
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                        Hauteur de base pour chaque ligne sur desktop
+                      </p>
                     </div>
                   </div>
-                  <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
-                    Hauteur de base pour chaque ligne de la grille
-                  </p>
-                </div>
+                </CollapsibleSection>
+
+                {/* Mobile/Tablet Settings */}
+                <CollapsibleSection title="Paramètres Mobile & Tablette" defaultOpen={true} icon={Smartphone}>
+                  <div className="space-y-4">
+                    {/* Horizontal Padding Mobile */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                        Marges horizontales
+                      </label>
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="4"
+                          value={settings.grid_horizontal_padding_mobile}
+                          onChange={(e) =>
+                            updateSetting("grid_horizontal_padding_mobile", parseInt(e.target.value))
+                          }
+                          className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                        />
+                        <div className="w-14 sm:w-16 text-right">
+                          <span className="text-xs sm:text-sm font-medium text-gray-700">
+                            {settings.grid_horizontal_padding_mobile}px
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                        Espace entre la grille et les bords sur mobile (&lt;1024px)
+                      </p>
+                    </div>
+
+                    {/* Gap Mobile */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                        Espacement entre les tuiles
+                      </label>
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <input
+                          type="range"
+                          min="0"
+                          max="60"
+                          step="2"
+                          value={settings.grid_gap_mobile}
+                          onChange={(e) =>
+                            updateSetting("grid_gap_mobile", parseInt(e.target.value))
+                          }
+                          className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                        />
+                        <div className="w-14 sm:w-16 text-right">
+                          <span className="text-xs sm:text-sm font-medium text-gray-700">
+                            {settings.grid_gap_mobile}px
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                        Espace entre chaque tuile sur mobile
+                      </p>
+                    </div>
+
+                    {/* Row Height Mobile */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                        Hauteur des lignes
+                      </label>
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <input
+                          type="range"
+                          min="100"
+                          max="400"
+                          step="10"
+                          value={settings.grid_row_height_mobile}
+                          onChange={(e) =>
+                            updateSetting("grid_row_height_mobile", parseInt(e.target.value))
+                          }
+                          className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+                        />
+                        <div className="w-14 sm:w-16 text-right">
+                          <span className="text-xs sm:text-sm font-medium text-gray-700">
+                            {settings.grid_row_height_mobile}px
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                        Hauteur de base pour chaque ligne sur mobile
+                      </p>
+                    </div>
+
+                    {/* Force Single Column */}
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={settings.grid_force_single_column_mobile}
+                          onChange={(e) =>
+                            updateSetting("grid_force_single_column_mobile", e.target.checked)
+                          }
+                          className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
+                        />
+                        <span className="text-xs sm:text-sm font-medium text-gray-700">
+                          Forcer une colonne unique (1×1) sur mobile
+                        </span>
+                      </label>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-1 ml-6">
+                        Toutes les tuiles seront affichées en une seule colonne sur les petits écrans
+                      </p>
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
               </div>
             </div>
           </div>

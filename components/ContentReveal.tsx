@@ -51,12 +51,31 @@ const ContentReveal = ({
 }: ContentRevealProps) => {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const { settings: apparenceSettings } = useApparence();
 
-  // Grid settings from apparence
-  const gridPadding = apparenceSettings.grid_horizontal_padding;
-  const gridGap = apparenceSettings.grid_gap;
-  const gridRowHeight = apparenceSettings.grid_row_height;
+  // Grid settings from apparence - responsive
+  const gridPadding = isMobile 
+    ? apparenceSettings.grid_horizontal_padding_mobile 
+    : apparenceSettings.grid_horizontal_padding;
+  const gridGap = isMobile 
+    ? apparenceSettings.grid_gap_mobile 
+    : apparenceSettings.grid_gap;
+  const gridRowHeight = isMobile 
+    ? apparenceSettings.grid_row_height_mobile 
+    : apparenceSettings.grid_row_height;
+  const forceSingleColumn = isMobile && apparenceSettings.grid_force_single_column_mobile;
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Fetch grid tiles from API
   useEffect(() => {
@@ -184,7 +203,7 @@ const ContentReveal = ({
             </div>
           ) : (
             <div
-              className="content-reveal-grid grid lg:grid-cols-4"
+              className={`content-reveal-grid grid ${forceSingleColumn ? 'grid-cols-1' : 'lg:grid-cols-4'}`}
               style={{
                 pointerEvents: "auto",
                 position: "relative",
@@ -202,8 +221,8 @@ const ContentReveal = ({
                     pointerEvents: "auto",
                     position: "relative",
                     zIndex: 30,
-                    gridColumn: `${tile.colStart} / span ${tile.colSpan}`,
-                    gridRow: `${tile.rowStart} / span ${tile.rowSpan}`,
+                    gridColumn: forceSingleColumn ? '1 / span 1' : `${tile.colStart} / span ${tile.colSpan}`,
+                    gridRow: forceSingleColumn ? 'auto' : `${tile.rowStart} / span ${tile.rowSpan}`,
                   }}
                   onClick={() => {
                     sessionStorage.setItem("fromContentReveal", "true");

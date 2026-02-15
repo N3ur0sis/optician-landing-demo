@@ -98,9 +98,13 @@ export interface ApparenceSettings {
   newsletter_success_message: string;
 
   // Grid Settings
-  grid_horizontal_padding: number; // Espacement horizontal (px)
-  grid_gap: number; // Espacement entre les tuiles (px)
-  grid_row_height: number; // Hauteur des rangées (px)
+  grid_horizontal_padding: number; // Espacement horizontal desktop (px)
+  grid_horizontal_padding_mobile: number; // Espacement horizontal mobile (px)
+  grid_gap: number; // Espacement entre les tuiles desktop (px)
+  grid_gap_mobile: number; // Espacement entre les tuiles mobile (px)
+  grid_row_height: number; // Hauteur des rangées desktop (px)
+  grid_row_height_mobile: number; // Hauteur des rangées mobile (px)
+  grid_force_single_column_mobile: boolean; // Forcer 1x1 sur mobile
 }
 
 // Subset for landing page (page.tsx)
@@ -280,9 +284,13 @@ export const defaultApparenceSettings: ApparenceSettings = {
   newsletter_success_message: "Merci pour votre inscription !",
 
   // Grid Settings
-  grid_horizontal_padding: 48, // px - marges horizontales moyennes
-  grid_gap: 20, // px - gap-5
-  grid_row_height: 320, // px - auto-rows-[320px]
+  grid_horizontal_padding: 48, // px - marges horizontales desktop
+  grid_horizontal_padding_mobile: 16, // px - marges horizontales mobile
+  grid_gap: 20, // px - gap desktop
+  grid_gap_mobile: 12, // px - gap mobile
+  grid_row_height: 320, // px - auto-rows-[320px] desktop
+  grid_row_height_mobile: 200, // px - auto-rows-[200px] mobile
+  grid_force_single_column_mobile: false, // Forcer 1x1 sur mobile
 };
 
 // Helper to parse settings from API response
@@ -507,10 +515,22 @@ export function parseSettingsFromAPI(
     grid_horizontal_padding:
       (data.grid_horizontal_padding as number) ??
       defaultApparenceSettings.grid_horizontal_padding,
+    grid_horizontal_padding_mobile:
+      (data.grid_horizontal_padding_mobile as number) ??
+      defaultApparenceSettings.grid_horizontal_padding_mobile,
     grid_gap:
       (data.grid_gap as number) ?? defaultApparenceSettings.grid_gap,
+    grid_gap_mobile:
+      (data.grid_gap_mobile as number) ??
+      defaultApparenceSettings.grid_gap_mobile,
     grid_row_height:
       (data.grid_row_height as number) ??
       defaultApparenceSettings.grid_row_height,
+    grid_row_height_mobile:
+      (data.grid_row_height_mobile as number) ??
+      defaultApparenceSettings.grid_row_height_mobile,
+    grid_force_single_column_mobile:
+      (data.grid_force_single_column_mobile as boolean) ??
+      defaultApparenceSettings.grid_force_single_column_mobile,
   };
 }
