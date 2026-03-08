@@ -10,6 +10,56 @@ export interface FooterLink {
   pageSlug: string;
 }
 
+// Footer section configuration
+export type FooterSectionType = "brand" | "navigation" | "contact" | "newsletter" | "custom";
+
+// Custom section block system
+export type CustomBlockType = "text" | "image" | "list" | "button";
+
+export interface CustomTextBlock {
+  id: string;
+  type: "text";
+  content: string;
+  fontSize?: "xs" | "sm" | "base";
+}
+export interface CustomImageBlock {
+  id: string;
+  type: "image";
+  src: string;
+  alt?: string;
+  href?: string;
+  size?: "auto" | "full";
+  align?: "left" | "center";
+}
+export interface CustomListItem {
+  label: string;
+  href?: string;
+}
+export interface CustomListBlock {
+  id: string;
+  type: "list";
+  items: CustomListItem[];
+  listStyle?: "bullet" | "dash" | "none";
+}
+export interface CustomButtonBlock {
+  id: string;
+  type: "button";
+  label: string;
+  href: string;
+  variant?: "filled" | "outline" | "ghost";
+}
+export type CustomBlock = CustomTextBlock | CustomImageBlock | CustomListBlock | CustomButtonBlock;
+
+export interface FooterSection {
+  id: string;
+  type: FooterSectionType;
+  enabled: boolean;
+  order: number;
+  title?: string;           // Override section title
+  customBlocks?: CustomBlock[]; // For custom sections
+  customHtml?: string;      // @deprecated - legacy only, no longer editable
+}
+
 // Complete apparence settings interface
 export interface ApparenceSettings {
   // Logos
@@ -117,6 +167,9 @@ export interface ApparenceSettings {
   newsletter_input_bg_color: string;
   newsletter_success_message: string;
 
+  // Footer - Sections layout (order, visibility)
+  footer_sections: FooterSection[];
+
   // Grid Settings
   grid_horizontal_padding: number; // Espacement horizontal desktop (px)
   grid_horizontal_padding_mobile: number; // Espacement horizontal mobile (px)
@@ -215,6 +268,7 @@ export type FooterSettings = Pick<
   | "newsletter_button_color"
   | "newsletter_input_bg_color"
   | "newsletter_success_message"
+  | "footer_sections"
 >;
 
 // Default values
@@ -339,6 +393,14 @@ export const defaultApparenceSettings: ApparenceSettings = {
   newsletter_input_bg_color: "",
   newsletter_success_message: "Merci pour votre inscription !",
 
+  // Footer - Sections layout
+  footer_sections: [
+    { id: "brand", type: "brand", enabled: true, order: 0 },
+    { id: "navigation", type: "navigation", enabled: true, order: 1 },
+    { id: "contact", type: "contact", enabled: true, order: 2 },
+    { id: "newsletter", type: "newsletter", enabled: true, order: 3 },
+  ],
+
   // Grid Settings
   grid_horizontal_padding: 48, // px - marges horizontales desktop
   grid_horizontal_padding_mobile: 16, // px - marges horizontales mobile
@@ -356,6 +418,7 @@ export function parseSettingsFromAPI(
   // Parse JSON strings for dynamic links
   let navLinks = defaultApparenceSettings.footer_nav_links;
   let legalLinks = defaultApparenceSettings.footer_legal_links;
+  let footerSections = defaultApparenceSettings.footer_sections;
 
   if (typeof data.footer_nav_links === "string") {
     try {
@@ -375,6 +438,16 @@ export function parseSettingsFromAPI(
     }
   } else if (Array.isArray(data.footer_legal_links)) {
     legalLinks = data.footer_legal_links as FooterLink[];
+  }
+
+  if (typeof data.footer_sections === "string") {
+    try {
+      footerSections = JSON.parse(data.footer_sections);
+    } catch {
+      /* keep default */
+    }
+  } else if (Array.isArray(data.footer_sections)) {
+    footerSections = data.footer_sections as FooterSection[];
   }
 
   return {
@@ -557,6 +630,7 @@ export function parseSettingsFromAPI(
       defaultApparenceSettings.footer_link_hover_color,
     footer_nav_links: navLinks,
     footer_legal_links: legalLinks,
+    footer_sections: footerSections,
 
     social_facebook:
       (data.social_facebook as string) ??

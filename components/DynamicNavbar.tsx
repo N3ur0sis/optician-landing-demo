@@ -298,17 +298,24 @@ export default function DynamicNavbar({
                 <Link
                   href="/"
                   aria-label="Accueil"
-                  className="flex items-center px-3 py-2 transition-colors duration-200 hover:opacity-80"
+                  className="flex items-center px-3 py-1 transition-colors duration-200 hover:opacity-80"
                   onClick={handleLogoClick}
                 >
-                  <div className="h-8 flex items-center">
+                  <div
+                    className="flex items-center transition-all duration-300"
+                    style={{
+                      height: `${Math.min(currentHeight - 12, 90)}px`,
+                      maxHeight: "90px",
+                    }}
+                  >
                     <Image
                       src={navbarLogoUrl}
                       alt="Logo"
-                      width={200}
-                      height={100}
+                      width={170}
+                      height={90}
                       priority
                       className="h-full w-auto object-contain"
+                      style={{ maxWidth: "170px", maxHeight: "90px" }}
                     />
                   </div>
                 </Link>

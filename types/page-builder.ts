@@ -16,6 +16,7 @@ export type BlockType =
   | "GALLERY"
   | "VIDEO"
   | "FILE"
+  | "IMAGE_SLIDER"
   // Layout
   | "COLUMNS"
   | "GRID"
@@ -917,6 +918,36 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
     defaultStyles: {
       paddingTop: "sm",
       paddingBottom: "sm",
+    },
+  },
+  {
+    type: "IMAGE_SLIDER",
+    label: "Slider d'images",
+    category: "media",
+    icon: "GalleryHorizontal",
+    description: "Carrousel d'images avec défilement automatique",
+    defaultContent: {
+      slides: [
+        { id: "slide-1", src: "/images/placeholder.svg", alt: "Slide 1", title: "", description: "", link: "" },
+        { id: "slide-2", src: "/images/placeholder.svg", alt: "Slide 2", title: "", description: "", link: "" },
+      ],
+      autoplay: true,
+      interval: 5000,
+      height: "medium",
+      showDots: true,
+      showArrows: true,
+      pauseOnHover: true,
+      transition: "slide",
+      borderRadius: "lg",
+      objectFit: "cover",
+      overlayEnabled: false,
+      overlayColor: "#000000",
+      overlayOpacity: 30,
+      showCaptions: true,
+    },
+    defaultStyles: {
+      paddingTop: "md",
+      paddingBottom: "md",
     },
   },
   // Layout

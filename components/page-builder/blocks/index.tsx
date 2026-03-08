@@ -26,6 +26,7 @@ export {
   FileBlock,
   IframeBlock,
 } from "./media/MediaBlocks";
+export { ImageSliderBlock } from "./media/ImageSliderBlock";
 
 // Export Interactive Blocks
 export {
@@ -103,6 +104,7 @@ import {
   FileBlock,
   IframeBlock,
 } from "./media/MediaBlocks";
+import { ImageSliderBlock } from "./media/ImageSliderBlock";
 import {
   ButtonBlock,
   ButtonGroupBlock,
@@ -163,6 +165,7 @@ export const BLOCK_REGISTRY: Record<BlockType, BlockComponent> = {
   VIDEO: VideoBlock,
   FILE: IframeBlock, // File uses IframeBlock for preview
   IFRAME: IframeBlock,
+  IMAGE_SLIDER: ImageSliderBlock,
 
   // Layout Blocks
   COLUMNS: ColumnsBlock,
@@ -247,7 +250,7 @@ export function renderBlockContent(
 
 export const BLOCK_CATEGORIES = {
   content: ["HERO", "TEXT", "HEADING", "PARAGRAPH", "QUOTE", "LIST"] as BlockType[],
-  media: ["IMAGE", "GALLERY", "VIDEO", "FILE", "IFRAME"] as BlockType[],
+  media: ["IMAGE", "GALLERY", "VIDEO", "FILE", "IFRAME", "IMAGE_SLIDER"] as BlockType[],
   layout: ["COLUMNS", "GRID", "SPACER", "DIVIDER", "CONTAINER"] as BlockType[],
   interactive: ["BUTTON", "BUTTON_GROUP", "LINK_BLOCK", "ACCORDION", "TABS"] as BlockType[],
   data: ["TABLE", "STATS", "TIMELINE", "CARDS"] as BlockType[],
@@ -276,6 +279,7 @@ export const BLOCK_LABELS: Record<BlockType, string> = {
   VIDEO: "Vidéo",
   FILE: "Fichier",
   IFRAME: "iFrame",
+  IMAGE_SLIDER: "Slider d'images",
   
   // Layout
   COLUMNS: "Colonnes",

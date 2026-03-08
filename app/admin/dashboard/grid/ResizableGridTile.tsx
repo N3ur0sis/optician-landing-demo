@@ -197,7 +197,12 @@ export default function ResizableGridTile({ tile, onResize, onClick, isDragging 
       </div>
 
       {/* Size Badge */}
-      <div className="absolute top-3 right-3 z-10">
+      <div className="absolute top-3 right-3 z-10 flex gap-1">
+        {tile.tileType === "slider" && (
+          <span className="px-2 py-1 bg-purple-500/90 backdrop-blur-sm text-white text-xs font-medium rounded">
+            Slider
+          </span>
+        )}
         <span className="px-2 py-1 bg-blue-500/90 backdrop-blur-sm text-white text-xs font-medium rounded">
           {tile.colSpan}×{tile.rowSpan}
         </span>

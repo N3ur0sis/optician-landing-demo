@@ -16,12 +16,33 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CheckCircle2 } from "lucide-react";
 
+export type SliderSlideData = {
+  id: string;
+  src: string;
+  alt?: string;
+  title?: string;
+  description?: string;
+  href?: string;
+};
+
+export type SliderConfig = {
+  slides: SliderSlideData[];
+  autoplay: boolean;
+  interval: number;      // seconds
+  transition: "slide" | "fade" | "none";
+  showDots: boolean;
+  showArrows: boolean;
+  pauseOnHover: boolean;
+};
+
 export type GridTile = {
   id: string;
   title: string;
   caption: string | null;
   href: string;
   backgroundUrl: string;
+  tileType: "image" | "slider";
+  sliderData: SliderConfig | null;
   colSpan: number;
   rowSpan: number;
   colStart: number;
@@ -51,7 +72,17 @@ export default function GridManagerClient() {
     try {
       const response = await fetch("/api/grid");
       const data = await response.json();
-      setTiles(data);
+      // Parse sliderData from JSON string to object
+      const parsed = data.map((t: any) => ({
+        ...t,
+        tileType: t.tileType || "image",
+        sliderData: t.sliderData
+          ? typeof t.sliderData === "string"
+            ? JSON.parse(t.sliderData)
+            : t.sliderData
+          : null,
+      }));
+      setTiles(parsed);
     } catch (error) {
       console.error("Failed to fetch tiles:", error);
     } finally {
@@ -107,6 +138,8 @@ export default function GridManagerClient() {
         caption: tile.caption || null,
         href: tile.href || "/",
         backgroundUrl: tile.backgroundUrl || "",
+        tileType: tile.tileType || "image",
+        sliderData: tile.sliderData || null,
         colSpan: tile.colSpan || 2,
         rowSpan: tile.rowSpan || 1,
         colStart: tile.colStart || 1,
@@ -130,15 +163,29 @@ export default function GridManagerClient() {
     setShowConfirmDialog(false);
     setIsSaving(true);
     try {
+      // Serialize sliderData before sending
+      const tilesToSend = tiles.map(t => ({
+        ...t,
+        sliderData: t.sliderData ? JSON.stringify(t.sliderData) : null,
+      }));
       const response = await fetch("/api/grid", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(tiles),
+        body: JSON.stringify(tilesToSend),
       });
 
       if (response.ok) {
         const updatedTiles = await response.json();
-        setTiles(updatedTiles);
+        const parsed = updatedTiles.map((t: any) => ({
+          ...t,
+          tileType: t.tileType || "image",
+          sliderData: t.sliderData
+            ? typeof t.sliderData === "string"
+              ? JSON.parse(t.sliderData)
+              : t.sliderData
+            : null,
+        }));
+        setTiles(parsed);
         setShowSuccessDialog(true);
       } else {
         alert("Échec de la publication. Veuillez réessayer.");

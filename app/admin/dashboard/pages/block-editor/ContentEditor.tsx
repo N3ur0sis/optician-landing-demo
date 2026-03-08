@@ -55,6 +55,7 @@ import {
   CardsEditor,
   ListItemsEditor,
   GalleryEditor,
+  SlidesEditor,
   GridItemsEditor,
   AccordionItemsEditor,
   TabsEditor,
@@ -143,6 +144,18 @@ export default function ContentEditor({
               Apparence
             </span>
           </div>
+          <Field label="Taille">
+            <select
+              value={(content.height as string) || "large"}
+              onChange={(e) => updateContent("height", e.target.value)}
+              className="input"
+            >
+              <option value="small">Petit (300px)</option>
+              <option value="medium">Moyen (500px)</option>
+              <option value="large">Grand (700px)</option>
+              <option value="full">Plein écran</option>
+            </select>
+          </Field>
           <Field label="Disposition">
             <select
               value={(content.layout as string) || "centered"}
@@ -1212,6 +1225,226 @@ export default function ContentEditor({
               />
               <span className="text-sm text-gray-700">Ouvrir en lightbox</span>
             </label>
+          </div>
+        </div>
+      );
+
+    case "IMAGE_SLIDER":
+      return (
+        <div className="space-y-4">
+          <SlidesEditor
+            slides={
+              (content.slides as Array<{
+                id?: string;
+                src: string;
+                alt?: string;
+                title?: string;
+                description?: string;
+                link?: string;
+              }>) || []
+            }
+            onChange={(slides) => updateContent("slides", slides)}
+          />
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Défilement</h4>
+
+            <label className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                checked={(content.autoplay as boolean) !== false}
+                onChange={(e) => updateContent("autoplay", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Défilement automatique
+              </span>
+            </label>
+
+            <Field label="Intervalle (ms)">
+              <input
+                type="number"
+                value={(content.interval as number) || 5000}
+                onChange={(e) =>
+                  updateContent("interval", parseInt(e.target.value) || 5000)
+                }
+                className="input"
+                min={1000}
+                max={30000}
+                step={500}
+                placeholder="5000"
+              />
+            </Field>
+
+            <Field label="Transition">
+              <select
+                value={(content.transition as string) || "slide"}
+                onChange={(e) => updateContent("transition", e.target.value)}
+                className="input"
+              >
+                <option value="slide">Glissement</option>
+                <option value="fade">Fondu</option>
+                <option value="none">Aucune</option>
+              </select>
+            </Field>
+
+            <label className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                checked={(content.pauseOnHover as boolean) !== false}
+                onChange={(e) =>
+                  updateContent("pauseOnHover", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Pause au survol
+              </span>
+            </label>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Apparence</h4>
+
+            <Field label="Taille">
+              <select
+                value={(content.height as string) || "medium"}
+                onChange={(e) => updateContent("height", e.target.value)}
+                className="input"
+              >
+                <option value="small">Petit (300px)</option>
+                <option value="medium">Moyen (450px)</option>
+                <option value="large">Grand (600px)</option>
+                <option value="xlarge">Très grand (750px)</option>
+                <option value="custom">Personnalisé</option>
+              </select>
+            </Field>
+
+            {(content.height as string) === "custom" && (
+              <Field label="Hauteur personnalisée (px)">
+                <input
+                  type="number"
+                  value={(content.customHeight as number) || 400}
+                  onChange={(e) =>
+                    updateContent(
+                      "customHeight",
+                      parseInt(e.target.value) || 400
+                    )
+                  }
+                  className="input"
+                  min={100}
+                  max={2000}
+                  step={10}
+                />
+              </Field>
+            )}
+
+            <Field label="Bords arrondis">
+              <select
+                value={(content.borderRadius as string) || "lg"}
+                onChange={(e) => updateContent("borderRadius", e.target.value)}
+                className="input"
+              >
+                {RADIUS_OPTIONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Ajustement image">
+              <select
+                value={(content.objectFit as string) || "cover"}
+                onChange={(e) => updateContent("objectFit", e.target.value)}
+                className="input"
+              >
+                <option value="cover">Remplir (cover)</option>
+                <option value="contain">Contenir (contain)</option>
+                <option value="fill">Étirer (fill)</option>
+              </select>
+            </Field>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Contrôles</h4>
+
+            <label className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                checked={(content.showArrows as boolean) !== false}
+                onChange={(e) => updateContent("showArrows", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher les flèches prev/next
+              </span>
+            </label>
+
+            <label className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                checked={(content.showDots as boolean) !== false}
+                onChange={(e) => updateContent("showDots", e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher les puces de navigation
+              </span>
+            </label>
+
+            <label className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                checked={(content.showCaptions as boolean) || false}
+                onChange={(e) =>
+                  updateContent("showCaptions", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Afficher les légendes
+              </span>
+            </label>
+          </div>
+
+          <div className="pt-6 mt-4">
+            <h4 className="font-medium text-gray-900 mb-3">Overlay</h4>
+
+            <label className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                checked={(content.overlayEnabled as boolean) || false}
+                onChange={(e) =>
+                  updateContent("overlayEnabled", e.target.checked)
+                }
+                className="w-4 h-4 rounded border-gray-300"
+              />
+              <span className="text-sm text-gray-700">
+                Activer l&apos;overlay
+              </span>
+            </label>
+
+            {(content.overlayEnabled as boolean) && (
+              <Field label="Overlay">
+                <div className="flex items-center gap-2">
+                  <DebouncedColorInput
+                    value={(content.overlayColor as string) || "#000000"}
+                    onChange={(val) => updateContent("overlayColor", val)}
+                  />
+                  <DebouncedRangeInput
+                    value={(content.overlayOpacity as number) || 30}
+                    onChange={(val) => updateContent("overlayOpacity", val)}
+                    min={0}
+                    max={100}
+                    className="flex-1"
+                  />
+                  <span className="text-sm w-12">
+                    {(content.overlayOpacity as number) || 30}%
+                  </span>
+                </div>
+              </Field>
+            )}
           </div>
         </div>
       );

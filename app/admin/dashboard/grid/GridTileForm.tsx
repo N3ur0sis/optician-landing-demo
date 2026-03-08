@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { GridTile } from "./GridManagerClient";
-import { AlertCircle, Image as ImageIcon, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { GridTile, SliderConfig, SliderSlideData } from "./GridManagerClient";
+import { AlertCircle, Image as ImageIcon, Link as LinkIcon, ExternalLink, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, Play, Layers } from "lucide-react";
 import MediaPicker from "@/components/media/MediaPicker";
 
 type Page = {
@@ -25,6 +25,16 @@ type ValidationErrors = {
   rowStart?: string;
 };
 
+const defaultSliderConfig: SliderConfig = {
+  slides: [],
+  autoplay: true,
+  interval: 5,
+  transition: "slide",
+  showDots: true,
+  showArrows: true,
+  pauseOnHover: true,
+};
+
 export default function GridTileForm({
   tile,
   onSave,
@@ -35,6 +45,8 @@ export default function GridTileForm({
     caption: tile?.caption || "",
     href: tile?.href || "/",
     backgroundUrl: tile?.backgroundUrl || "",
+    tileType: (tile?.tileType || "image") as "image" | "slider",
+    sliderData: (tile?.sliderData || defaultSliderConfig) as SliderConfig,
     colSpan: tile?.colSpan || 2,
     rowSpan: tile?.rowSpan || 1,
     colStart: tile?.colStart || 1,
@@ -136,14 +148,20 @@ export default function GridTileForm({
     const titleError = validateField("title", formData.title);
     if (titleError) newErrors.title = titleError;
 
-    const hrefError = validateField("href", formData.href);
-    if (hrefError) newErrors.href = hrefError;
+    // href not required for sliders (they don't link anywhere)
+    if (formData.tileType !== "slider") {
+      const hrefError = validateField("href", formData.href);
+      if (hrefError) newErrors.href = hrefError;
+    }
 
-    const backgroundUrlError = validateField(
-      "backgroundUrl",
-      formData.backgroundUrl,
-    );
-    if (backgroundUrlError) newErrors.backgroundUrl = backgroundUrlError;
+    // backgroundUrl only required for image tiles
+    if (formData.tileType !== "slider") {
+      const backgroundUrlError = validateField(
+        "backgroundUrl",
+        formData.backgroundUrl,
+      );
+      if (backgroundUrlError) newErrors.backgroundUrl = backgroundUrlError;
+    }
 
     const rowStartError = validateField("rowStart", formData.rowStart);
     if (rowStartError) newErrors.rowStart = rowStartError;
@@ -155,6 +173,7 @@ export default function GridTileForm({
   const handleBlur = (fieldName: string) => {
     setTouched({ ...touched, [fieldName]: true });
     const fieldValue = formData[fieldName as keyof typeof formData];
+    if (typeof fieldValue === "object" && fieldValue !== null) return; // skip complex fields like sliderData
     const error = validateField(
       fieldName,
       typeof fieldValue === "boolean" ? String(fieldValue) : fieldValue,
@@ -174,7 +193,16 @@ export default function GridTileForm({
     });
 
     if (validateForm()) {
-      onSave(formData);
+      const dataToSave: Partial<GridTile> = {
+        ...formData,
+        sliderData: formData.tileType === "slider" ? formData.sliderData : null,
+        // For slider tiles: use first slide image as backgroundUrl preview, set href to empty
+        backgroundUrl: formData.tileType === "slider" && formData.sliderData.slides.length > 0
+          ? formData.sliderData.slides[0].src
+          : formData.backgroundUrl,
+        href: formData.tileType === "slider" ? (formData.href || "/") : formData.href,
+      };
+      onSave(dataToSave);
     }
   };
 
@@ -234,6 +262,39 @@ export default function GridTileForm({
           onSubmit={handleSubmit}
           className="p-8 space-y-6 overflow-y-auto flex-1"
         >
+          {/* Tile Type Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type de tuile
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, tileType: "image" })}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-colors border-2 ${
+                  formData.tileType === "image"
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                <ImageIcon className="w-4 h-4" />
+                Image statique
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, tileType: "slider" })}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-sm font-medium transition-colors border-2 ${
+                  formData.tileType === "slider"
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                <Layers className="w-4 h-4" />
+                Slider (défilant)
+              </button>
+            </div>
+          </div>
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -265,7 +326,7 @@ export default function GridTileForm({
             )}
           </div>
 
-          {/* Caption */}
+          {/* Caption - visible for all tile types */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Légende
@@ -281,7 +342,8 @@ export default function GridTileForm({
             />
           </div>
 
-          {/* Link */}
+          {/* Link - only for image tiles */}
+          {formData.tileType === "image" && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Lien <span className="text-red-500">*</span>
@@ -371,8 +433,10 @@ export default function GridTileForm({
               </div>
             )}
           </div>
+          )}
 
-          {/* Background Image */}
+          {/* Background Image - only for image type */}
+          {formData.tileType === "image" && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Image de fond <span className="text-red-500">*</span>
@@ -430,6 +494,297 @@ export default function GridTileForm({
               </div>
             )}
           </div>
+          )}
+
+          {/* Slider Configuration - only for slider type */}
+          {formData.tileType === "slider" && (
+          <div className="space-y-4 p-4 bg-purple-50 border border-purple-200 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Layers className="w-5 h-5 text-purple-600" />
+              <h3 className="text-sm font-semibold text-purple-900">Configuration du slider</h3>
+            </div>
+
+            {/* Slides list */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Slides ({formData.sliderData.slides.length})
+              </label>
+              <div className="space-y-2">
+                {formData.sliderData.slides.map((slide, idx) => (
+                  <div key={slide.id} className="flex items-start gap-2 p-3 bg-white rounded-lg border border-gray-200">
+                    <div className="flex flex-col gap-0.5 mt-1">
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => {
+                          const slides = [...formData.sliderData.slides];
+                          [slides[idx - 1], slides[idx]] = [slides[idx], slides[idx - 1]];
+                          setFormData({ ...formData, sliderData: { ...formData.sliderData, slides } });
+                        }}
+                        className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === formData.sliderData.slides.length - 1}
+                        onClick={() => {
+                          const slides = [...formData.sliderData.slides];
+                          [slides[idx], slides[idx + 1]] = [slides[idx + 1], slides[idx]];
+                          setFormData({ ...formData, sliderData: { ...formData.sliderData, slides } });
+                        }}
+                        className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div className="w-20 h-14 bg-gray-100 rounded overflow-hidden shrink-0">
+                      {slide.src ? (
+                        <img src={slide.src} alt={slide.alt || ""} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <ImageIcon className="w-5 h-5" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2 min-w-0">
+                      <MediaPicker
+                        value={slide.src}
+                        onChange={(url) => {
+                          const slides = [...formData.sliderData.slides];
+                          slides[idx] = { ...slides[idx], src: url };
+                          setFormData({ ...formData, sliderData: { ...formData.sliderData, slides } });
+                        }}
+                        acceptTypes="image"
+                        placeholder="Image du slide"
+                        showPreview={false}
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={slide.title || ""}
+                          onChange={(e) => {
+                            const slides = [...formData.sliderData.slides];
+                            slides[idx] = { ...slides[idx], title: e.target.value };
+                            setFormData({ ...formData, sliderData: { ...formData.sliderData, slides } });
+                          }}
+                          placeholder="Titre (optionnel)"
+                          className="col-span-2 px-2 py-1.5 border border-gray-300 rounded text-sm"
+                        />
+                        <textarea
+                          rows={3}
+                          value={slide.description || ""}
+                          onChange={(e) => {
+                            const slides = [...formData.sliderData.slides];
+                            slides[idx] = { ...slides[idx], description: e.target.value };
+                            setFormData({ ...formData, sliderData: { ...formData.sliderData, slides } });
+                          }}
+                          placeholder="Description / texte affiché sur la tuile (optionnel)"
+                          className="col-span-2 px-2 py-1.5 border border-gray-300 rounded text-sm resize-none"
+                        />
+                      </div>
+                      {/* Slide link */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          {(() => {
+                            const knownPaths = ["/", ...pages.map(p => `/${p.slug}`)];
+                            const isCustom = slide.href && !knownPaths.includes(slide.href);
+                            const selectValue = !slide.href ? "" : isCustom ? "__custom__" : slide.href;
+                            return (
+                              <>
+                                <select
+                                  value={selectValue}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const slides = [...formData.sliderData.slides];
+                                    if (val === "__custom__") {
+                                      slides[idx] = { ...slides[idx], href: "https://" };
+                                    } else {
+                                      slides[idx] = { ...slides[idx], href: val || undefined };
+                                    }
+                                    setFormData({ ...formData, sliderData: { ...formData.sliderData, slides } });
+                                  }}
+                                  className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm bg-white"
+                                >
+                                  <option value="">Pas de lien (non cliquable)</option>
+                                  <option value="/">Accueil</option>
+                                  {pages.map((page) => (
+                                    <option key={page.id} value={`/${page.slug}`}>
+                                      {page.title}
+                                    </option>
+                                  ))}
+                                  <option value="__custom__">URL personnalisée...</option>
+                                </select>
+                                {isCustom && (
+                                  <input
+                                    type="text"
+                                    value={slide.href || ""}
+                                    onChange={(e) => {
+                                      const slides = [...formData.sliderData.slides];
+                                      slides[idx] = { ...slides[idx], href: e.target.value };
+                                      setFormData({ ...formData, sliderData: { ...formData.sliderData, slides } });
+                                    }}
+                                    placeholder="https://exemple.com ou /page"
+                                    className="mt-1 px-2 py-1.5 border border-gray-300 rounded text-sm w-full"
+                                  />
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                        <LinkIcon className="w-4 h-4 text-gray-400 shrink-0" />
+                      </div>
+                      {slide.href && slide.href !== "" && (
+                        <div className="flex items-center gap-1 text-xs text-purple-600">
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Redirige vers : {slide.href}</span>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const slides = formData.sliderData.slides.filter((_, i) => i !== idx);
+                        setFormData({ ...formData, sliderData: { ...formData.sliderData, slides } });
+                      }}
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newSlide: SliderSlideData = {
+                      id: Date.now().toString(),
+                      src: "",
+                      alt: "",
+                      title: "",
+                      description: "",
+                      href: "",
+                    };
+                    setFormData({
+                      ...formData,
+                      sliderData: {
+                        ...formData.sliderData,
+                        slides: [...formData.sliderData.slides, newSlide],
+                      },
+                    });
+                  }}
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm text-purple-600 hover:text-purple-800 border border-dashed border-purple-300 hover:border-purple-400 rounded-lg w-full justify-center bg-white"
+                >
+                  <Plus className="h-4 w-4" /> Ajouter un slide
+                </button>
+              </div>
+            </div>
+
+            {/* Slider options */}
+            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-purple-200">
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.sliderData.autoplay}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        sliderData: { ...formData.sliderData, autoplay: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-gray-700">Défilement automatique</span>
+                </label>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Intervalle ({formData.sliderData.interval}s)
+                </label>
+                <input
+                  type="range"
+                  min={1}
+                  max={30}
+                  step={1}
+                  value={formData.sliderData.interval}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      sliderData: { ...formData.sliderData, interval: parseInt(e.target.value) },
+                    })
+                  }
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Transition</label>
+                <select
+                  value={formData.sliderData.transition}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      sliderData: { ...formData.sliderData, transition: e.target.value as "slide" | "fade" | "none" },
+                    })
+                  }
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm bg-white"
+                >
+                  <option value="slide">Glissement</option>
+                  <option value="fade">Fondu</option>
+                  <option value="none">Aucune</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.sliderData.showDots}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        sliderData: { ...formData.sliderData, showDots: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <span className="text-xs text-gray-700">Puces</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.sliderData.showArrows}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        sliderData: { ...formData.sliderData, showArrows: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <span className="text-xs text-gray-700">Flèches</span>
+                </label>
+              </div>
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.sliderData.pauseOnHover}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        sliderData: { ...formData.sliderData, pauseOnHover: e.target.checked },
+                      })
+                    }
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <span className="text-xs text-gray-700">Pause au survol</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          )}
 
           {/* Grid Size */}
           <div className="grid grid-cols-2 gap-4">

@@ -86,6 +86,7 @@ enum BlockType {
   GALLERY           // Image gallery/carousel
   VIDEO             // Video embed or upload
   FILE              // Downloadable file
+  IMAGE_SLIDER      // Image slider/carousel with autoplay
   
   // Layout
   COLUMNS           // Multi-column layout (2, 3, 4 cols)
@@ -167,6 +168,8 @@ model GridTile {
   caption      String?
   href         String
   backgroundUrl String     // Image URL or CSS gradient
+  tileType     String      @default("image")  // "image" or "slider"
+  sliderData   String?     // JSON: {slides: [{src, alt, title?, description?}], autoplay, interval, transition, showDots, showArrows, pauseOnHover}
   colSpan      Int         @default(2)  // 1-4 columns
   rowSpan      Int         @default(1)  // 1-2 rows
   colStart     Int         @default(1)  // Starting column 1-4

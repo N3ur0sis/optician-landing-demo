@@ -30,6 +30,8 @@ import {
   Smartphone,
   Tablet,
   Box,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   FaFacebook,
@@ -44,6 +46,10 @@ import dynamic from 'next/dynamic';
 import {
   ApparenceSettings,
   FooterLink,
+  FooterSection,
+  CustomBlock,
+  CustomBlockType,
+  CustomListItem,
   defaultApparenceSettings,
   parseSettingsFromAPI,
 } from "@/types/apparence";
@@ -324,12 +330,14 @@ function TextInput({
   onChange,
   placeholder,
   type = "text",
+  description,
 }: {
   label: string;
   value: string;
   onChange: (val: string) => void;
   placeholder?: string;
   type?: string;
+  description?: string;
 }) {
   return (
     <div>
@@ -343,6 +351,9 @@ function TextInput({
         placeholder={placeholder}
         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white"
       />
+      {description && (
+        <p className="mt-1 text-xs text-gray-500">{description}</p>
+      )}
     </div>
   );
 }
@@ -610,6 +621,7 @@ export default function ApparenceClient() {
         ...settings,
         footer_nav_links: JSON.stringify(settings.footer_nav_links),
         footer_legal_links: JSON.stringify(settings.footer_legal_links),
+        footer_sections: JSON.stringify(settings.footer_sections),
       };
 
       const response = await fetch("/api/settings", {
@@ -2382,21 +2394,26 @@ export default function ApparenceClient() {
                     <div
                       className={`mx-auto ${footerPreviewMode === "mobile" ? "px-3" : "px-4"}`}
                     >
-                      {/* Responsive grid: 4 cols desktop, 2 cols tablet, 1 col mobile */}
+                      {/* Responsive grid: dynamic cols based on enabled sections */}
                       <div
-                        className={`grid gap-4 text-xs ${
-                          footerPreviewMode === "desktop"
-                            ? "grid-cols-4"
+                        className="grid gap-4 text-xs"
+                        style={{
+                          gridTemplateColumns: footerPreviewMode === "desktop"
+                            ? `repeat(${Math.min(Math.max(settings.footer_sections.filter(s => s.enabled).length, 1), 4)}, 1fr)`
                             : footerPreviewMode === "tablet"
-                              ? "grid-cols-2"
-                              : "grid-cols-1"
-                        }`}
+                              ? "repeat(2, 1fr)"
+                              : "1fr"
+                        }}
                       >
                         {/* Logo & tagline */}
                         <div
                           className={
                             footerPreviewMode === "mobile" ? "text-center" : ""
                           }
+                          style={{
+                            order: settings.footer_sections.find(s => s.type === "brand")?.order ?? 0,
+                            display: settings.footer_sections.find(s => s.type === "brand")?.enabled === false ? "none" : undefined
+                          }}
                         >
                           {settings.footer_logo_url && (
                             <Image
@@ -2490,6 +2507,10 @@ export default function ApparenceClient() {
                           className={
                             footerPreviewMode === "mobile" ? "text-center" : ""
                           }
+                          style={{
+                            order: settings.footer_sections.find(s => s.type === "navigation")?.order ?? 1,
+                            display: settings.footer_sections.find(s => s.type === "navigation")?.enabled === false ? "none" : undefined
+                          }}
                         >
                           <h3 className="text-[10px] font-bold tracking-wider uppercase mb-1 opacity-80">
                             <EditableText
@@ -2531,6 +2552,10 @@ export default function ApparenceClient() {
                           className={
                             footerPreviewMode === "mobile" ? "text-center" : ""
                           }
+                          style={{
+                            order: settings.footer_sections.find(s => s.type === "contact")?.order ?? 2,
+                            display: settings.footer_sections.find(s => s.type === "contact")?.enabled === false ? "none" : undefined
+                          }}
                         >
                           <h3 className="text-[10px] font-bold tracking-wider uppercase mb-1 opacity-80">
                             <EditableText
@@ -2583,13 +2608,14 @@ export default function ApparenceClient() {
                           </ul>
                         </div>
                         {/* Newsletter */}
-                        {settings.newsletter_enabled && (
+                        {settings.newsletter_enabled && settings.footer_sections.find(s => s.type === "newsletter")?.enabled !== false && (
                           <div
                             className={
                               footerPreviewMode === "mobile"
                                 ? "text-center"
                                 : ""
                             }
+                            style={{ order: settings.footer_sections.find(s => s.type === "newsletter")?.order ?? 3 }}
                           >
                             <h3 className="text-[10px] font-bold tracking-wider uppercase mb-1 opacity-80">
                               <EditableText
@@ -2640,6 +2666,103 @@ export default function ApparenceClient() {
                             </div>
                           </div>
                         )}
+                        {/* Custom sections */}
+                        {settings.footer_sections
+                          .filter((s) => s.type === "custom" && s.enabled)
+                          .sort((a, b) => a.order - b.order)
+                          .map((section) => (
+                            <div
+                              key={section.id}
+                              className={footerPreviewMode === "mobile" ? "text-center" : ""}
+                              style={{ order: section.order }}
+                            >
+                              {section.title && (
+                                <h3 className="text-[10px] font-bold tracking-wider uppercase mb-1 opacity-80">
+                                  <EditableText
+                                    value={section.title}
+                                    onChange={(val) =>
+                                      updateSetting("footer_sections",
+                                        settings.footer_sections.map((s) =>
+                                          s.id === section.id ? { ...s, title: val } : s
+                                        )
+                                      )
+                                    }
+                                  />
+                                </h3>
+                              )}
+                              <div className="flex flex-col gap-1.5">
+                                {(section.customBlocks || []).map((block) => {
+                                  const updateBlockField = (field: string, val: unknown) =>
+                                    updateSetting("footer_sections",
+                                      settings.footer_sections.map((s) =>
+                                        s.id !== section.id ? s : {
+                                          ...s,
+                                          customBlocks: (s.customBlocks || []).map((b) =>
+                                            b.id === block.id ? { ...b, [field]: val } : b
+                                          ),
+                                        }
+                                      )
+                                    );
+                                  if (block.type === "text") {
+                                    return (
+                                      <p key={block.id} className="text-[10px] opacity-60 leading-relaxed">
+                                        {block.content
+                                          ? <EditableText value={block.content} onChange={(val) => updateBlockField("content", val)} />
+                                          : <span className="italic opacity-40">Texte vide</span>
+                                        }
+                                      </p>
+                                    );
+                                  }
+                                  if (block.type === "image") {
+                                    return block.src ? (
+                                      <img key={block.id} src={block.src} alt={block.alt || ""} className="max-h-10 w-auto object-contain" />
+                                    ) : (
+                                      <div key={block.id} className="h-6 w-16 bg-current opacity-20 rounded flex items-center justify-center">
+                                        <span className="text-[8px] opacity-60">Image</span>
+                                      </div>
+                                    );
+                                  }
+                                  if (block.type === "list") {
+                                    const marker = { bullet: "•", dash: "—", none: "" }[(block as {listStyle?: string}).listStyle || "dash"];
+                                    const items = (block.items || []).map((it) =>
+                                      typeof it === "string" ? { label: it } : it as CustomListItem
+                                    ).filter((it) => it.label);
+                                    return (
+                                      <ul key={block.id} className="space-y-0.5 text-[10px] opacity-60">
+                                        {items.map((item, i) => (
+                                          <li key={i} className="flex items-center gap-1">
+                                            {marker && <span className="opacity-40">{marker}</span>}
+                                            <EditableText
+                                              value={item.label}
+                                              onChange={(val) => {
+                                                const newItems = items.map((it, j) => j === i ? { ...it, label: val } : it);
+                                                updateBlockField("items", newItems);
+                                              }}
+                                              className={item.href ? "underline" : ""}
+                                            />
+                                          </li>
+                                        ))}
+                                        {items.length === 0 && <li className="italic opacity-30">Liste vide</li>}
+                                      </ul>
+                                    );
+                                  }
+                                  if (block.type === "button") {
+                                    return (
+                                      <div key={block.id}
+                                        className="inline-block px-2 py-0.5 text-[10px] rounded border border-current opacity-60"
+                                      >
+                                        <EditableText value={block.label || "Bouton"} onChange={(val) => updateBlockField("label", val)} />
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })}
+                                {(section.customBlocks || []).length === 0 && (
+                                  <p className="text-[9px] opacity-30 italic">Section vide</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                       </div>
                       {/* Bottom */}
                       <div
@@ -2684,6 +2807,352 @@ export default function ApparenceClient() {
             {/* Scrollable Options */}
             <div className="lg:flex-1 lg:overflow-y-auto pr-2 -mr-2">
               <div className="flex flex-col gap-4">
+                {/* === FOOTER SECTION MANAGER === */}
+                <CollapsibleSection
+                  title="Structure"
+                  icon={Layout}
+                  defaultOpen={true}
+                  badge={`${settings.footer_sections.filter(s => s.enabled).length}/${settings.footer_sections.length}`}
+                >
+                  <div className="space-y-2 mt-3">
+                    <p className="text-xs text-gray-500 mb-3">
+                      Réorganisez et activez/désactivez les sections de votre footer.
+                    </p>
+                    {[...settings.footer_sections]
+                      .sort((a, b) => a.order - b.order)
+                      .map((section, index, sortedArr) => {
+                        const sectionLabels: Record<string, string> = {
+                          brand: "Marque & Logo",
+                          navigation: "Navigation",
+                          contact: "Contact",
+                          newsletter: "Newsletter",
+                          custom: "Personnalisée",
+                        };
+                        return (
+                          <div key={section.id} className={`rounded-lg border transition-colors ${
+                            section.enabled ? "bg-white border-gray-200" : "bg-gray-50 border-gray-100 opacity-60"
+                          }`}>
+                            <div className="flex items-center gap-2 p-2">
+                              {/* Reorder buttons */}
+                              <div className="flex flex-col gap-0.5">
+                                <button
+                                  onClick={() => {
+                                    if (index === 0) return;
+                                    const sorted = [...settings.footer_sections].sort((a, b) => a.order - b.order);
+                                    const newSections = sorted.map((s, i) => ({ ...s, order: i }));
+                                    const temp = newSections[index].order;
+                                    newSections[index] = { ...newSections[index], order: newSections[index - 1].order };
+                                    newSections[index - 1] = { ...newSections[index - 1], order: temp };
+                                    updateSetting("footer_sections", newSections);
+                                  }}
+                                  disabled={index === 0}
+                                  className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (index === sortedArr.length - 1) return;
+                                    const sorted = [...settings.footer_sections].sort((a, b) => a.order - b.order);
+                                    const newSections = sorted.map((s, i) => ({ ...s, order: i }));
+                                    const temp = newSections[index].order;
+                                    newSections[index] = { ...newSections[index], order: newSections[index + 1].order };
+                                    newSections[index + 1] = { ...newSections[index + 1], order: temp };
+                                    updateSetting("footer_sections", newSections);
+                                  }}
+                                  disabled={index === sortedArr.length - 1}
+                                  className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </button>
+                              </div>
+
+                              {/* Section badge & title */}
+                              <div className="flex-1 min-w-0 flex items-center gap-2">
+                                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0 ${
+                                  section.type === "custom" ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-600"
+                                }`}>
+                                  {sectionLabels[section.type] || section.type}
+                                </span>
+                                {section.type === "custom" && (
+                                  <input
+                                    type="text"
+                                    value={section.title || ""}
+                                    onChange={(e) => {
+                                      updateSetting(
+                                        "footer_sections",
+                                        settings.footer_sections.map((s) =>
+                                          s.id === section.id ? { ...s, title: e.target.value } : s
+                                        )
+                                      );
+                                    }}
+                                    placeholder="Titre de la section"
+                                    className="flex-1 min-w-0 px-2 py-1 border border-gray-300 rounded text-xs bg-white"
+                                  />
+                                )}
+                              </div>
+
+                              {/* Toggle visibility */}
+                              <button
+                                onClick={() => {
+                                  updateSetting(
+                                    "footer_sections",
+                                    settings.footer_sections.map((s) =>
+                                      s.id === section.id ? { ...s, enabled: !s.enabled } : s
+                                    )
+                                  );
+                                }}
+                                className={`p-1.5 rounded transition-colors ${
+                                  section.enabled
+                                    ? "text-green-600 hover:bg-green-50"
+                                    : "text-gray-400 hover:bg-gray-100"
+                                }`}
+                                title={section.enabled ? "Cliquer pour masquer" : "Cliquer pour afficher"}
+                              >
+                                {section.enabled ? (
+                                  <Eye className="h-4 w-4" />
+                                ) : (
+                                  <EyeOff className="h-4 w-4" />
+                                )}
+                              </button>
+
+                              {/* Delete (custom only) */}
+                              {section.type === "custom" && (
+                                <button
+                                  onClick={() => {
+                                    updateSetting(
+                                      "footer_sections",
+                                      settings.footer_sections.filter((s) => s.id !== section.id)
+                                    );
+                                  }}
+                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+                                  title="Supprimer cette section"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Custom section block editor */}
+                            {section.type === "custom" && section.enabled && (
+                              <div className="px-3 pb-3 border-t border-gray-100">
+                                <div className="mt-2 flex flex-col gap-2">
+                                  {(section.customBlocks || []).map((block, blockIdx) => {
+                                    const updateBlock = (patch: Partial<Record<string, unknown>>) => {
+                                      updateSetting(
+                                        "footer_sections",
+                                        settings.footer_sections.map((s) =>
+                                          s.id !== section.id ? s : {
+                                            ...s,
+                                            customBlocks: (s.customBlocks || []).map((b, i) =>
+                                              i === blockIdx ? { ...b, ...patch } : b
+                                            ),
+                                          }
+                                        )
+                                      );
+                                    };
+                                    const deleteBlock = () => {
+                                      updateSetting(
+                                        "footer_sections",
+                                        settings.footer_sections.map((s) =>
+                                          s.id !== section.id ? s : {
+                                            ...s,
+                                            customBlocks: (s.customBlocks || []).filter((_, i) => i !== blockIdx),
+                                          }
+                                        )
+                                      );
+                                    };
+                                    const blockLabels: Record<string, string> = { text: "Texte", image: "Image", list: "Liste", button: "Bouton" };
+                                    return (
+                                      <div key={block.id} className="border border-gray-200 rounded-lg bg-white">
+                                        <div className="flex items-center justify-between px-2.5 py-1.5 bg-gray-50 rounded-t-lg border-b border-gray-200">
+                                          <span className="text-xs font-medium text-gray-600">{blockLabels[block.type] ?? block.type}</span>
+                                          <button onClick={deleteBlock} className="p-1 text-gray-400 hover:text-red-500 rounded">
+                                            <Trash2 className="h-3 w-3" />
+                                          </button>
+                                        </div>
+                                        <div className="px-2.5 py-2.5 flex flex-col gap-2">
+                                          {block.type === "text" && (
+                                            <textarea
+                                              value={(block as {content?: string}).content || ""}
+                                              onChange={(e) => updateBlock({ content: e.target.value })}
+                                              rows={3}
+                                              className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white resize-y"
+                                              placeholder="Texte..."
+                                            />
+                                          )}
+                                          {block.type === "image" && (
+                                            <>
+                                              <MediaPicker
+                                                value={(block as {src?: string}).src || ""}
+                                                onChange={(url) => updateBlock({ src: url })}
+                                                acceptTypes="image"
+                                                placeholder="Image"
+                                                showPreview={false}
+                                              />
+                                              <input type="text"
+                                                value={(block as {alt?: string}).alt || ""}
+                                                onChange={(e) => updateBlock({ alt: e.target.value })}
+                                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                                                placeholder="Texte alternatif (alt)" />
+                                              <input type="text"
+                                                value={(block as {href?: string}).href || ""}
+                                                onChange={(e) => updateBlock({ href: e.target.value })}
+                                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                                                placeholder="Lien optionnel (/page ou https://...)" />
+                                            </>
+                                          )}
+                                          {block.type === "list" && (
+                                            <div className="flex flex-col gap-1.5">
+                                              {/* ListStyle selector */}
+                                              <div className="flex gap-1 items-center mb-1">
+                                                <span className="text-[10px] text-gray-500">Marqueur :</span>
+                                                {(["bullet", "dash", "none"] as const).map((style) => (
+                                                  <button key={style}
+                                                    onClick={() => updateBlock({ listStyle: style })}
+                                                    className={`px-2 py-0.5 text-[10px] rounded border transition-colors ${
+                                                      ((block as {listStyle?: string}).listStyle || "dash") === style
+                                                        ? "bg-gray-900 text-white border-gray-900"
+                                                        : "border-gray-300 text-gray-600 hover:border-gray-500"
+                                                    }`}
+                                                  >
+                                                    {style === "bullet" ? "• Point" : style === "dash" ? "— Trait" : "Aucun"}
+                                                  </button>
+                                                ))}
+                                              </div>
+                                              {/* Items */}
+                                              {((block as {items?: CustomListItem[]}).items || []).map((item, ii) => (
+                                                <div key={ii} className="flex flex-col gap-1 border border-gray-100 rounded p-1.5 bg-gray-50">
+                                                  <div className="flex gap-1.5 items-center">
+                                                    <input type="text" value={item.label || ""}
+                                                      onChange={(e) => {
+                                                        const items = [...((block as {items?: CustomListItem[]}).items || [])];
+                                                        items[ii] = { ...items[ii], label: e.target.value };
+                                                        updateBlock({ items });
+                                                      }}
+                                                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs bg-white"
+                                                      placeholder={`Texte de l'élément ${ii + 1}`} />
+                                                    <button onClick={() => {
+                                                      const items = ((block as {items?: CustomListItem[]}).items || []).filter((_, j) => j !== ii);
+                                                      updateBlock({ items });
+                                                    }} className="p-0.5 text-gray-400 hover:text-red-500 shrink-0">
+                                                      <Trash2 className="h-3 w-3" />
+                                                    </button>
+                                                  </div>
+                                                  <input type="text" value={item.href || ""}
+                                                    onChange={(e) => {
+                                                      const items = [...((block as {items?: CustomListItem[]}).items || [])];
+                                                      items[ii] = { ...items[ii], href: e.target.value || undefined };
+                                                      updateBlock({ items });
+                                                    }}
+                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-xs bg-white"
+                                                    placeholder="Lien optionnel (/page, https://...)" />
+                                                </div>
+                                              ))}
+                                              <button
+                                                onClick={() => updateBlock({ items: [...((block as {items?: CustomListItem[]}).items || []), { label: "", href: undefined }] })}
+                                                className="text-xs text-gray-500 hover:text-gray-800 flex items-center gap-1 mt-0.5"
+                                              >
+                                                <Plus className="h-3 w-3" /> Ajouter un élément
+                                              </button>
+                                            </div>
+                                          )}
+                                          {block.type === "button" && (
+                                            <>
+                                              <input type="text"
+                                                value={(block as {label?: string}).label || ""}
+                                                onChange={(e) => updateBlock({ label: e.target.value })}
+                                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                                                placeholder="Texte du bouton" />
+                                              <input type="text"
+                                                value={(block as {href?: string}).href || ""}
+                                                onChange={(e) => updateBlock({ href: e.target.value })}
+                                                className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                                                placeholder="Lien (/contact, https://...)" />
+                                              <div className="flex gap-1 items-center">
+                                                <span className="text-[10px] text-gray-500">Style :</span>
+                                                {(["filled", "outline", "ghost"] as const).map((v) => (
+                                                  <button key={v}
+                                                    onClick={() => updateBlock({ variant: v })}
+                                                    className={`px-2 py-0.5 text-[10px] rounded border transition-colors ${
+                                                      ((block as {variant?: string}).variant || "filled") === v
+                                                        ? "bg-gray-900 text-white border-gray-900"
+                                                        : "border-gray-300 text-gray-600 hover:border-gray-500"
+                                                    }`}
+                                                  >
+                                                    {v === "filled" ? "Rempli" : v === "outline" ? "Contour" : "Lien"}
+                                                  </button>
+                                                ))}
+                                              </div>
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {/* Add block buttons */}
+                                <div className="mt-2 flex gap-1.5 flex-wrap">
+                                  {(["text", "image", "list", "button"] as CustomBlockType[]).map((btype) => {
+                                    const addLabels: Record<CustomBlockType, string> = { text: "+ Texte", image: "+ Image", list: "+ Liste", button: "+ Bouton" };
+                                    const makeBlock = (): CustomBlock => {
+                                      const id = `${btype}_${Date.now()}`;
+                                      if (btype === "text") return { id, type: "text", content: "", fontSize: "sm" };
+                                      if (btype === "image") return { id, type: "image", src: "", size: "auto", align: "left" };
+                                      if (btype === "list") return { id, type: "list", items: [{ label: "", href: undefined }], listStyle: "dash" };
+                                      return { id, type: "button", label: "", href: "/", variant: "filled" };
+                                    };
+                                    return (
+                                      <button key={btype}
+                                        onClick={() => {
+                                          updateSetting(
+                                            "footer_sections",
+                                            settings.footer_sections.map((s) =>
+                                              s.id !== section.id ? s : {
+                                                ...s,
+                                                customBlocks: [...(s.customBlocks || []), makeBlock()],
+                                              }
+                                            )
+                                          );
+                                        }}
+                                        className="text-xs px-2.5 py-1 border border-dashed border-gray-300 hover:border-gray-500 hover:text-gray-700 text-gray-500 rounded transition-colors"
+                                      >
+                                        {addLabels[btype]}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    {/* Add custom section */}
+                    <button
+                      onClick={() => {
+                        const maxOrder = settings.footer_sections.reduce(
+                          (max, s) => Math.max(max, s.order),
+                          -1
+                        );
+                        updateSetting("footer_sections", [
+                          ...settings.footer_sections,
+                          {
+                            id: `custom_${Date.now()}`,
+                            type: "custom" as const,
+                            enabled: true,
+                            order: maxOrder + 1,
+                            title: "Nouvelle section",
+                            customBlocks: [],
+                          },
+                        ]);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-black border border-dashed border-gray-300 hover:border-gray-400 rounded-lg w-full justify-center"
+                    >
+                      <Plus className="h-4 w-4" /> Ajouter une section personnalisée
+                    </button>
+                  </div>
+                </CollapsibleSection>
+
                 <CollapsibleSection
                   title="Apparence"
                   icon={Palette}

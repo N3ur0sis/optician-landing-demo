@@ -117,6 +117,15 @@ export interface GalleryImage {
   caption?: string;
 }
 
+export interface SliderSlide {
+  id?: string;
+  src: string;
+  alt?: string;
+  title?: string;
+  description?: string;
+  link?: string;
+}
+
 export interface GridItem {
   title: string;
   description?: string;

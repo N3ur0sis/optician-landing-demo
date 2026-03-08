@@ -8,6 +8,7 @@ import {
   StatItem,
   CardItem,
   GalleryImage,
+  SliderSlide,
   GridItem,
   AccordionItem,
   TabItem,
@@ -291,6 +292,114 @@ export function GalleryEditor({
         className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-700 hover:border-gray-400"
       >
         + Ajouter une image
+      </button>
+    </div>
+  );
+}
+
+// Slides Editor (for Image Slider block)
+export function SlidesEditor({
+  slides,
+  onChange,
+}: {
+  slides: SliderSlide[];
+  onChange: (slides: SliderSlide[]) => void;
+}) {
+  const addSlide = () =>
+    onChange([...slides, { id: crypto.randomUUID(), src: "", alt: "", title: "", description: "", link: "" }]);
+  const updateSlide = (index: number, field: string, value: string) => {
+    const newSlides = [...slides];
+    newSlides[index] = { ...newSlides[index], [field]: value };
+    onChange(newSlides);
+  };
+  const removeSlide = (index: number) =>
+    onChange(slides.filter((_, i) => i !== index));
+  const moveSlide = (index: number, dir: -1 | 1) => {
+    const newIndex = index + dir;
+    if (newIndex < 0 || newIndex >= slides.length) return;
+    const newSlides = [...slides];
+    [newSlides[index], newSlides[newIndex]] = [newSlides[newIndex], newSlides[index]];
+    onChange(newSlides);
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="block text-sm font-medium text-gray-800 mb-1">
+        Slides
+      </label>
+      {slides.map((slide, index) => (
+        <div key={slide.id || index} className="p-3 bg-gray-50 rounded-lg space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-700">
+              Slide {index + 1}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => moveSlide(index, -1)}
+                disabled={index === 0}
+                className="w-7 h-7 flex items-center justify-center rounded bg-gray-200 hover:bg-gray-300 text-gray-600 text-sm disabled:opacity-30 disabled:hover:bg-gray-200"
+                title="Monter"
+              >
+                ↑
+              </button>
+              <button
+                onClick={() => moveSlide(index, 1)}
+                disabled={index === slides.length - 1}
+                className="w-7 h-7 flex items-center justify-center rounded bg-gray-200 hover:bg-gray-300 text-gray-600 text-sm disabled:opacity-30 disabled:hover:bg-gray-200"
+                title="Descendre"
+              >
+                ↓
+              </button>
+              <button
+                onClick={() => removeSlide(index)}
+                className="w-7 h-7 flex items-center justify-center rounded bg-red-50 hover:bg-red-100 text-red-500 text-sm ml-1"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <MediaPicker
+            value={slide.src}
+            onChange={(url) => updateSlide(index, "src", url)}
+            acceptTypes="image"
+            placeholder="Sélectionner une image"
+            showPreview={true}
+          />
+          <input
+            type="text"
+            value={slide.alt || ""}
+            onChange={(e) => updateSlide(index, "alt", e.target.value)}
+            className="input"
+            placeholder="Texte alternatif"
+          />
+          <input
+            type="text"
+            value={slide.title || ""}
+            onChange={(e) => updateSlide(index, "title", e.target.value)}
+            className="input"
+            placeholder="Titre (optionnel)"
+          />
+          <input
+            type="text"
+            value={slide.description || ""}
+            onChange={(e) => updateSlide(index, "description", e.target.value)}
+            className="input"
+            placeholder="Description (optionnelle)"
+          />
+          <input
+            type="text"
+            value={slide.link || ""}
+            onChange={(e) => updateSlide(index, "link", e.target.value)}
+            className="input"
+            placeholder="Lien (optionnel)"
+          />
+        </div>
+      ))}
+      <button
+        onClick={addSlide}
+        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-700 hover:border-gray-400"
+      >
+        + Ajouter un slide
       </button>
     </div>
   );
